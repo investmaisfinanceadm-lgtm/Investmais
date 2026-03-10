@@ -1,7 +1,0 @@
-{
-  "/(creator)/dashboard/page": "app/(creator)/dashboard/page.js",
-  "/(creator)/agenda/page": "app/(creator)/agenda/page.js",
-  "/(creator)/biblioteca/page": "app/(creator)/biblioteca/page.js",
-  "/(creator)/criar/page": "app/(creator)/criar/page.js",
-  "/(creator)/configuracoes/page": "app/(creator)/configuracoes/page.js"
-}
