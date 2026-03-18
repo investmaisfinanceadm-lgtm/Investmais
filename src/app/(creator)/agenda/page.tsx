@@ -15,7 +15,6 @@ import {
     Link2,
     Zap,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 
 type NotionConnectState = 'disconnected' | 'connecting' | 'connected'
@@ -37,20 +36,24 @@ export default function AgendaPage() {
     const [concorrenteInput, setConcorrenteInput] = useState('')
     const [isAnalyzing, setIsAnalyzing] = useState(false)
     const [analysisResult, setAnalysisResult] = useState('')
-    const [posts, setPosts] = useState([
+    const [posts] = useState([
         { id: '1', titulo: 'Home Equity — Benefícios para MEI', status: 'rascunho', data: '2024-12-10' },
         { id: '2', titulo: 'Financiamento: Tire suas dúvidas', status: 'em revisão', data: '2024-12-12' },
         { id: '3', titulo: 'Crédito imobiliário em 2025', status: 'aprovado', data: '2024-12-15' },
         { id: '4', titulo: 'Taxa Selic e seus impactos', status: 'publicado', data: '2024-12-08' },
     ])
-    const supabase = createClient()
 
     useEffect(() => {
         async function loadIntegration() {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) return
-            const { data } = await supabase.schema('im').from('integracoes').select('*').eq('user_id', user.id).eq('tipo', 'notion').maybeSingle()
-            if (data?.ativo) setConnectState('connected')
+            try {
+                const res = await fetch('/api/creator/integracoes')
+                if (!res.ok) return
+                const data: Array<{ tipo: string; ativo: boolean }> = await res.json()
+                const notion = data.find((i) => i.tipo === 'notion')
+                if (notion?.ativo) setConnectState('connected')
+            } catch {
+                // ignore
+            }
         }
         loadIntegration()
     }, [])
@@ -61,19 +64,16 @@ export default function AgendaPage() {
             return
         }
         setConnectState('connecting')
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
 
         await new Promise((r) => setTimeout(r, 1500))
 
-        const { error } = await supabase.schema('im').from('integracoes').upsert({
-            user_id: user.id,
-            tipo: 'notion',
-            token_acesso: notionToken,
-            ativo: true,
-        }, { onConflict: 'user_id,tipo' })
+        const res = await fetch('/api/creator/integracoes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tipo: 'notion', token_acesso: notionToken, ativo: true, configuracoes: {} }),
+        })
 
-        if (error) {
+        if (!res.ok) {
             toast.error('Erro ao conectar com Notion')
             setConnectState('disconnected')
         } else {

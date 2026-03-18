@@ -7,7 +7,6 @@ import { z } from 'zod'
 import toast from 'react-hot-toast'
 import { Loader2, Mail, ArrowLeft, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 
 const schema = z.object({
     email: z.string().email('E-mail inválido'),
@@ -18,7 +17,6 @@ type FormData = z.infer<typeof schema>
 export default function EsqueciSenhaPage() {
     const [isLoading, setIsLoading] = useState(false)
     const [sent, setSent] = useState(false)
-    const supabase = createClient()
 
     const {
         register,
@@ -32,11 +30,13 @@ export default function EsqueciSenhaPage() {
     const onSubmit = async (data: FormData) => {
         setIsLoading(true)
         try {
-            const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-                redirectTo: `${window.location.origin}/redefinir-senha`,
+            const response = await fetch('/api/auth/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: data.email }),
             })
 
-            if (error) {
+            if (!response.ok) {
                 toast.error('Erro ao enviar e-mail. Tente novamente')
                 return
             }

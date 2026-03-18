@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Save, ChevronDown, ChevronUp, History } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { getInitials } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
@@ -23,49 +22,50 @@ export default function AdminCotasPage() {
     const [savingId, setSavingId] = useState<string | null>(null)
     const [sortBy, setSortBy] = useState<'nome' | 'uso'>('nome')
     const [sortDesc, setSortDesc] = useState(false)
-    const supabase = createClient()
 
     useEffect(() => {
         async function loadUsers() {
             setIsLoading(true)
-            const { data } = await supabase
-                .schema('im')
-                .from('profiles')
-                .select('id, nome, email, cota_mensal, cota_usada, avatar_url')
-                .order('nome')
-
-            if (data) {
-                setUsers(data as UserQuota[])
-                const quotas: Record<string, number> = {}
-                data.forEach((u) => {
-                    quotas[u.id] = u.cota_mensal
-                })
-                setEditingQuotas(quotas)
+            try {
+                const response = await fetch('/api/admin/cotas')
+                if (response.ok) {
+                    const data = await response.json()
+                    setUsers(data)
+                    const quotas: Record<string, number> = {}
+                    data.forEach((u: UserQuota) => {
+                        quotas[u.id] = u.cota_mensal
+                    })
+                    setEditingQuotas(quotas)
+                }
+            } finally {
+                setIsLoading(false)
             }
-            setIsLoading(false)
         }
         loadUsers()
     }, [])
 
     const handleSaveQuota = async (userId: string) => {
         setSavingId(userId)
-        const { error } = await supabase
-            .schema('im')
-            .from('profiles')
-            .update({ cota_mensal: editingQuotas[userId] })
-            .eq('id', userId)
+        try {
+            const response = await fetch('/api/admin/cotas', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, cota_mensal: editingQuotas[userId] }),
+            })
 
-        if (error) {
-            toast.error('Erro ao salvar cota')
-        } else {
-            toast.success('Cota atualizada!')
-            setUsers((prev) =>
-                prev.map((u) =>
-                    u.id === userId ? { ...u, cota_mensal: editingQuotas[userId] } : u
+            if (!response.ok) {
+                toast.error('Erro ao salvar cota')
+            } else {
+                toast.success('Cota atualizada!')
+                setUsers((prev) =>
+                    prev.map((u) =>
+                        u.id === userId ? { ...u, cota_mensal: editingQuotas[userId] } : u
+                    )
                 )
-            )
+            }
+        } finally {
+            setSavingId(null)
         }
-        setSavingId(null)
     }
 
     const handleApplyDefaultToAll = async () => {
@@ -77,13 +77,13 @@ export default function AdminCotasPage() {
         })
         setEditingQuotas(newQuotas)
 
-        const { error } = await supabase
-            .schema('im')
-            .from('profiles')
-            .update({ cota_mensal: defaultQuota })
-            .neq('id', '00000000-0000-0000-0000-000000000000')
+        const response = await fetch('/api/admin/cotas', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cota_mensal: defaultQuota }),
+        })
 
-        if (error) {
+        if (!response.ok) {
             toast.error('Erro ao aplicar cota padrão')
         } else {
             toast.success(`Cota padrão de ${defaultQuota} aplicada a todos!`)

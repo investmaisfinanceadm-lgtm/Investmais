@@ -16,7 +16,6 @@ import {
     Eye,
     EyeOff,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { formatDate, getInitials } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import { useForm } from 'react-hook-form'
@@ -62,7 +61,6 @@ function CreateUserModal({
 }) {
     const [isLoading, setIsLoading] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
-    const supabase = createClient()
 
     const {
         register,
@@ -77,7 +75,6 @@ function CreateUserModal({
     const onSubmit = async (data: NewUserForm) => {
         setIsLoading(true)
         try {
-            // Create user via Supabase Admin API via server action
             const response = await fetch('/api/admin/usuarios', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -223,18 +220,19 @@ export default function AdminUsuariosPage() {
     const [filterStatus, setFilterStatus] = useState('todos')
     const [filterPerfil, setFilterPerfil] = useState('todos')
     const [activeMenu, setActiveMenu] = useState<string | null>(null)
-    const supabase = createClient()
 
     const loadUsers = useCallback(async () => {
         setIsLoading(true)
-        const { data } = await supabase
-            .schema('im')
-            .from('profiles')
-            .select('*')
-            .order('created_at', { ascending: false })
-        setUsers((data as UserProfile[]) || [])
-        setIsLoading(false)
-    }, [supabase])
+        try {
+            const response = await fetch('/api/admin/usuarios')
+            if (response.ok) {
+                const data = await response.json()
+                setUsers(data)
+            }
+        } finally {
+            setIsLoading(false)
+        }
+    }, [])
 
     useEffect(() => {
         loadUsers()
@@ -242,13 +240,13 @@ export default function AdminUsuariosPage() {
 
     const handleToggleStatus = async (user: UserProfile) => {
         const newStatus = user.status === 'ativo' ? 'inativo' : 'ativo'
-        const { error } = await supabase
-            .schema('im')
-            .from('profiles')
-            .update({ status: newStatus })
-            .eq('id', user.id)
+        const response = await fetch(`/api/admin/usuarios/${user.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus }),
+        })
 
-        if (error) {
+        if (!response.ok) {
             toast.error('Erro ao atualizar status')
         } else {
             toast.success(`Usuário ${newStatus === 'ativo' ? 'ativado' : 'desativado'}`)
@@ -290,9 +288,9 @@ export default function AdminUsuariosPage() {
         })
 
         if (response.ok) {
-            toast.success('E-mail de redefinição enviado!')
+            toast.success('Link de redefinição gerado!')
         } else {
-            toast.error('Erro ao enviar e-mail')
+            toast.error('Erro ao gerar link')
         }
         setActiveMenu(null)
     }

@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
 import { Loader2, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
 const schema = z.object({
@@ -25,28 +24,50 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>
 
-export default function RedefinirSenhaPage() {
+function RedefinirSenhaForm() {
     const router = useRouter()
+    const searchParams = useSearchParams()
     const [isLoading, setIsLoading] = useState(false)
     const [done, setDone] = useState(false)
     const [showPw1, setShowPw1] = useState(false)
     const [showPw2, setShowPw2] = useState(false)
-    const supabase = createClient()
+    const [token, setToken] = useState<string | null>(null)
+
+    useEffect(() => {
+        const t = searchParams.get('token')
+        setToken(t)
+    }, [searchParams])
 
     const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(schema),
     })
 
     const onSubmit = async (data: FormData) => {
-        setIsLoading(true)
-        const { error } = await supabase.auth.updateUser({ password: data.senha })
-        if (error) {
-            toast.error('Erro ao redefinir senha. Link pode ter expirado.')
-        } else {
-            setDone(true)
-            setTimeout(() => router.push('/login'), 3000)
+        if (!token) {
+            toast.error('Token inválido. Solicite um novo link de recuperação.')
+            return
         }
-        setIsLoading(false)
+
+        setIsLoading(true)
+        try {
+            const response = await fetch('/api/auth/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, password: data.senha }),
+            })
+
+            if (!response.ok) {
+                const result = await response.json()
+                toast.error(result.error || 'Erro ao redefinir senha. Link pode ter expirado.')
+            } else {
+                setDone(true)
+                setTimeout(() => router.push('/login'), 3000)
+            }
+        } catch {
+            toast.error('Erro inesperado. Tente novamente.')
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     if (done) {
@@ -114,5 +135,13 @@ export default function RedefinirSenhaPage() {
                 </Link>
             </div>
         </div>
+    )
+}
+
+export default function RedefinirSenhaPage() {
+    return (
+        <Suspense fallback={<div className="animate-fade-in"><div className="shimmer h-8 w-48 rounded mb-4" /></div>}>
+            <RedefinirSenhaForm />
+        </Suspense>
     )
 }

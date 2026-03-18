@@ -17,9 +17,7 @@ import {
     Instagram,
     Facebook,
     Webhook,
-    BookOpen,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { cn, getInitials } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import { z } from 'zod'
@@ -76,7 +74,6 @@ export default function ConfiguracoesPage() {
     const [brandColors, setBrandColors] = useState({ primary: '#0A1628', secondary: '#C9A84C' })
     const logoInputRef = useRef<HTMLInputElement>(null)
     const avatarInputRef = useRef<HTMLInputElement>(null)
-    const supabase = createClient()
 
     const {
         register,
@@ -87,38 +84,42 @@ export default function ConfiguracoesPage() {
 
     useEffect(() => {
         async function loadData() {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) return
+            try {
+                const [profileRes, intRes] = await Promise.all([
+                    fetch('/api/creator/profile'),
+                    fetch('/api/creator/integracoes'),
+                ])
 
-            const [profileRes, intRes] = await Promise.all([
-                supabase.schema('im').from('profiles').select('nome, email, avatar_url').eq('id', user.id).single(),
-                supabase.schema('im').from('integracoes').select('*').eq('user_id', user.id),
-            ])
+                if (profileRes.ok) {
+                    const data = await profileRes.json()
+                    setProfile({ nome: data.nome || '', email: data.email || '', avatar_url: data.avatar_url || null })
+                }
 
-            if (profileRes.data) setProfile(profileRes.data as typeof profile)
-
-            if (intRes.data) {
-                const map: Record<string, Integration> = {}
-                intRes.data.forEach((i) => {
-                    map[i.tipo] = { tipo: i.tipo, ativo: i.ativo, configuracoes: (i.configuracoes as Record<string, string>) || {} }
-                })
-                setIntegrations(map)
-                if (map.webhook?.configuracoes?.url) setWebhookUrl(map.webhook.configuracoes.url)
+                if (intRes.ok) {
+                    const data: Integration[] = await intRes.json()
+                    const map: Record<string, Integration> = {}
+                    data.forEach((i) => {
+                        map[i.tipo] = { tipo: i.tipo, ativo: i.ativo, configuracoes: (i.configuracoes as Record<string, string>) || {} }
+                    })
+                    setIntegrations(map)
+                    if (map.webhook?.configuracoes?.url) setWebhookUrl(map.webhook.configuracoes.url)
+                }
+            } finally {
+                setIsLoadingProfile(false)
             }
-
-            setIsLoadingProfile(false)
         }
         loadData()
     }, [])
 
     const handleSaveProfile = async () => {
         setIsSavingProfile(true)
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
+        const res = await fetch('/api/creator/profile', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome: profile.nome, email: profile.email }),
+        })
 
-        const { error } = await supabase.schema('im').from('profiles').update({ nome: profile.nome, email: profile.email }).eq('id', user.id)
-
-        if (error) {
+        if (!res.ok) {
             toast.error('Erro ao salvar perfil')
         } else {
             toast.success('Perfil atualizado!')
@@ -128,9 +129,15 @@ export default function ConfiguracoesPage() {
 
     const handleChangePassword = async (data: PasswordForm) => {
         setIsSavingPw(true)
-        const { error } = await supabase.auth.updateUser({ password: data.novaSenha })
-        if (error) {
-            toast.error('Erro ao alterar senha. Verifique a senha atual.')
+        const res = await fetch('/api/creator/profile', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ senhaAtual: data.senhaAtual, novaSenha: data.novaSenha }),
+        })
+
+        if (!res.ok) {
+            const err = await res.json()
+            toast.error(err.error || 'Erro ao alterar senha')
         } else {
             toast.success('Senha alterada com sucesso!')
             resetPasswordForm()
@@ -147,22 +154,28 @@ export default function ConfiguracoesPage() {
     }
 
     const handleToggleIntegration = async (tipo: string) => {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
-
         const current = integrations[tipo]
         const newState = !current?.ativo
 
-        await supabase.schema('im').from('integracoes').upsert({
-            user_id: user.id,
-            tipo,
-            ativo: newState,
-            configuracoes: tipo === 'webhook' ? { url: webhookUrl } : {},
-        }, { onConflict: 'user_id,tipo' })
+        const res = await fetch('/api/creator/integracoes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tipo,
+                ativo: newState,
+                token_acesso: null,
+                configuracoes: tipo === 'webhook' ? { url: webhookUrl } : {},
+            }),
+        })
+
+        if (!res.ok) {
+            toast.error('Erro ao atualizar integração')
+            return
+        }
 
         setIntegrations((prev) => ({
             ...prev,
-            [tipo]: { tipo, ativo: newState, configuracoes: {} },
+            [tipo]: { tipo, ativo: newState, configuracoes: tipo === 'webhook' ? { url: webhookUrl } : {} },
         }))
 
         toast.success(newState ? `${tipo} conectado!` : `${tipo} desconectado`)
@@ -173,6 +186,15 @@ export default function ConfiguracoesPage() {
         if (!file) return
         setLogoPreview(URL.createObjectURL(file))
         toast.success('Logo carregada! Será usada automaticamente nas criações.')
+    }
+
+    if (isLoadingProfile) {
+        return (
+            <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
+                <div className="shimmer h-8 w-48 rounded mb-2" />
+                <div className="shimmer h-4 w-72 rounded" />
+            </div>
+        )
     }
 
     return (

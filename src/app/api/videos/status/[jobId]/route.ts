@@ -1,16 +1,17 @@
+export const dynamic = 'force-dynamic'
+
 import { NextResponse, type NextRequest } from 'next/server'
 import { getVideoStatus } from '@/lib/api/nano-banana'
-import { createClient } from '@/lib/supabase/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 export async function GET(
     request: NextRequest,
     { params }: { params: { jobId: string } }
 ) {
     try {
-        const supabase = await createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-
-        if (!user) {
+        const session = await getServerSession(authOptions)
+        if (!session) {
             return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
         }
 

@@ -15,7 +15,7 @@ import {
     CheckCircle,
     Play,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { useSession } from 'next-auth/react'
 import toast from 'react-hot-toast'
 
 const STEPS = ['Dados do Produto', 'Configurações', 'Revisão e Geração']
@@ -131,7 +131,7 @@ function FileUploadField({
 
 export default function CriarPage() {
     const router = useRouter()
-    const supabase = createClient()
+    const { data: session } = useSession()
 
     const [currentStep, setCurrentStep] = useState(0)
     const [isGenerating, setIsGenerating] = useState(false)
@@ -181,39 +181,13 @@ export default function CriarPage() {
         setCurrentStep((s) => s + 1)
     }
 
-    const uploadFile = async (file: File, folder: string): Promise<string | null> => {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return null
-
-        const ext = file.name.split('.').pop()
-        const path = `${folder}/${user.id}/${Date.now()}.${ext}`
-
-        const { data, error } = await supabase.storage
-            .from('investmais')
-            .upload(path, file, { upsert: true })
-
-        if (error) {
-            console.error('Upload error:', error)
-            return null
-        }
-
-        const { data: urlData } = supabase.storage.from('investmais').getPublicUrl(data.path)
-        return urlData.publicUrl
-    }
-
     const handleGenerate = async () => {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
+        if (!session) return
 
-        // Check quota
-        const { data: profile } = await supabase
-            .schema('im')
-            .from('profiles')
-            .select('cota_mensal, cota_usada')
-            .eq('id', user.id)
-            .single()
+        const sessionUser = session.user as any
 
-        if (profile && profile.cota_usada >= profile.cota_mensal) {
+        // Check quota using session data
+        if (sessionUser.cota_usada >= sessionUser.cota_mensal) {
             setQuotaError(true)
             return
         }
@@ -222,27 +196,18 @@ export default function CriarPage() {
         setProgress(10)
 
         try {
-            // Upload images
-            let imagemUrl = step1.imagem_produto_url
-            let logoUrl = step1.logo_empresa_url
-
-            if (step1.imagem_produto_file) {
-                setProgress(20)
-                imagemUrl = await uploadFile(step1.imagem_produto_file, 'produtos')
-            }
-            if (step1.logo_empresa_file) {
-                setProgress(35)
-                logoUrl = await uploadFile(step1.logo_empresa_file, 'logos')
-            }
+            // Images are just local previews, pass URLs if they were uploaded elsewhere
+            // For now we use the blob URLs as placeholders (no storage in this setup)
+            const imagemUrl = step1.imagem_produto_file ? null : step1.imagem_produto_url
+            const logoUrl = step1.logo_empresa_file ? null : step1.logo_empresa_url
 
             setProgress(45)
 
-            // Create video record in DB
-            const { data: videoRecord, error: dbError } = await supabase
-                .schema('im')
-                .from('videos')
-                .insert({
-                    user_id: user.id,
+            // Create video record via API
+            const createRes = await fetch('/api/creator/videos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
                     nome_produto: step1.nome_produto,
                     descricao_produto: step1.descricao_produto,
                     imagem_produto_url: imagemUrl,
@@ -251,12 +216,11 @@ export default function CriarPage() {
                     linha_editorial: step2.linha_editorial,
                     duracao: step2.duracao,
                     tom: step2.tom,
-                    status: 'processando',
-                })
-                .select('id')
-                .single()
+                }),
+            })
 
-            if (dbError || !videoRecord) throw new Error('Erro ao criar registro do vídeo')
+            if (!createRes.ok) throw new Error('Erro ao criar registro do vídeo')
+            const { id: videoId } = await createRes.json()
 
             setProgress(55)
 
@@ -265,7 +229,7 @@ export default function CriarPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    video_id: videoRecord.id,
+                    video_id: videoId,
                     nome_produto: step1.nome_produto,
                     descricao_produto: step1.descricao_produto,
                     imagem_produto_url: imagemUrl,
@@ -287,11 +251,11 @@ export default function CriarPage() {
             const { job_id } = await apiResponse.json()
 
             // Update record with job_id
-            await supabase
-                .schema('im')
-                .from('videos')
-                .update({ nano_banana_job_id: job_id })
-                .eq('id', videoRecord.id)
+            await fetch(`/api/creator/videos/${videoId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nano_banana_job_id: job_id }),
+            })
 
             setProgress(80)
 
@@ -308,31 +272,31 @@ export default function CriarPage() {
 
                 if (statusData.status === 'completed') {
                     // Update video record
-                    await supabase
-                        .schema('im')
-                        .from('videos')
-                        .update({ status: 'concluido', video_url: statusData.video_url })
-                        .eq('id', videoRecord.id)
+                    await fetch(`/api/creator/videos/${videoId}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: 'concluido', video_url: statusData.video_url }),
+                    })
 
-                    // Increment quota
-                    await supabase
-                        .schema('im')
-                        .from('profiles')
-                        .update({ cota_usada: (profile?.cota_usada || 0) + 1, last_activity: new Date().toISOString() })
-                        .eq('id', user.id)
-
-                    // Create notification
-                    await supabase.schema('im').from('notificacoes').insert({
-                        user_id: user.id,
-                        mensagem: `Seu vídeo "${step1.nome_produto}" foi gerado com sucesso!`,
-                        tipo: 'sucesso',
+                    // Increment quota via profile API
+                    await fetch('/api/creator/profile', {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            cota_usada_increment: true,
+                            last_activity: new Date().toISOString(),
+                        }),
                     })
 
                     setProgress(100)
-                    setGeneratedVideo({ id: videoRecord.id, video_url: statusData.video_url, status: 'concluido' })
+                    setGeneratedVideo({ id: videoId, video_url: statusData.video_url, status: 'concluido' })
                     break
                 } else if (statusData.status === 'failed') {
-                    await supabase.schema('im').from('videos').update({ status: 'erro' }).eq('id', videoRecord.id)
+                    await fetch(`/api/creator/videos/${videoId}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: 'erro' }),
+                    })
                     throw new Error(statusData.error || 'Falha na geração do vídeo')
                 }
                 attempts++

@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Video, Clock, Library, Plus, ArrowRight, TrendingUp } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
-import { formatDateTime, getStatusColor, getStatusLabel, getInitials } from '@/lib/utils'
+import { formatDateTime, getStatusColor, getStatusLabel } from '@/lib/utils'
 
 interface DashboardVideo {
     id: string
@@ -25,35 +24,19 @@ export default function DashboardPage() {
     const [stats, setStats] = useState<UserStats | null>(null)
     const [recentVideos, setRecentVideos] = useState<DashboardVideo[]>([])
     const [isLoading, setIsLoading] = useState(true)
-    const supabase = createClient()
 
     useEffect(() => {
         async function loadData() {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) return
-
-            const [profileRes, videosRes] = await Promise.all([
-                supabase.schema('im').from('profiles').select('nome, cota_mensal, cota_usada').eq('id', user.id).single(),
-                supabase.schema('im').from('videos').select('id, nome_produto, status, created_at, duracao').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
-            ])
-
-            const { count: totalVideos } = await supabase
-                .schema('im')
-                .from('videos')
-                .select('*', { count: 'exact', head: true })
-                .eq('user_id', user.id)
-
-            if (profileRes.data) {
-                setStats({
-                    nome: profileRes.data.nome,
-                    cota_mensal: profileRes.data.cota_mensal,
-                    cota_usada: profileRes.data.cota_usada,
-                    videosTotal: totalVideos || 0,
-                })
+            try {
+                const response = await fetch('/api/creator/dashboard')
+                if (response.ok) {
+                    const data = await response.json()
+                    if (data.profile) setStats(data.profile)
+                    setRecentVideos(data.recentVideos || [])
+                }
+            } finally {
+                setIsLoading(false)
             }
-
-            setRecentVideos((videosRes.data as DashboardVideo[]) || [])
-            setIsLoading(false)
         }
         loadData()
     }, [])

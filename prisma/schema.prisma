@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Profile {
+  id            String    @id @default(uuid())
+  nome          String
+  email         String    @unique
+  password      String
+  avatar_url    String?
+  perfil        Role      @default(criador)
+  status        Status    @default(ativo)
+  cota_mensal   Int       @default(10)
+  cota_usada    Int       @default(0)
+  last_activity DateTime?
+  created_at    DateTime  @default(now())
+
+  videos       Video[]
+  pastas       Pasta[]
+  integracoes  Integracao[]
+  notificacoes Notificacao[]
+  reset_tokens PasswordResetToken[]
+
+  @@map("profiles")
+}
+
+enum Role {
+  admin
+  criador
+}
+
+enum Status {
+  ativo
+  inativo
+}
+
+model Video {
+  id                 String      @id @default(uuid())
+  user_id            String
+  nome_produto       String
+  descricao_produto  String
+  imagem_produto_url String?
+  logo_empresa_url   String?
+  formato            String
+  linha_editorial    String
+  duracao            Int
+  tom                String
+  status             VideoStatus @default(processando)
+  video_url          String?
+  pasta_id           String?
+  nano_banana_job_id String?
+  created_at         DateTime    @default(now())
+
+  user  Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  pasta Pasta?  @relation(fields: [pasta_id], references: [id])
+
+  @@map("videos")
+}
+
+enum VideoStatus {
+  processando
+  concluido
+  erro
+}
+
+model Pasta {
+  id         String   @id @default(uuid())
+  user_id    String
+  nome       String
+  created_at DateTime @default(now())
+
+  user   Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  videos Video[]
+
+  @@map("pastas")
+}
+
+model Integracao {
+  id            String   @id @default(uuid())
+  user_id       String
+  tipo          String
+  token_acesso  String?
+  configuracoes Json?
+  ativo         Boolean  @default(false)
+  created_at    DateTime @default(now())
+
+  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, tipo])
+  @@map("integracoes")
+}
+
+model Notificacao {
+  id         String   @id @default(uuid())
+  user_id    String
+  mensagem   String
+  lida       Boolean  @default(false)
+  tipo       String
+  created_at DateTime @default(now())
+
+  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("notificacoes")
+}
+
+model PasswordResetToken {
+  id         String   @id @default(uuid())
+  user_id    String
+  token      String   @unique
+  expires_at DateTime
+  used       Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}

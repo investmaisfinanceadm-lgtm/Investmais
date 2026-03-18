@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
@@ -14,15 +14,9 @@ import {
     X,
     Shield,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { useSession, signOut } from 'next-auth/react'
 import { cn, getInitials } from '@/lib/utils'
 import toast from 'react-hot-toast'
-
-interface AdminData {
-    nome: string
-    email: string
-    avatar_url: string | null
-}
 
 const navItems = [
     { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -36,31 +30,20 @@ export function AdminSidebar() {
     const pathname = usePathname()
     const router = useRouter()
     const [mobileOpen, setMobileOpen] = useState(false)
-    const [admin, setAdmin] = useState<AdminData | null>(null)
-    const supabase = createClient()
+    const { data: session } = useSession()
 
-    useEffect(() => {
-        async function loadAdmin() {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) return
-
-            const { data: profile } = await supabase
-                .schema('im')
-                .from('profiles')
-                .select('nome, email, avatar_url')
-                .eq('id', user.id)
-                .single()
-
-            if (profile) setAdmin(profile as AdminData)
-        }
-        loadAdmin()
-    }, [])
+    const admin = session?.user
+        ? {
+              nome: session.user.name || '',
+              email: session.user.email || '',
+              avatar_url: session.user.image || null,
+          }
+        : null
 
     const handleLogout = async () => {
-        await supabase.auth.signOut()
+        await signOut({ redirect: false })
         toast.success('Logout realizado')
         router.push('/login')
-        router.refresh()
     }
 
     const SidebarContent = () => (

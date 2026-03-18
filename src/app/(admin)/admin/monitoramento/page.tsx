@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Search, Filter, Trash2, Play, Loader2 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { Search, Filter, Trash2, Play } from 'lucide-react'
 import { formatDateTime, getStatusColor, getStatusLabel } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
@@ -27,32 +26,20 @@ export default function AdminMonitoramentoPage() {
     const [filterUser, setFilterUser] = useState('todos')
     const [users, setUsers] = useState<Array<{ id: string; nome: string }>>([])
     const [selectedVideo, setSelectedVideo] = useState<MonitorVideo | null>(null)
-    const supabase = createClient()
 
     const loadData = useCallback(async () => {
         setIsLoading(true)
-        const { data: videosData } = await supabase
-            .schema('im')
-            .from('videos')
-            .select('id, nome_produto, formato, linha_editorial, duracao, status, video_url, created_at, user_id')
-            .order('created_at', { ascending: false })
-
-        const { data: profilesData } = await supabase
-            .schema('im')
-            .from('profiles')
-            .select('id, nome')
-
-        if (videosData && profilesData) {
-            const profileMap = new Map(profilesData.map((p) => [p.id, p.nome]))
-            const enriched = videosData.map((v) => ({
-                ...v,
-                user_nome: profileMap.get(v.user_id) || 'Desconhecido',
-            }))
-            setVideos(enriched as MonitorVideo[])
-            setUsers(profilesData)
+        try {
+            const response = await fetch('/api/admin/monitoramento')
+            if (response.ok) {
+                const data = await response.json()
+                setVideos(data.videos)
+                setUsers(data.users)
+            }
+        } finally {
+            setIsLoading(false)
         }
-        setIsLoading(false)
-    }, [supabase])
+    }, [])
 
     useEffect(() => {
         loadData()
@@ -60,13 +47,14 @@ export default function AdminMonitoramentoPage() {
 
     const handleDelete = async (video: MonitorVideo) => {
         if (!confirm(`Excluir vídeo "${video.nome_produto}"?`)) return
-        const { error } = await supabase
-            .schema('im')
-            .from('videos')
-            .delete()
-            .eq('id', video.id)
 
-        if (error) {
+        const response = await fetch('/api/admin/monitoramento', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ videoId: video.id }),
+        })
+
+        if (!response.ok) {
             toast.error('Erro ao excluir vídeo')
         } else {
             toast.success('Vídeo excluído')

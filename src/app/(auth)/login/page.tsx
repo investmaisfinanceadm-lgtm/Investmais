@@ -8,7 +8,7 @@ import { z } from 'zod'
 import toast from 'react-hot-toast'
 import { Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { signIn, getSession } from 'next-auth/react'
 
 const loginSchema = z.object({
     email: z.string().email('E-mail inválido'),
@@ -21,7 +21,6 @@ export default function LoginPage() {
     const router = useRouter()
     const [showPassword, setShowPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
-    const supabase = createClient()
 
     const {
         register,
@@ -34,50 +33,30 @@ export default function LoginPage() {
     const onSubmit = async (data: LoginForm) => {
         setIsLoading(true)
         try {
-            const { data: authData, error } = await supabase.auth.signInWithPassword({
+            const result = await signIn('credentials', {
                 email: data.email,
                 password: data.senha,
+                redirect: false,
             })
 
-            if (error) {
-                if (error.message.includes('Invalid login credentials')) {
-                    toast.error('E-mail ou senha incorretos')
-                } else if (error.message.includes('Email not confirmed')) {
-                    toast.error('E-mail não confirmado. Verifique sua caixa de entrada')
+            if (result?.error) {
+                if (result.error === 'Conta inativa') {
+                    toast.error('Sua conta está desativada. Contate o administrador')
                 } else {
-                    toast.error('Erro ao fazer login. Tente novamente')
+                    toast.error('E-mail ou senha incorretos')
                 }
                 return
             }
 
-            if (!authData.user) {
-                toast.error('Erro ao autenticar. Tente novamente')
-                return
-            }
-
-            // Get user profile to determine role
-            const { data: profile, error: profileError } = await supabase
-                .schema('im')
-                .from('profiles')
-                .select('perfil, status')
-                .eq('id', authData.user.id)
-                .single()
-
-            if (profileError || !profile) {
-                toast.error('Perfil não encontrado. Contate o administrador')
-                await supabase.auth.signOut()
-                return
-            }
-
-            if (profile.status === 'inativo') {
-                toast.error('Sua conta está desativada. Contate o administrador')
-                await supabase.auth.signOut()
+            if (!result?.ok) {
+                toast.error('Erro ao fazer login. Tente novamente')
                 return
             }
 
             toast.success('Login realizado com sucesso!')
 
-            if (profile.perfil === 'admin') {
+            const session = await getSession()
+            if ((session?.user as any)?.perfil === 'admin') {
                 router.push('/admin/dashboard')
             } else {
                 router.push('/dashboard')

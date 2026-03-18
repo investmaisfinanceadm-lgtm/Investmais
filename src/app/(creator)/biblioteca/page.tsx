@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
     Search,
-    Filter,
     FolderPlus,
     Folder,
     Video,
@@ -12,11 +11,9 @@ import {
     MoreHorizontal,
     Play,
     X,
-    Edit2,
     FolderOpen,
     Move,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { formatDate, cn, getStatusColor, getStatusLabel } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
@@ -64,22 +61,20 @@ export default function BibliotecaPage() {
     const [newFolderName, setNewFolderName] = useState('')
     const [showNewFolder, setShowNewFolder] = useState(false)
     const [movingVideo, setMovingVideo] = useState<string | null>(null)
-    const supabase = createClient()
 
     const loadData = useCallback(async () => {
         setIsLoading(true)
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
-
-        const [videosRes, pastasRes] = await Promise.all([
-            supabase.schema('im').from('videos').select('id, nome_produto, formato, duracao, status, video_url, pasta_id, created_at').eq('user_id', user.id).order('created_at', { ascending: false }),
-            supabase.schema('im').from('pastas').select('*').eq('user_id', user.id).order('nome'),
-        ])
-
-        setVideos((videosRes.data as VideoItem[]) || [])
-        setPastas((pastasRes.data as PastaItem[]) || [])
-        setIsLoading(false)
-    }, [supabase])
+        try {
+            const [videosRes, pastasRes] = await Promise.all([
+                fetch('/api/creator/videos'),
+                fetch('/api/creator/pastas'),
+            ])
+            if (videosRes.ok) setVideos(await videosRes.json())
+            if (pastasRes.ok) setPastas(await pastasRes.json())
+        } finally {
+            setIsLoading(false)
+        }
+    }, [])
 
     useEffect(() => {
         loadData()
@@ -87,15 +82,14 @@ export default function BibliotecaPage() {
 
     const handleCreateFolder = async () => {
         if (!newFolderName.trim()) return
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
 
-        const { error } = await supabase.schema('im').from('pastas').insert({
-            user_id: user.id,
-            nome: newFolderName.trim(),
+        const res = await fetch('/api/creator/pastas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome: newFolderName.trim() }),
         })
 
-        if (error) {
+        if (!res.ok) {
             toast.error('Erro ao criar pasta')
         } else {
             toast.success('Pasta criada!')
@@ -107,8 +101,8 @@ export default function BibliotecaPage() {
 
     const handleDeleteVideo = async (video: VideoItem) => {
         if (!confirm(`Excluir "${video.nome_produto}"?`)) return
-        const { error } = await supabase.schema('im').from('videos').delete().eq('id', video.id)
-        if (error) {
+        const res = await fetch(`/api/creator/videos/${video.id}`, { method: 'DELETE' })
+        if (!res.ok) {
             toast.error('Erro ao excluir vídeo')
         } else {
             toast.success('Vídeo excluído')
@@ -118,8 +112,12 @@ export default function BibliotecaPage() {
     }
 
     const handleMoveVideo = async (videoId: string, pastaId: string | null) => {
-        const { error } = await supabase.schema('im').from('videos').update({ pasta_id: pastaId }).eq('id', videoId)
-        if (error) {
+        const res = await fetch(`/api/creator/videos/${videoId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pasta_id: pastaId }),
+        })
+        if (!res.ok) {
             toast.error('Erro ao mover vídeo')
         } else {
             toast.success('Vídeo movido!')

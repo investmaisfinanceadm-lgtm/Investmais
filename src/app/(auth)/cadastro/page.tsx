@@ -8,7 +8,7 @@ import { z } from 'zod'
 import toast from 'react-hot-toast'
 import { Eye, EyeOff, Loader2, Lock, Mail, User } from 'lucide-react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { signIn } from 'next-auth/react'
 import clsx from 'clsx'
 
 const cadastroSchema = z.object({
@@ -44,7 +44,6 @@ export default function CadastroPage() {
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
-    const supabase = createClient()
 
     const {
         register,
@@ -76,49 +75,43 @@ export default function CadastroPage() {
     const onSubmit = async (data: CadastroForm) => {
         setIsLoading(true)
         try {
-            // 1. Create auth user
-            const { data: authData, error: authError } = await supabase.auth.signUp({
-                email: data.email,
-                password: data.senha,
-                options: {
-                    data: { nome: data.nome },
-                },
+            // 1. Create user via API
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nome: data.nome,
+                    email: data.email,
+                    password: data.senha,
+                }),
             })
 
-            if (authError) {
-                if (authError.message.includes('already registered') || authError.message.includes('User already registered')) {
+            const result = await response.json()
+
+            if (!response.ok) {
+                if (result.error?.includes('Email já cadastrado') || result.error?.includes('already')) {
                     toast.error('Este e-mail já está em uso. Tente fazer login.')
                 } else {
-                    toast.error('Erro ao criar conta. Tente novamente.')
+                    toast.error(result.error || 'Erro ao criar conta. Tente novamente.')
                 }
                 return
             }
 
-            if (!authData.user) {
-                toast.error('Erro ao criar conta. Tente novamente.')
-                return
-            }
-
-            // 2. Create profile record
-            const { error: profileError } = await supabase.schema('im').from('profiles').upsert({
-                id: authData.user.id,
-                nome: data.nome,
+            // 2. Sign in automatically
+            const signInResult = await signIn('credentials', {
                 email: data.email,
-                perfil: 'criador',
-                cota_mensal: 10,
-                cota_usada: 0,
-                status: 'ativo',
+                password: data.senha,
+                redirect: false,
             })
 
-            if (profileError) {
-                toast.error('Erro ao salvar perfil. Contate o suporte.')
-                return
+            if (signInResult?.ok) {
+                toast.success('Conta criada com sucesso! Bem-vindo ao InvestMais.')
+                router.push('/dashboard')
+                router.refresh()
+            } else {
+                toast.success('Conta criada! Faça login para continuar.')
+                router.push('/login')
             }
-
-            // 3. Success Behavior
-            toast.success('Conta criada com sucesso! Bem-vindo ao InvestMais.')
-            router.push('/dashboard')
-            router.refresh()
         } catch {
             toast.error('Erro ao criar conta. Tente novamente.')
         } finally {

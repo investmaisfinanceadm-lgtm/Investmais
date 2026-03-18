@@ -20,7 +20,6 @@ import {
     Tooltip,
     ResponsiveContainer,
 } from 'recharts'
-import { createClient } from '@/lib/supabase/client'
 import { formatDateTime, getStatusColor, getStatusLabel } from '@/lib/utils'
 
 interface Stats {
@@ -35,7 +34,7 @@ interface VideoActivity {
     nome_produto: string
     status: string
     created_at: string
-    profiles: { nome: string } | null
+    user_nome: string | null
 }
 
 // Generate last 30 days data
@@ -77,88 +76,18 @@ export default function AdminDashboardPage() {
     const [topUsers, setTopUsers] = useState<Array<{ nome: string; total: number }>>([])
     const [chartData] = useState(generateChartData())
     const [isLoading, setIsLoading] = useState(true)
-    const supabase = createClient()
 
     useEffect(() => {
         async function loadData() {
             setIsLoading(true)
             try {
-                // Total users
-                const { count: usersCount } = await supabase
-                    .schema('im')
-                    .from('profiles')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('status', 'ativo')
-
-                // Videos this month
-                const startOfMonth = new Date()
-                startOfMonth.setDate(1)
-                startOfMonth.setHours(0, 0, 0, 0)
-                const { count: monthVideos } = await supabase
-                    .schema('im')
-                    .from('videos')
-                    .select('*', { count: 'exact', head: true })
-                    .gte('created_at', startOfMonth.toISOString())
-
-                // Videos today
-                const today = new Date()
-                today.setHours(0, 0, 0, 0)
-                const { count: todayVideos } = await supabase
-                    .schema('im')
-                    .from('videos')
-                    .select('*', { count: 'exact', head: true })
-                    .gte('created_at', today.toISOString())
-
-                // Total quota consumed
-                const { data: profiles } = await supabase
-                    .schema('im')
-                    .from('profiles')
-                    .select('cota_usada')
-
-                const totalQuota = profiles?.reduce((sum, p) => sum + (p.cota_usada || 0), 0) || 0
-
-                setStats({
-                    totalUsers: usersCount || 0,
-                    videosThisMonth: monthVideos || 0,
-                    videosToday: todayVideos || 0,
-                    totalQuotaConsumed: totalQuota,
-                })
-
-                // Recent videos with user names
-                const { data: videos } = await supabase
-                    .schema('im')
-                    .from('videos')
-                    .select('id, nome_produto, status, created_at, user_id')
-                    .order('created_at', { ascending: false })
-                    .limit(10)
-
-                if (videos && videos.length > 0) {
-                    const userIds = [...new Set(videos.map((v) => v.user_id))]
-                    const { data: profilesData } = await supabase
-                        .schema('im')
-                        .from('profiles')
-                        .select('id, nome')
-                        .in('id', userIds)
-
-                    const profileMap = new Map(profilesData?.map((p) => [p.id, p]) || [])
-                    const enriched = videos.map((v) => ({
-                        ...v,
-                        profiles: profileMap.get(v.user_id) ? { nome: (profileMap.get(v.user_id) as { nome: string }).nome } : null,
-                    }))
-                    setRecentVideos(enriched as VideoActivity[])
+                const response = await fetch('/api/admin/dashboard-stats')
+                if (response.ok) {
+                    const data = await response.json()
+                    setStats(data.stats)
+                    setRecentVideos(data.recentVideos)
+                    setTopUsers(data.topUsers)
                 }
-
-                // Top users
-                const { data: allProfiles } = await supabase
-                    .schema('im')
-                    .from('profiles')
-                    .select('nome, cota_usada')
-                    .order('cota_usada', { ascending: false })
-                    .limit(10)
-
-                setTopUsers(
-                    (allProfiles || []).map((p) => ({ nome: p.nome, total: p.cota_usada }))
-                )
             } finally {
                 setIsLoading(false)
             }
@@ -351,7 +280,7 @@ export default function AdminDashboardPage() {
                                             {video.nome_produto}
                                         </td>
                                         <td className="table-cell">
-                                            {video.profiles?.nome || 'Desconhecido'}
+                                            {video.user_nome || 'Desconhecido'}
                                         </td>
                                         <td className="table-cell">
                                             {formatDateTime(video.created_at)}

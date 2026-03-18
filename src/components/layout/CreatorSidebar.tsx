@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
@@ -15,17 +15,9 @@ import {
     Bell,
     ChevronRight,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { useSession, signOut } from 'next-auth/react'
 import { cn, getInitials } from '@/lib/utils'
 import toast from 'react-hot-toast'
-
-interface UserData {
-    nome: string
-    email: string
-    avatar_url: string | null
-    cota_mensal: number
-    cota_usada: number
-}
 
 const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -39,42 +31,24 @@ export function CreatorSidebar() {
     const pathname = usePathname()
     const router = useRouter()
     const [mobileOpen, setMobileOpen] = useState(false)
-    const [user, setUser] = useState<UserData | null>(null)
-    const [notifications, setNotifications] = useState(0)
-    const supabase = createClient()
+    const { data: session } = useSession()
 
-    useEffect(() => {
-        async function loadUser() {
-            const { data: { user: authUser } } = await supabase.auth.getUser()
-            if (!authUser) return
+    const sessionUser = session?.user as any
 
-            const { data: profile } = await supabase
-                .schema('im')
-                .from('profiles')
-                .select('nome, email, avatar_url, cota_mensal, cota_usada')
-                .eq('id', authUser.id)
-                .single()
-
-            if (profile) setUser(profile as UserData)
-
-            // Load unread notifications count
-            const { count } = await supabase
-                .schema('im')
-                .from('notificacoes')
-                .select('*', { count: 'exact', head: true })
-                .eq('user_id', authUser.id)
-                .eq('lida', false)
-
-            setNotifications(count || 0)
-        }
-        loadUser()
-    }, [])
+    const user = sessionUser
+        ? {
+              nome: sessionUser.name || '',
+              email: sessionUser.email || '',
+              avatar_url: sessionUser.image || null,
+              cota_mensal: sessionUser.cota_mensal || 0,
+              cota_usada: sessionUser.cota_usada || 0,
+          }
+        : null
 
     const handleLogout = async () => {
-        await supabase.auth.signOut()
+        await signOut({ redirect: false })
         toast.success('Logout realizado')
         router.push('/login')
-        router.refresh()
     }
 
     const quotaPercent = user
@@ -211,11 +185,6 @@ export function CreatorSidebar() {
                 <div className="flex items-center gap-2">
                     <button className="relative p-2 text-gray-400 hover:text-white">
                         <Bell className="w-5 h-5" />
-                        {notifications > 0 && (
-                            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gold text-primary text-xs font-bold rounded-full flex items-center justify-center">
-                                {notifications}
-                            </span>
-                        )}
                     </button>
                     <button
                         onClick={() => setMobileOpen(!mobileOpen)}
