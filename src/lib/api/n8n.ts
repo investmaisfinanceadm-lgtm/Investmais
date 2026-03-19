@@ -26,12 +26,22 @@ export async function generateVideoN8N(params: {
     signal: AbortSignal.timeout(10 * 60 * 1000), // 10 minutos
   })
 
+  const text = await response.text()
+
   if (!response.ok) {
-    const text = await response.text()
     throw new Error(`Erro no webhook n8n: ${response.status} - ${text}`)
   }
 
-  const result = await response.json()
+  if (!text || text.trim() === '') {
+    throw new Error('n8n retornou resposta vazia')
+  }
+
+  let result: N8NVideoResult
+  try {
+    result = JSON.parse(text)
+  } catch {
+    throw new Error(`n8n retornou resposta inválida: ${text.slice(0, 200)}`)
+  }
 
   if (!result.video) {
     throw new Error('n8n não retornou URL do vídeo')

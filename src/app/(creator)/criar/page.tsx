@@ -215,8 +215,12 @@ export default function CriarPage() {
             setProgress(95)
 
             if (!response.ok) {
-                const err = await response.json()
-                throw new Error(err.error || 'Erro na geração do vídeo')
+                let errorMsg = 'Erro na geração do vídeo'
+                try {
+                    const err = await response.json()
+                    errorMsg = err.error || errorMsg
+                } catch {}
+                throw new Error(errorMsg)
             }
 
             const { video_id, video_url } = await response.json()
