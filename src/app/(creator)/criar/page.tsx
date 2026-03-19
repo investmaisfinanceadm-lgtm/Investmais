@@ -191,6 +191,11 @@ export default function CriarPage() {
             return
         }
 
+        if (!step1.logo_empresa_file) {
+            toast.error('Faça upload da logo da empresa para gerar o vídeo')
+            return
+        }
+
         setIsGenerating(true)
         setProgress(20)
 
