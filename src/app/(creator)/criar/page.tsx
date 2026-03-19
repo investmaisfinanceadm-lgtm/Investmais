@@ -216,7 +216,7 @@ export default function CriarPage() {
     }, [pollingVideoId])
 
     const handleGenerate = async () => {
-        if (!session) return
+        if (!session || isGenerating) return
 
         const sessionUser = session.user as any
 
@@ -709,7 +709,8 @@ export default function CriarPage() {
                         </button>
                         <button
                             onClick={handleGenerate}
-                            className="btn-primary flex-1 flex items-center justify-center gap-2"
+                            disabled={isGenerating}
+                            className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Gerar Vídeo
                             <ChevronRight className="w-4 h-4" />
