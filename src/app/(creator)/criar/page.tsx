@@ -140,6 +140,7 @@ export default function CriarPage() {
     const [quotaError, setQuotaError] = useState(false)
     const [pollingVideoId, setPollingVideoId] = useState<string | null>(null)
     const pollingRef = useRef<NodeJS.Timeout | null>(null)
+    const pollingAttemptsRef = useRef<number>(0)
 
     const [step1, setStep1] = useState<Step1Data>({
         nome_produto: '',
@@ -183,11 +184,25 @@ export default function CriarPage() {
         setCurrentStep((s) => s + 1)
     }
 
-    // Polling: verifica status do vídeo a cada 10 segundos
+    // Polling: verifica status do vídeo a cada 10 segundos (máx ~10 min = 60 tentativas)
     useEffect(() => {
         if (!pollingVideoId) return
 
+        pollingAttemptsRef.current = 0
+
         const poll = async () => {
+            pollingAttemptsRef.current += 1
+
+            // Timeout após 60 tentativas (~10 minutos)
+            if (pollingAttemptsRef.current > 60) {
+                if (pollingRef.current) clearInterval(pollingRef.current)
+                setPollingVideoId(null)
+                setIsGenerating(false)
+                setProgress(0)
+                toast.error('Tempo limite excedido. O vídeo está demorando mais que o esperado. Verifique sua Biblioteca em alguns minutos.')
+                return
+            }
+
             try {
                 const res = await fetch(`/api/videos/status/${pollingVideoId}`)
                 if (!res.ok) return
