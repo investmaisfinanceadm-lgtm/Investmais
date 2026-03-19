@@ -1,43 +1,88 @@
 export const dynamic = 'force-dynamic'
 
-import { NextResponse, type NextRequest } from 'next/server'
-import { generateVideo } from '@/lib/api/nano-banana'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+import { generateVideoN8N } from '@/lib/api/n8n'
 
 export async function POST(request: NextRequest) {
-    try {
-        const session = await getServerSession(authOptions)
-        if (!session) {
-            return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
-        }
-
-        const body = await request.json()
-
-        // If Nano Banana API key not configured, simulate job
-        if (!process.env.NANO_BANANA_API_KEY || process.env.NANO_BANANA_API_KEY === 'your_nano_banana_api_key_here') {
-            // Simulate async job for demo purposes
-            const mockJobId = `mock_job_${Date.now()}`
-            return NextResponse.json({ job_id: mockJobId, simulated: true })
-        }
-
-        const result = await generateVideo({
-            nome_produto: body.nome_produto,
-            descricao_produto: body.descricao_produto,
-            imagem_produto_url: body.imagem_produto_url,
-            logo_empresa_url: body.logo_empresa_url,
-            formato: body.formato,
-            linha_editorial: body.linha_editorial,
-            duracao: body.duracao,
-            tom: body.tom,
-        })
-
-        return NextResponse.json({ job_id: result.job_id })
-    } catch (error: unknown) {
-        console.error('Video generation error:', error)
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Erro ao gerar vídeo' },
-            { status: 500 }
-        )
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
+
+    const userId = (session.user as any).id
+
+    const formData = await request.formData()
+    const nome_produto = formData.get('nome_produto') as string
+    const descricao_produto = formData.get('descricao_produto') as string
+    const formato = formData.get('formato') as string
+    const linha_editorial = formData.get('linha_editorial') as string
+    const duracao = parseInt(formData.get('duracao') as string)
+    const tom = formData.get('tom') as string
+    const imageFile = formData.get('image') as File | null
+
+    if (!nome_produto || !descricao_produto) {
+      return NextResponse.json({ error: 'Dados incompletos' }, { status: 400 })
+    }
+
+    if (!imageFile || imageFile.size === 0) {
+      return NextResponse.json({ error: 'Logo da empresa é obrigatória' }, { status: 400 })
+    }
+
+    // Criar registro do vídeo no banco
+    const video = await prisma.video.create({
+      data: {
+        user_id: userId,
+        nome_produto,
+        descricao_produto,
+        formato,
+        linha_editorial,
+        duracao,
+        tom,
+        status: 'processando',
+      },
+    })
+
+    // Preparar imagem para envio
+    const arrayBuffer = await imageFile.arrayBuffer()
+    const imageBuffer = Buffer.from(arrayBuffer)
+
+    // Chamar n8n webhook (aguarda até o vídeo ficar pronto)
+    const result = await generateVideoN8N({
+      service_name: nome_produto,
+      service_description: descricao_produto,
+      imageBuffer,
+      imageType: imageFile.type || 'image/png',
+      imageName: imageFile.name || 'logo.png',
+    })
+
+    // Atualizar registro com o vídeo gerado
+    await prisma.video.update({
+      where: { id: video.id },
+      data: {
+        status: 'concluido',
+        video_url: result.video,
+      },
+    })
+
+    // Incrementar cota do usuário
+    await prisma.profile.update({
+      where: { id: userId },
+      data: {
+        cota_usada: { increment: 1 },
+        last_activity: new Date(),
+      },
+    })
+
+    return NextResponse.json({ video_id: video.id, video_url: result.video })
+  } catch (error) {
+    console.error('Video generation error:', error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Erro ao gerar vídeo' },
+      { status: 500 }
+    )
+  }
 }

@@ -186,125 +186,48 @@ export default function CriarPage() {
 
         const sessionUser = session.user as any
 
-        // Check quota using session data
         if (sessionUser.cota_usada >= sessionUser.cota_mensal) {
             setQuotaError(true)
             return
         }
 
+        if (!step1.logo_empresa_file) {
+            toast.error('Logo da empresa é obrigatória para gerar o vídeo')
+            return
+        }
+
         setIsGenerating(true)
-        setProgress(10)
+        setProgress(20)
 
         try {
-            // Images are just local previews, pass URLs if they were uploaded elsewhere
-            // For now we use the blob URLs as placeholders (no storage in this setup)
-            const imagemUrl = step1.imagem_produto_file ? null : step1.imagem_produto_url
-            const logoUrl = step1.logo_empresa_file ? null : step1.logo_empresa_url
+            const formData = new FormData()
+            formData.append('nome_produto', step1.nome_produto)
+            formData.append('descricao_produto', step1.descricao_produto)
+            formData.append('formato', step2.formato)
+            formData.append('linha_editorial', step2.linha_editorial)
+            formData.append('duracao', String(step2.duracao))
+            formData.append('tom', step2.tom)
+            formData.append('image', step1.logo_empresa_file)
 
-            setProgress(45)
+            setProgress(40)
 
-            // Create video record via API
-            const createRes = await fetch('/api/creator/videos', {
+            // Envia para n8n e aguarda o vídeo pronto (pode demorar alguns minutos)
+            const response = await fetch('/api/videos/generate', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    nome_produto: step1.nome_produto,
-                    descricao_produto: step1.descricao_produto,
-                    imagem_produto_url: imagemUrl,
-                    logo_empresa_url: logoUrl,
-                    formato: step2.formato,
-                    linha_editorial: step2.linha_editorial,
-                    duracao: step2.duracao,
-                    tom: step2.tom,
-                }),
+                body: formData,
             })
 
-            if (!createRes.ok) throw new Error('Erro ao criar registro do vídeo')
-            const { id: videoId } = await createRes.json()
+            setProgress(95)
 
-            setProgress(55)
-
-            // Call Nano Banana API
-            const apiResponse = await fetch('/api/videos/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    video_id: videoId,
-                    nome_produto: step1.nome_produto,
-                    descricao_produto: step1.descricao_produto,
-                    imagem_produto_url: imagemUrl,
-                    logo_empresa_url: logoUrl,
-                    formato: step2.formato,
-                    linha_editorial: step2.linha_editorial,
-                    duracao: step2.duracao,
-                    tom: step2.tom,
-                }),
-            })
-
-            setProgress(70)
-
-            if (!apiResponse.ok) {
-                const errorData = await apiResponse.json()
-                throw new Error(errorData.error || 'Erro na API de geração')
+            if (!response.ok) {
+                const err = await response.json()
+                throw new Error(err.error || 'Erro na geração do vídeo')
             }
 
-            const { job_id } = await apiResponse.json()
+            const { video_id, video_url } = await response.json()
 
-            // Update record with job_id
-            await fetch(`/api/creator/videos/${videoId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nano_banana_job_id: job_id }),
-            })
-
-            setProgress(80)
-
-            // Poll for completion
-            let attempts = 0
-            const maxAttempts = 60
-            while (attempts < maxAttempts) {
-                await new Promise((resolve) => setTimeout(resolve, 5000))
-                const statusResponse = await fetch(`/api/videos/status/${job_id}`)
-                const statusData = await statusResponse.json()
-
-                const prog = Math.min(80 + Math.floor((attempts / maxAttempts) * 19), 99)
-                setProgress(prog)
-
-                if (statusData.status === 'completed') {
-                    // Update video record
-                    await fetch(`/api/creator/videos/${videoId}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ status: 'concluido', video_url: statusData.video_url }),
-                    })
-
-                    // Increment quota via profile API
-                    await fetch('/api/creator/profile', {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            cota_usada_increment: true,
-                            last_activity: new Date().toISOString(),
-                        }),
-                    })
-
-                    setProgress(100)
-                    setGeneratedVideo({ id: videoId, video_url: statusData.video_url, status: 'concluido' })
-                    break
-                } else if (statusData.status === 'failed') {
-                    await fetch(`/api/creator/videos/${videoId}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ status: 'erro' }),
-                    })
-                    throw new Error(statusData.error || 'Falha na geração do vídeo')
-                }
-                attempts++
-            }
-
-            if (attempts >= maxAttempts) {
-                throw new Error('Timeout: geração excedeu o tempo máximo')
-            }
+            setProgress(100)
+            setGeneratedVideo({ id: video_id, video_url, status: 'concluido' })
         } catch (err: unknown) {
             toast.error(err instanceof Error ? err.message : 'Erro ao gerar vídeo. Tente novamente.')
             setIsGenerating(false)
