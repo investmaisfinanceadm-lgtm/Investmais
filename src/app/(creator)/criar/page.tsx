@@ -191,11 +191,6 @@ export default function CriarPage() {
             return
         }
 
-        if (!step1.logo_empresa_file) {
-            toast.error('Logo da empresa é obrigatória para gerar o vídeo')
-            return
-        }
-
         setIsGenerating(true)
         setProgress(20)
 

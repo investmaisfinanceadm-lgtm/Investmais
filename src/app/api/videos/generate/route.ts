@@ -28,10 +28,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Dados incompletos' }, { status: 400 })
     }
 
-    if (!imageFile || imageFile.size === 0) {
-      return NextResponse.json({ error: 'Logo da empresa é obrigatória' }, { status: 400 })
-    }
-
     // Criar registro do vídeo no banco
     const video = await prisma.video.create({
       data: {
@@ -46,17 +42,25 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Preparar imagem para envio
-    const arrayBuffer = await imageFile.arrayBuffer()
-    const imageBuffer = Buffer.from(arrayBuffer)
+    // Preparar imagem se fornecida
+    let imageBuffer: Buffer | undefined
+    let imageType: string | undefined
+    let imageName: string | undefined
+
+    if (imageFile && imageFile.size > 0) {
+      const arrayBuffer = await imageFile.arrayBuffer()
+      imageBuffer = Buffer.from(arrayBuffer)
+      imageType = imageFile.type || 'image/png'
+      imageName = imageFile.name || 'logo.png'
+    }
 
     // Chamar n8n webhook (aguarda até o vídeo ficar pronto)
     const result = await generateVideoN8N({
       service_name: nome_produto,
       service_description: descricao_produto,
       imageBuffer,
-      imageType: imageFile.type || 'image/png',
-      imageName: imageFile.name || 'logo.png',
+      imageType,
+      imageName,
     })
 
     // Atualizar registro com o vídeo gerado

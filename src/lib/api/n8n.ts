@@ -7,16 +7,18 @@ export interface N8NVideoResult {
 export async function generateVideoN8N(params: {
   service_name: string
   service_description: string
-  imageBuffer: Buffer
-  imageType: string
-  imageName: string
+  imageBuffer?: Buffer
+  imageType?: string
+  imageName?: string
 }): Promise<N8NVideoResult> {
   const formData = new FormData()
   formData.append('service_name', params.service_name)
   formData.append('service_description', params.service_description)
 
-  const blob = new Blob([params.imageBuffer], { type: params.imageType })
-  formData.append('image', blob, params.imageName)
+  if (params.imageBuffer) {
+    const blob = new Blob([params.imageBuffer], { type: params.imageType || 'image/png' })
+    formData.append('image', blob, params.imageName || 'logo.png')
+  }
 
   const response = await fetch(N8N_WEBHOOK_URL, {
     method: 'POST',
