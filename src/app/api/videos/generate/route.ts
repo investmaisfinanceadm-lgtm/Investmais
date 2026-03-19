@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { generateVideoN8N } from '@/lib/api/n8n'
+import { triggerVideoN8N } from '@/lib/api/n8n'
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Dados incompletos' }, { status: 400 })
     }
 
-    // Criar registro do vídeo no banco
+    // Criar registro do vídeo no banco com status processando
     const video = await prisma.video.create({
       data: {
         user_id: userId,
@@ -54,8 +54,9 @@ export async function POST(request: NextRequest) {
       imageName = imageFile.name || 'logo.png'
     }
 
-    // Chamar n8n webhook (aguarda até o vídeo ficar pronto)
-    const result = await generateVideoN8N({
+    // Dispara n8n em background sem aguardar — retorna imediatamente
+    triggerVideoN8N({
+      video_id: video.id,
       service_name: nome_produto,
       service_description: descricao_produto,
       imageBuffer,
@@ -63,25 +64,7 @@ export async function POST(request: NextRequest) {
       imageName,
     })
 
-    // Atualizar registro com o vídeo gerado
-    await prisma.video.update({
-      where: { id: video.id },
-      data: {
-        status: 'concluido',
-        video_url: result.video,
-      },
-    })
-
-    // Incrementar cota do usuário
-    await prisma.profile.update({
-      where: { id: userId },
-      data: {
-        cota_usada: { increment: 1 },
-        last_activity: new Date(),
-      },
-    })
-
-    return NextResponse.json({ video_id: video.id, video_url: result.video })
+    return NextResponse.json({ video_id: video.id })
   } catch (error) {
     console.error('Video generation error:', error)
     return NextResponse.json(

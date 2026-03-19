@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
     Check,
@@ -138,6 +138,8 @@ export default function CriarPage() {
     const [progress, setProgress] = useState(0)
     const [generatedVideo, setGeneratedVideo] = useState<GeneratedVideo | null>(null)
     const [quotaError, setQuotaError] = useState(false)
+    const [pollingVideoId, setPollingVideoId] = useState<string | null>(null)
+    const pollingRef = useRef<NodeJS.Timeout | null>(null)
 
     const [step1, setStep1] = useState<Step1Data>({
         nome_produto: '',
@@ -181,6 +183,38 @@ export default function CriarPage() {
         setCurrentStep((s) => s + 1)
     }
 
+    // Polling: verifica status do vídeo a cada 10 segundos
+    useEffect(() => {
+        if (!pollingVideoId) return
+
+        const poll = async () => {
+            try {
+                const res = await fetch(`/api/videos/status/${pollingVideoId}`)
+                if (!res.ok) return
+                const data = await res.json()
+
+                if (data.status === 'concluido') {
+                    if (pollingRef.current) clearInterval(pollingRef.current)
+                    setPollingVideoId(null)
+                    setProgress(100)
+                    setGeneratedVideo({ id: data.id, video_url: data.video_url, status: 'concluido' })
+                } else if (data.status === 'erro') {
+                    if (pollingRef.current) clearInterval(pollingRef.current)
+                    setPollingVideoId(null)
+                    setIsGenerating(false)
+                    setProgress(0)
+                    toast.error('Erro na geração do vídeo. Tente novamente.')
+                } else {
+                    // Avança progresso visual enquanto processa
+                    setProgress(p => Math.min(p + 5, 90))
+                }
+            } catch {}
+        }
+
+        pollingRef.current = setInterval(poll, 10000)
+        return () => { if (pollingRef.current) clearInterval(pollingRef.current) }
+    }, [pollingVideoId])
+
     const handleGenerate = async () => {
         if (!session) return
 
@@ -197,7 +231,7 @@ export default function CriarPage() {
         }
 
         setIsGenerating(true)
-        setProgress(20)
+        setProgress(10)
 
         try {
             const formData = new FormData()
@@ -209,15 +243,10 @@ export default function CriarPage() {
             formData.append('tom', step2.tom)
             formData.append('image', step1.logo_empresa_file)
 
-            setProgress(40)
-
-            // Envia para n8n e aguarda o vídeo pronto (pode demorar alguns minutos)
             const response = await fetch('/api/videos/generate', {
                 method: 'POST',
                 body: formData,
             })
-
-            setProgress(95)
 
             if (!response.ok) {
                 let errorMsg = 'Erro na geração do vídeo'
@@ -228,10 +257,10 @@ export default function CriarPage() {
                 throw new Error(errorMsg)
             }
 
-            const { video_id, video_url } = await response.json()
-
-            setProgress(100)
-            setGeneratedVideo({ id: video_id, video_url, status: 'concluido' })
+            const { video_id } = await response.json()
+            setProgress(20)
+            // Inicia polling — o vídeo será atualizado no banco pelo callback do n8n
+            setPollingVideoId(video_id)
         } catch (err: unknown) {
             toast.error(err instanceof Error ? err.message : 'Erro ao gerar vídeo. Tente novamente.')
             setIsGenerating(false)
@@ -330,6 +359,8 @@ export default function CriarPage() {
                                 setStep1({ nome_produto: '', descricao_produto: '', imagem_produto_url: null, logo_empresa_url: null, imagem_produto_file: null, logo_empresa_file: null })
                                 setStep2({ formato: '', linha_editorial: '', duracao: 15, tom: '' })
                                 setProgress(0)
+                                setIsGenerating(false)
+                                setPollingVideoId(null)
                             }}
                             className="btn-primary flex-1 flex items-center justify-center gap-2"
                         >
