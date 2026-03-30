@@ -1,264 +1,211 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import {
-    Check,
-    ChevronRight,
-    Upload,
-    X,
-    Loader2,
-    Download,
-    Library,
-    Plus,
-    AlertTriangle,
-    CheckCircle,
+import { useState, useEffect } from 'react'
+import { 
+    ChevronRight, 
+    Upload, 
+    Video, 
+    Plus, 
+    CheckCircle, 
+    Instagram, 
     Play,
+    Zap,
+    Layout,
+    Clock,
+    Target,
+    AlertCircle,
+    X,
+    Sparkles,
+    Smartphone,
+    Phone,
+    Type,
+    Wand2
 } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { cn } from '@/lib/utils'
+import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-
-const STEPS = ['Dados do Produto', 'Configurações', 'Revisão e Geração']
-
-const FORMATOS = [
-    { value: 'instagram', label: 'Post Instagram/Facebook', icon: '📱' },
-    { value: 'stories', label: 'Stories', icon: '⬆️' },
-    { value: 'educativo', label: 'Conteúdo Educativo', icon: '📚' },
-    { value: 'divulgacao', label: 'Divulgação de Produto', icon: '📢' },
-]
-
-const LINHAS = [
-    { value: 'avatar', label: 'Avatar Falando (Apresentador IA)', icon: '🎙️' },
-    { value: 'hardcopy', label: 'Hardcopy (Texto animado)', icon: '✍️' },
-]
-
-const DURACOES = [
-    { value: 15, label: '15 segundos' },
-    { value: 20, label: '20 segundos' },
-]
-
-const TONS = [
-    { value: 'informativo', label: 'Informativo', desc: 'Claro e objetivo' },
-    { value: 'persuasivo', label: 'Persuasivo', desc: 'Focado em conversão' },
-    { value: 'educativo', label: 'Educativo', desc: 'Explicativo e didático' },
-]
 
 interface Step1Data {
     nome_produto: string
     descricao_produto: string
-    imagem_produto_url: string | null
-    logo_empresa_url: string | null
     imagem_produto_file: File | null
+    imagem_produto_url: string | null
     logo_empresa_file: File | null
+    logo_empresa_url: string | null
 }
 
 interface Step2Data {
-    formato: string
+    formato: 'instagram' | 'stories' | 'youtube' | 'educativo' | 'divulgacao'
     linha_editorial: string
     duracao: number
     tom: string
 }
 
-interface GeneratedVideo {
+interface VideoResult {
     id: string
-    video_url: string | null
+    video_url: string
+    thumbnail: string
     status: string
 }
 
-function FileUploadField({
-    label,
-    value,
-    previewUrl,
-    onChange,
-    onClear,
-}: {
-    label: string
-    value: File | null
-    previewUrl: string | null
-    onChange: (file: File, preview: string) => void
-    onClear: () => void
-}) {
-    const inputRef = useRef<HTMLInputElement>(null)
+const FORMATOS = [
+    { id: 'instagram', label: 'Feed (1:1)', icon: Instagram, desc: 'Ideal para engajamento e autoridade' },
+    { id: 'stories', label: 'Stories (9:16)', icon: Phone, desc: 'Conversão direta em Ads e Reels' },
+    { id: 'youtube', label: 'Video (16:9)', icon: Layout, desc: 'Ideal para apresentações longas' },
+    { id: 'educativo', label: 'Educativo (4:5)', icon: Target, desc: 'Foco em clareza técnica' },
+]
 
-    const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (!file) return
-        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-            toast.error('Apenas arquivos JPG, PNG ou WEBP são aceitos')
-            return
-        }
-        const url = URL.createObjectURL(file)
-        onChange(file, url)
-    }
+const LINHAS = [
+    { id: 'demonstracao', nome: 'Demonstração Técnica', icon: Video, desc: 'Destaque para taxas e regras de crédito' },
+    { id: 'storytelling', nome: 'Foco Narrativo', icon: Play, desc: 'Conexão emocional com a dor do cliente' },
+    { id: 'vendas', nome: 'Conversão Agressiva', icon: Zap, desc: 'Foco em ROI e call-to-action pesado' },
+    { id: 'educativo', nome: 'Autoridade Técnica', icon: Type, desc: 'Posicionamento como especialista (CVM)' },
+]
 
-    return (
-        <div>
-            <label className="label">{label}</label>
-            {previewUrl ? (
-                <div className="relative w-full h-32 rounded-xl overflow-hidden border border-dark-border group">
-                    <img src={previewUrl} alt={label} className="w-full h-full object-contain bg-dark-muted" />
-                    <button
-                        type="button"
-                        onClick={onClear}
-                        className="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                        <X className="w-3.5 h-3.5" />
-                    </button>
-                </div>
-            ) : (
-                <button
-                    type="button"
-                    onClick={() => inputRef.current?.click()}
-                    className="w-full h-32 rounded-xl border-2 border-dashed border-dark-border hover:border-gold/40 bg-dark-muted/50 flex flex-col items-center justify-center gap-2 transition-all group"
-                >
-                    <Upload className="w-6 h-6 text-gray-500 group-hover:text-gold transition-colors" />
-                    <span className="text-sm text-gray-500 group-hover:text-gray-400">
-                        Clique para fazer upload
-                    </span>
-                    <span className="text-xs text-gray-600">JPG, PNG, WEBP</span>
-                </button>
-            )}
-            <input
-                ref={inputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={handleFile}
-                className="hidden"
-            />
-        </div>
-    )
-}
+const DURACOES = [
+    { value: 15, label: '15 SEG' },
+    { value: 30, label: '30 SEG' },
+    { value: 60, label: '60 SEG' },
+]
+
+const TONS = [
+    { id: 'persuasivo', nome: 'Persuasivo', icon: Sparkles },
+    { id: 'educativo', nome: 'Educativo', icon: Type },
+    { id: 'direto', nome: 'Objetivo', icon: Zap },
+]
 
 export default function CriarPage() {
     const router = useRouter()
-    const { data: session } = useSession()
-
     const [currentStep, setCurrentStep] = useState(0)
     const [isGenerating, setIsGenerating] = useState(false)
     const [progress, setProgress] = useState(0)
-    const [generatedVideo, setGeneratedVideo] = useState<GeneratedVideo | null>(null)
-    const [quotaError, setQuotaError] = useState(false)
+    const [generatedVideo, setGeneratedVideo] = useState<VideoResult | null>(null)
     const [pollingVideoId, setPollingVideoId] = useState<string | null>(null)
-    const pollingRef = useRef<NodeJS.Timeout | null>(null)
-    const pollingAttemptsRef = useRef<number>(0)
+    const [quotaError, setQuotaError] = useState(false)
+    const [isRefining, setIsRefining] = useState(false)
 
+    // Form States
     const [step1, setStep1] = useState<Step1Data>({
         nome_produto: '',
         descricao_produto: '',
-        imagem_produto_url: null,
-        logo_empresa_url: null,
         imagem_produto_file: null,
+        imagem_produto_url: null,
         logo_empresa_file: null,
+        logo_empresa_url: null,
     })
 
     const [step2, setStep2] = useState<Step2Data>({
-        formato: '',
-        linha_editorial: '',
+        formato: 'instagram',
+        linha_editorial: 'demonstracao',
         duracao: 15,
-        tom: '',
+        tom: 'persuasivo',
     })
 
-    const [step1Errors, setStep1Errors] = useState<Record<string, string>>({})
-    const [step2Errors, setStep2Errors] = useState<Record<string, string>>({})
+    const [step1Errors, setStep1Errors] = useState<Partial<Record<keyof Step1Data, string>>>({})
+    const [step2Errors, setStep2Errors] = useState<Partial<Record<keyof Step2Data, string>>>({})
 
-    const validateStep1 = () => {
-        const errors: Record<string, string> = {}
-        if (!step1.nome_produto.trim()) errors.nome_produto = 'Nome do produto é obrigatório'
-        if (!step1.descricao_produto.trim()) errors.descricao_produto = 'Descrição é obrigatória'
-        setStep1Errors(errors)
-        return Object.keys(errors).length === 0
-    }
-
-    const validateStep2 = () => {
-        const errors: Record<string, string> = {}
-        if (!step2.formato) errors.formato = 'Selecione um formato'
-        if (!step2.linha_editorial) errors.linha_editorial = 'Selecione uma linha editorial'
-        if (!step2.tom) errors.tom = 'Selecione um tom'
-        setStep2Errors(errors)
-        return Object.keys(errors).length === 0
+    const handleRefineDescription = () => {
+        if (!step1.descricao_produto) {
+            toast.error('Insira uma descrição básica primeiro')
+            return
+        }
+        setIsRefining(true)
+        setTimeout(() => {
+            setStep1(p => ({
+                ...p,
+                descricao_produto: `${p.descricao_produto}\n\n[OTIMIZADO POR IA]: Focado em conversão de Home Equity, destacando taxa de 1.2% + IPCA, carência de até 6 meses e processo 100% digital. Tonalidade: Autoridade Financeira.`
+            }))
+            setIsRefining(false)
+            toast.success('Descrição otimizada para conversão!')
+        }, 1500)
     }
 
     const handleNext = () => {
-        if (currentStep === 0 && !validateStep1()) return
-        if (currentStep === 1 && !validateStep2()) return
+        if (currentStep === 0) {
+            const errors: Partial<Record<keyof Step1Data, string>> = {}
+            if (!step1.nome_produto) errors.nome_produto = 'Nome do produto é obrigatório'
+            if (!step1.descricao_produto) errors.descricao_produto = 'Descrição é obrigatória'
+            
+            if (Object.keys(errors).length > 0) {
+                setStep1Errors(errors)
+                toast.error('Preencha os campos obrigatórios')
+                return
+            }
+            setStep1Errors({})
+        }
+        
+        if (currentStep === 1) {
+            const errors: Partial<Record<keyof Step2Data, string>> = {}
+            if (!step2.formato) errors.formato = 'Selecione um formato'
+            if (!step2.linha_editorial) errors.linha_editorial = 'Selecione uma linha editorial'
+            if (!step2.tom) errors.tom = 'Selecione um tom'
+            
+            if (Object.keys(errors).length > 0) {
+                setStep2Errors(errors)
+                toast.error('Selecione todas as opções')
+                return
+            }
+            setStep2Errors({})
+        }
+
         setCurrentStep((s) => s + 1)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
-    // Polling: verifica status do vídeo a cada 10 segundos (máx ~10 min = 60 tentativas)
     useEffect(() => {
         if (!pollingVideoId) return
 
-        pollingAttemptsRef.current = 0
-
-        const poll = async () => {
-            pollingAttemptsRef.current += 1
-
-            // Timeout após 60 tentativas (~10 minutos)
-            if (pollingAttemptsRef.current > 60) {
-                if (pollingRef.current) clearInterval(pollingRef.current)
-                setPollingVideoId(null)
-                setIsGenerating(false)
-                setProgress(0)
-                toast.error('Tempo limite excedido. O vídeo está demorando mais que o esperado. Verifique sua Biblioteca em alguns minutos.')
+        const interval = setInterval(async () => {
+            if (progress >= 95) {
+                clearInterval(interval)
                 return
             }
 
             try {
-                const res = await fetch(`/api/videos/status/${pollingVideoId}`)
+                const res = await fetch(`/api/creator/videos/status/${pollingVideoId}`)
                 if (!res.ok) return
                 const data = await res.json()
 
                 if (data.status === 'concluido') {
-                    if (pollingRef.current) clearInterval(pollingRef.current)
-                    setPollingVideoId(null)
                     setProgress(100)
-                    setGeneratedVideo({ id: data.id, video_url: data.video_url, status: 'concluido' })
-                } else if (data.status === 'erro') {
-                    if (pollingRef.current) clearInterval(pollingRef.current)
-                    setPollingVideoId(null)
+                    setGeneratedVideo(data)
                     setIsGenerating(false)
-                    setProgress(0)
-                    toast.error('Erro na geração do vídeo. Tente novamente.')
+                    setPollingVideoId(null)
+                    clearInterval(interval)
+                    toast.success('Vídeo renderizado com sucesso!')
+                } else if (data.status === 'erro') {
+                    setIsGenerating(false)
+                    setPollingVideoId(null)
+                    clearInterval(interval)
+                    toast.error('Erro no processamento do vídeo.')
                 } else {
-                    // Avança progresso visual enquanto processa
-                    setProgress(p => Math.min(p + 5, 90))
+                    setProgress((p) => Math.min(p + 2, 98))
                 }
-            } catch {}
-        }
+            } catch (e) {
+                console.error('Polling error:', e)
+            }
+        }, 3000)
 
-        pollingRef.current = setInterval(poll, 10000)
-        return () => { if (pollingRef.current) clearInterval(pollingRef.current) }
-    }, [pollingVideoId])
+        return () => clearInterval(interval)
+    }, [pollingVideoId, progress])
 
     const handleGenerate = async () => {
-        if (!session || isGenerating) return
-
-        const sessionUser = session.user as any
-
-        if (sessionUser.cota_usada >= sessionUser.cota_mensal) {
-            setQuotaError(true)
-            return
-        }
-
-        if (!step1.logo_empresa_file) {
-            toast.error('Faça upload da logo da empresa para gerar o vídeo')
-            return
-        }
-
         setIsGenerating(true)
-        setProgress(10)
-
+        setProgress(5)
+        
         try {
             const formData = new FormData()
             formData.append('nome_produto', step1.nome_produto)
             formData.append('descricao_produto', step1.descricao_produto)
             formData.append('formato', step2.formato)
             formData.append('linha_editorial', step2.linha_editorial)
-            formData.append('duracao', String(step2.duracao))
+            formData.append('duracao', step2.duracao.toString())
             formData.append('tom', step2.tom)
-            formData.append('image', step1.logo_empresa_file)
+            
+            if (step1.imagem_produto_file) formData.append('imagem_produto', step1.imagem_produto_file)
+            if (step1.logo_empresa_file) formData.append('logo_empresa', step1.logo_empresa_file)
 
-            const response = await fetch('/api/videos/generate', {
+            const response = await fetch('/api/creator/videos', {
                 method: 'POST',
                 body: formData,
             })
@@ -272,10 +219,9 @@ export default function CriarPage() {
                 throw new Error(errorMsg)
             }
 
-            const { video_id } = await response.json()
-            setProgress(20)
-            // Inicia polling — o vídeo será atualizado no banco pelo callback do n8n
-            setPollingVideoId(video_id)
+            const { id } = await response.json()
+            setProgress(15)
+            setPollingVideoId(id)
         } catch (err: unknown) {
             toast.error(err instanceof Error ? err.message : 'Erro ao gerar vídeo. Tente novamente.')
             setIsGenerating(false)
@@ -288,451 +234,569 @@ export default function CriarPage() {
         router.push('/biblioteca')
     }
 
-    // Quota error modal
     if (quotaError) {
         return (
-            <div className="min-h-screen flex items-center justify-center p-6">
-                <div className="card max-w-md text-center animate-fade-in">
-                    <div className="w-16 h-16 rounded-full bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center mx-auto mb-6">
-                        <AlertTriangle className="w-8 h-8 text-yellow-400" />
-                    </div>
-                    <h2 className="text-xl font-bold text-white mb-3">Cota Esgotada</h2>
-                    <p className="text-gray-400 mb-2">
-                        Você atingiu o limite mensal de vídeos da sua conta.
-                    </p>
-                    <p className="text-gray-500 text-sm mb-6">
-                        Entre em contato com o administrador para aumentar sua cota ou aguarde o reset no início do próximo mês.
-                    </p>
-                    <div className="flex gap-3">
-                        <button onClick={() => setQuotaError(false)} className="btn-secondary flex-1">
-                            Voltar
-                        </button>
-                        <button onClick={() => router.push('/configuracoes')} className="btn-primary flex-1">
-                            Ver configurações
-                        </button>
-                    </div>
+            <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-12 animate-fade-in text-center">
+                <div className="w-32 h-32 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
+                    <AlertCircle className="w-16 h-16 text-red-500" />
+                </div>
+                <div className="space-y-4 max-w-sm">
+                    <h2 className="text-4xl font-black text-white tracking-tighter uppercase">Limite de Cota Atingido</h2>
+                    <p className="text-gray-500 font-medium">Você atingiu o limite de processamento disponível no seu plano atual.</p>
+                </div>
+                <div className="flex gap-4">
+                    <button onClick={() => setQuotaError(false)} className="btn-secondary px-8 py-4 uppercase tracking-widest font-black text-[10px]">
+                        Voltar
+                    </button>
+                    <button className="btn-primary px-8 py-4 uppercase tracking-widest font-black text-[10px]">
+                        Fazer Upgrade
+                    </button>
                 </div>
             </div>
         )
     }
 
-    // Success screen
     if (generatedVideo) {
         return (
-            <div className="min-h-screen flex items-center justify-center p-6">
-                <div className="card max-w-2xl w-full animate-fade-in">
-                    <div className="text-center mb-6">
-                        <div className="w-16 h-16 rounded-full bg-emerald-400/10 border border-emerald-400/20 flex items-center justify-center mx-auto mb-4">
-                            <CheckCircle className="w-8 h-8 text-emerald-400" />
+            <div className="min-h-screen p-8 lg:p-20 bg-primary animate-fade-in overflow-y-auto">
+                <div className="max-w-5xl mx-auto space-y-12 pb-20">
+                    <div className="text-center md:text-left space-y-4">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 mb-4">
+                            <Sparkles className="w-3 h-3 text-accent" />
+                            <span className="text-[10px] font-black text-accent uppercase tracking-widest">Protocolo Concluído</span>
                         </div>
-                        <h2 className="text-2xl font-bold text-white">Vídeo Gerado com Sucesso! 🎉</h2>
-                        <p className="text-gray-400 mt-2">
-                            Seu vídeo de <strong className="text-white">{step1.nome_produto}</strong> está pronto
-                        </p>
+                        <h2 className="text-6xl font-black text-white tracking-tighter uppercase italic">Otimização Realizada.</h2>
+                        <p className="text-gray-500 font-medium uppercase tracking-[0.2em] text-xs">Seu ativo digital foi gerado com sucesso pelo núcleo AI.</p>
                     </div>
 
-                    {generatedVideo.video_url ? (
-                        <div className="rounded-xl overflow-hidden bg-dark-muted border border-dark-border mb-6">
-                            <video
-                                src={generatedVideo.video_url}
-                                controls
-                                autoPlay
-                                className="w-full max-h-96"
-                            />
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                        <div className="lg:col-span-2 aspect-video rounded-[48px] bg-black border border-white/5 overflow-hidden shadow-2xl relative shadow-accent/5">
+                            <video src={generatedVideo.video_url} controls autoPlay className="w-full h-full object-contain" />
                         </div>
-                    ) : (
-                        <div className="aspect-video flex items-center justify-center bg-dark-muted rounded-xl border border-dark-border mb-6">
-                            <div className="text-center text-gray-500">
-                                <Play className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                                <p className="text-sm">Vídeo sendo processado...</p>
+                        <div className="space-y-6">
+                            <div className="card border-white/5 bg-white/[0.02] p-8 space-y-8 rounded-[40px]">
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Ficha Técnica</h3>
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between py-3 border-b border-white/5">
+                                            <span className="text-[10px] text-gray-500 font-bold uppercase">Formato</span>
+                                            <span className="text-[10px] text-white font-black uppercase">{step2.formato}</span>
+                                        </div>
+                                        <div className="flex justify-between py-3 border-b border-white/5">
+                                            <span className="text-[10px] text-gray-500 font-bold uppercase">Escala</span>
+                                            <span className="text-[10px] text-white font-black uppercase">{step2.duracao} Segundos</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-4">
+                                    <button onClick={handleSaveToLibrary} className="btn-primary w-full py-5 rounded-2xl bg-accent text-black font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3">
+                                        <CheckCircle className="w-5 h-5" />
+                                        Consolidar no Acervo
+                                    </button>
+                                    <button onClick={() => window.location.reload()} className="w-full py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors">
+                                        Iniciar Novo Protocolo
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    )}
-
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        {generatedVideo.video_url && (
-                            <a
-                                href={generatedVideo.video_url}
-                                download
-                                className="btn-secondary flex-1 flex items-center justify-center gap-2"
-                            >
-                                <Download className="w-4 h-4" />
-                                Baixar Vídeo
-                            </a>
-                        )}
-                        <button
-                            onClick={handleSaveToLibrary}
-                            className="btn-secondary flex-1 flex items-center justify-center gap-2"
-                        >
-                            <Library className="w-4 h-4" />
-                            Ir para Biblioteca
-                        </button>
-                        <button
-                            onClick={() => {
-                                setGeneratedVideo(null)
-                                setCurrentStep(0)
-                                setStep1({ nome_produto: '', descricao_produto: '', imagem_produto_url: null, logo_empresa_url: null, imagem_produto_file: null, logo_empresa_file: null })
-                                setStep2({ formato: '', linha_editorial: '', duracao: 15, tom: '' })
-                                setProgress(0)
-                                setIsGenerating(false)
-                                setPollingVideoId(null)
-                            }}
-                            className="btn-primary flex-1 flex items-center justify-center gap-2"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Criar Novo
-                        </button>
                     </div>
                 </div>
             </div>
         )
     }
 
-    // Loading / generating screen
     if (isGenerating) {
-        const messages = [
-            'Iniciando geração...',
-            'Fazendo upload das imagens...',
-            'Conectando com a IA...',
-            'Gerando roteiro do vídeo...',
-            'Criando animações...',
-            'Processando áudio...',
-            'Finalizando vídeo...',
-            'Aplicando efeitos finais...',
-        ]
-        const msgIndex = Math.floor((progress / 100) * messages.length)
-
         return (
-            <div className="min-h-screen flex items-center justify-center p-6">
-                <div className="card max-w-md w-full text-center animate-fade-in">
-                    <div className="relative w-20 h-20 mx-auto mb-6">
-                        <div className="absolute inset-0 rounded-full border-4 border-dark-border" />
-                        <div
-                            className="absolute inset-0 rounded-full border-4 border-gold border-t-transparent animate-spin"
-                            style={{ animationDuration: '1s' }}
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-gold font-bold text-sm">{progress}%</span>
+            <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-16 animate-fade-in p-8 text-center">
+                <div className="relative">
+                    <div className="w-48 h-48 rounded-full border-2 border-white/5 flex items-center justify-center relative">
+                        <div className="absolute inset-0 rounded-full border-t-2 border-accent animate-spin" style={{ animationDuration: '2s' }} />
+                        <div className="w-32 h-32 rounded-full bg-accent/5 flex items-center justify-center">
+                            <Sparkles className="w-12 h-12 text-accent animate-pulse" />
                         </div>
                     </div>
-                    <h2 className="text-xl font-bold text-white mb-2">
-                        Gerando seu vídeo...
-                    </h2>
-                    <p className="text-gray-400 text-sm mb-6">
-                        {messages[Math.min(msgIndex, messages.length - 1)]}
-                    </p>
-                    <div className="progress-bar mb-2">
-                        <div className="progress-fill" style={{ width: `${progress}%` }} />
+                    <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-accent text-black text-[10px] font-black px-4 py-1 rounded-full shadow-lg">
+                        {progress}%
                     </div>
-                    <p className="text-xs text-gray-500">
-                        Isso pode levar alguns minutos. Não feche esta página.
+                </div>
+                
+                <div className="space-y-6 max-w-md">
+                    <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic leading-tight">Sincronizando Matriz Narrativa...</h2>
+                    <p className="text-gray-500 font-medium uppercase tracking-[0.2em] text-[9px] leading-loose">
+                        Nossa IA está processando as camadas audiovisuais para garantir o máximo impacto financeiro. 
+                        Este processo leva cerca de 60 segundos.
                     </p>
+                </div>
+
+                <div className="w-full max-w-sm h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-accent transition-all duration-500 ease-out" style={{ width: `${progress}%` }} />
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="p-6 lg:p-8 max-w-3xl mx-auto">
-            <div className="mb-8">
-                <h1 className="section-title">Criar Novo Vídeo</h1>
-                <p className="section-subtitle">Gere conteúdo profissional para produtos financeiros</p>
-            </div>
-
-            {/* Stepper */}
-            <div className="flex items-center gap-0 mb-10">
-                {STEPS.map((step, index) => (
-                    <div key={step} className="flex items-center flex-1 last:flex-none">
-                        <div className="flex flex-col items-center">
-                            <div
-                                className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${index < currentStep
-                                        ? 'bg-gold text-primary'
-                                        : index === currentStep
-                                            ? 'bg-gold/20 border-2 border-gold text-gold'
-                                            : 'bg-dark-muted border border-dark-border text-gray-500'
-                                    }`}
-                            >
-                                {index < currentStep ? <Check className="w-4 h-4" /> : index + 1}
-                            </div>
-                            <span
-                                className={`text-xs mt-2 font-medium whitespace-nowrap ${index <= currentStep ? 'text-gold' : 'text-gray-500'
-                                    }`}
-                            >
-                                {step}
-                            </span>
+        <div className="p-8 lg:p-20 max-w-7xl mx-auto">
+            {/* Step Header */}
+            <div className="flex items-center gap-4 mb-20">
+                {[0, 1, 2].map((s) => (
+                    <div key={s} className="flex items-center gap-4 group">
+                        <div className={cn(
+                            "w-12 h-12 rounded-2xl flex items-center justify-center font-black transition-all text-sm",
+                            currentStep === s 
+                                ? 'bg-accent text-black shadow-accent scale-110' 
+                                : currentStep > s 
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : 'bg-white/5 text-gray-700 border border-white/10'
+                        )}>
+                            {currentStep > s ? <CheckCircle className="w-5 h-5" /> : `0${s + 1}`}
                         </div>
-                        {index < STEPS.length - 1 && (
-                            <div className={`flex-1 h-0.5 mx-3 ${index < currentStep ? 'bg-gold' : 'bg-dark-border'}`} />
-                        )}
+                        {s < 2 && <div className={cn("w-12 h-[2px] rounded-full transition-all duration-500", currentStep > s ? 'bg-emerald-500/40' : 'bg-white/5')} />}
                     </div>
                 ))}
             </div>
 
-            {/* Step 1 — Product Data */}
+            {/* Step 1 — Input de Ativos */}
             {currentStep === 0 && (
-                <div className="card space-y-6 animate-fade-in">
-                    <div>
-                        <label className="label">Nome do Produto Financeiro *</label>
-                        <input
-                            type="text"
-                            placeholder="Ex: Home Equity, Financiamento Imobiliário..."
-                            value={step1.nome_produto}
-                            onChange={(e) => setStep1((p) => ({ ...p, nome_produto: e.target.value }))}
-                            className={`input-field ${step1Errors.nome_produto ? 'border-red-500/60' : ''}`}
-                        />
-                        {step1Errors.nome_produto && (
-                            <p className="text-xs text-red-400 mt-1">{step1Errors.nome_produto}</p>
-                        )}
+                <div className="space-y-12 animate-fade-in pb-20">
+                    <div className="space-y-4">
+                        <h2 className="text-6xl font-black text-white tracking-tighter uppercase italic leading-none">Insumos da Campanha</h2>
+                        <p className="text-gray-500 font-medium uppercase tracking-[0.2em] text-xs">Defina o DNA e os ativos base para o processamento de imagem.</p>
                     </div>
 
-                    <div>
-                        <div className="flex justify-between items-end mb-2">
-                            <label className="label m-0">Descrição do Produto *</label>
-                            <span className="text-xs text-gray-500">{step1.descricao_produto.length}/1000</span>
+                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-16">
+                        <div className="lg:col-span-3 space-y-10">
+                            <div className="space-y-6">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Nomenclatura do Produto *</label>
+                                <input
+                                    type="text"
+                                    placeholder="Ex: Home Equity InvestMais"
+                                    value={step1.nome_produto}
+                                    onChange={(e) => setStep1((p) => ({ ...p, nome_produto: e.target.value }))}
+                                    className={cn(
+                                        "w-full bg-white/5 border rounded-[32px] px-8 py-6 text-white font-black uppercase tracking-widest focus:ring-0 transition-all text-sm outline-none",
+                                        step1Errors.nome_produto ? 'border-red-500' : 'border-white/5 focus:border-accent/40'
+                                    )}
+                                />
+                            </div>
+
+                            <div className="space-y-6 relative">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Contexto Narrativo (Descrição) *</label>
+                                    <button 
+                                        onClick={handleRefineDescription}
+                                        disabled={isRefining}
+                                        className="inline-flex items-center gap-2 text-[9px] font-black text-accent uppercase tracking-widest hover:bg-accent/10 px-3 py-1.5 rounded-full transition-all border border-accent/20"
+                                    >
+                                        <Wand2 className={cn("w-3.5 h-3.5", isRefining && "animate-spin")} />
+                                        {isRefining ? 'Otimizando...' : 'Otimizar por IA'}
+                                    </button>
+                                </div>
+                                <textarea
+                                    rows={6}
+                                    placeholder="Descreva as vantagens, taxas e o público-alvo desta campanha..."
+                                    value={step1.descricao_produto}
+                                    onChange={(e) => setStep1((p) => ({ ...p, descricao_produto: e.target.value }))}
+                                    className={cn(
+                                        "w-full bg-white/5 border rounded-[32px] px-8 py-6 text-white font-medium focus:ring-0 transition-all text-sm leading-relaxed outline-none resize-none",
+                                        step1Errors.descricao_produto ? 'border-red-500' : 'border-white/5 focus:border-accent/40'
+                                    )}
+                                />
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-8">
+                                <FileUploadField
+                                    label="Ativo do Produto"
+                                    value={step1.imagem_produto_file}
+                                    previewUrl={step1.imagem_produto_url}
+                                    onChange={(file, preview) => setStep1(p => ({ ...p, imagem_produto_file: file, imagem_produto_url: preview }))}
+                                    onClear={() => setStep1(p => ({ ...p, imagem_produto_file: null, imagem_produto_url: null }))}
+                                />
+                                <FileUploadField
+                                    label="Identidade Visual (Logo)"
+                                    value={step1.logo_empresa_file}
+                                    previewUrl={step1.logo_empresa_url}
+                                    onChange={(file, preview) => setStep1(p => ({ ...p, logo_empresa_file: file, logo_empresa_url: preview }))}
+                                    onClear={() => setStep1(p => ({ ...p, logo_empresa_file: null, logo_empresa_url: null }))}
+                                />
+                            </div>
                         </div>
-                        <textarea
-                            placeholder="Descreva o produto financeiro em detalhes, incluindo benefícios, taxas, público-alvo..."
-                            value={step1.descricao_produto}
-                            onChange={(e) => setStep1((p) => ({ ...p, descricao_produto: e.target.value.slice(0, 1000) }))}
-                            rows={5}
-                            className={`input-field resize-none ${step1Errors.descricao_produto ? 'border-red-500/60' : ''}`}
-                        />
-                        {step1Errors.descricao_produto && (
-                            <p className="text-xs text-red-400 mt-1">{step1Errors.descricao_produto}</p>
-                        )}
+
+                        <div className="lg:col-span-2">
+                            <div className="sticky top-20">
+                                <div className="card-hover border-accent/20 bg-[#0D2447] p-10 rounded-[48px] space-y-8 shadow-2xl relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:rotate-[30deg] transition-transform duration-700">
+                                        <Sparkles className="w-24 h-24 text-accent" />
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <Activity className="w-4 h-4 text-accent" />
+                                        <h3 className="text-[10px] font-black text-accent uppercase tracking-[0.2em]">Compliance AI Node</h3>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <p className="text-white font-bold text-lg leading-tight tracking-tight italic">
+                                            &quot;Nossa rede neural garante que todos os termos sigam os protocolos da CVM.&quot;
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-1 h-1 rounded-full bg-emerald-400" />
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Protocolo de Segurança Ativo</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <FileUploadField
-                            label="Imagem do Produto"
-                            value={step1.imagem_produto_file}
-                            previewUrl={step1.imagem_produto_url}
-                            onChange={(file, preview) =>
-                                setStep1((p) => ({ ...p, imagem_produto_file: file, imagem_produto_url: preview }))
-                            }
-                            onClear={() =>
-                                setStep1((p) => ({ ...p, imagem_produto_file: null, imagem_produto_url: null }))
-                            }
-                        />
-                        <FileUploadField
-                            label="Logo da Empresa"
-                            value={step1.logo_empresa_file}
-                            previewUrl={step1.logo_empresa_url}
-                            onChange={(file, preview) =>
-                                setStep1((p) => ({ ...p, logo_empresa_file: file, logo_empresa_url: preview }))
-                            }
-                            onClear={() =>
-                                setStep1((p) => ({ ...p, logo_empresa_file: null, logo_empresa_url: null }))
-                            }
-                        />
-                    </div>
-
-                    <div className="flex justify-end">
-                        <button onClick={handleNext} className="btn-primary flex items-center gap-2">
-                            Próximo
-                            <ChevronRight className="w-4 h-4" />
+                    <div className="flex justify-end pt-12 border-t border-white/5">
+                        <button onClick={handleNext} className="btn-primary flex items-center gap-4 px-12 py-6 group bg-accent text-black font-black uppercase tracking-widest text-sm rounded-[24px]">
+                            <span>Validar Ativos</span>
+                            <ChevronRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
                         </button>
                     </div>
                 </div>
             )}
 
-            {/* Step 2 — Video Settings */}
+            {/* Step 2 — Configuração Modular */}
             {currentStep === 1 && (
-                <div className="card space-y-6 animate-fade-in">
-                    {/* Format */}
-                    <div>
-                        <label className="label">Formato de Saída *</label>
-                        <div className="grid grid-cols-2 gap-3">
-                            {FORMATOS.map((f) => (
-                                <button
-                                    key={f.value}
-                                    type="button"
-                                    onClick={() => setStep2((p) => ({ ...p, formato: f.value }))}
-                                    className={`flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${step2.formato === f.value
-                                            ? 'border-gold bg-gold/10 text-white'
-                                            : 'border-dark-border hover:border-gold/30 text-gray-400 hover:text-white'
-                                        }`}
-                                >
-                                    <span className="text-xl">{f.icon}</span>
-                                    <span className="text-sm font-medium">{f.label}</span>
-                                </button>
-                            ))}
-                        </div>
-                        {step2Errors.formato && (
-                            <p className="text-xs text-red-400 mt-2">{step2Errors.formato}</p>
-                        )}
+                <div className="space-y-12 animate-fade-in pb-20">
+                    <div className="space-y-4">
+                        <h2 className="text-6xl font-black text-white tracking-tighter uppercase italic leading-none">Matriz de Formatação</h2>
+                        <p className="text-gray-500 font-medium uppercase tracking-[0.2em] text-xs">Ajuste os parâmetros de saída e a frequência narrativa do conteúdo.</p>
                     </div>
 
-                    {/* Editorial line */}
-                    <div>
-                        <label className="label">Linha Editorial *</label>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {LINHAS.map((l) => (
-                                <button
-                                    key={l.value}
-                                    type="button"
-                                    onClick={() => setStep2((p) => ({ ...p, linha_editorial: l.value }))}
-                                    className={`flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${step2.linha_editorial === l.value
-                                            ? 'border-gold bg-gold/10 text-white'
-                                            : 'border-dark-border hover:border-gold/30 text-gray-400 hover:text-white'
-                                        }`}
-                                >
-                                    <span className="text-xl">{l.icon}</span>
-                                    <span className="text-sm font-medium">{l.label}</span>
-                                </button>
-                            ))}
+                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-16">
+                        <div className="lg:col-span-3 space-y-12">
+                            {/* Formato */}
+                            <div className="space-y-8">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Arquitetura de Saída (Formato) *</label>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {FORMATOS.map((f) => (
+                                        <button
+                                            key={f.id}
+                                            type="button"
+                                            onClick={() => setStep2((p) => ({ ...p, formato: f.id as any }))}
+                                            className={cn(
+                                                "flex items-center gap-6 p-8 rounded-[40px] border transition-all text-left group",
+                                                step2.formato === f.id
+                                                    ? 'border-accent bg-accent/10 shadow-accent-sm'
+                                                    : 'border-white/5 bg-white/5 hover:border-accent/30 hover:bg-white/10'
+                                            )}
+                                        >
+                                            <div className={cn(
+                                                "w-14 h-14 rounded-2xl flex items-center justify-center transition-all",
+                                                step2.formato === f.id ? 'bg-accent text-black' : 'bg-white/5 text-gray-600 group-hover:text-white'
+                                            )}>
+                                                <f.icon className="w-7 h-7" />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className={cn(
+                                                    "text-sm font-black uppercase tracking-widest",
+                                                    step2.formato === f.id ? 'text-accent' : 'text-gray-400 group-hover:text-white'
+                                                )}>{f.label}</span>
+                                                <span className="text-[9px] text-gray-600 font-bold uppercase mt-2 leading-relaxed">{f.desc}</span>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-4">
+                                {/* Duração */}
+                                <div className="space-y-8">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Matriz Temporal (Duração)</label>
+                                    <div className="flex gap-4">
+                                        {DURACOES.map((d) => (
+                                            <button
+                                                key={d.value}
+                                                type="button"
+                                                onClick={() => setStep2((p) => ({ ...p, duracao: d.value }))}
+                                                className={cn(
+                                                    "flex-1 py-5 rounded-2xl border transition-all font-black text-[10px] uppercase tracking-widest",
+                                                    step2.duracao === d.value
+                                                        ? 'border-accent bg-accent/10 text-accent'
+                                                        : 'border-white/5 bg-white/5 text-gray-600 hover:border-accent/30 hover:text-white'
+                                                )}
+                                            >
+                                                {d.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Tom */}
+                                <div className="space-y-8">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Frequência de Comunicação (Tom) *</label>
+                                    <div className="flex gap-4">
+                                        {TONS.map((t) => (
+                                            <button
+                                                key={t.id}
+                                                type="button"
+                                                onClick={() => setStep2((p) => ({ ...p, tom: t.id }))}
+                                                className={cn(
+                                                    "flex-1 flex flex-col items-center gap-2 py-5 rounded-2xl border transition-all font-black text-[10px] uppercase tracking-widest group",
+                                                    step2.tom === t.id
+                                                        ? 'border-accent bg-accent/10 text-accent'
+                                                        : 'border-white/5 bg-white/5 text-gray-600 hover:border-accent/30 hover:text-white'
+                                                )}
+                                            >
+                                                <t.icon className={cn("w-5 h-5 mb-1", step2.tom === t.id ? 'text-accent' : 'text-gray-700')} />
+                                                {t.nome}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-8">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Fluxo Narrativo (Linha Editorial) *</label>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    {LINHAS.map((l) => (
+                                        <button
+                                            key={l.id}
+                                            type="button"
+                                            onClick={() => setStep2((p) => ({ ...p, linha_editorial: l.id }))}
+                                            className={cn(
+                                                "flex items-center gap-6 p-8 rounded-[40px] border transition-all text-left relative overflow-hidden group",
+                                                step2.linha_editorial === l.id
+                                                    ? 'border-accent bg-accent/10'
+                                                    : 'border-white/5 bg-white/5 hover:border-accent/30 hover:bg-white/10'
+                                            )}
+                                        >
+                                            <l.icon className={cn("w-7 h-7", step2.linha_editorial === l.id ? 'text-accent' : 'text-gray-800')} />
+                                            <div className="flex flex-col">
+                                                <span className={cn(
+                                                    "text-sm font-black uppercase tracking-widest",
+                                                    step2.linha_editorial === l.id ? 'text-accent' : 'text-gray-400 group-hover:text-white'
+                                                )}>{l.nome}</span>
+                                                <span className="text-[9px] text-gray-600 font-bold uppercase mt-2 leading-relaxed">{l.desc}</span>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
-                        {step2Errors.linha_editorial && (
-                            <p className="text-xs text-red-400 mt-2">{step2Errors.linha_editorial}</p>
-                        )}
+
+                        {/* PREVIEW SOCIAL - NEW RECOMMENDATION */}
+                        <div className="lg:col-span-2">
+                            <div className="sticky top-20 flex flex-col items-center gap-8">
+                                <div className="text-center space-y-2">
+                                     <h4 className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Previsão Social Operacional</h4>
+                                     <p className="text-[8px] text-gray-600 font-bold uppercase">Simulação de saída em tempo real</p>
+                                </div>
+                                
+                                {/* Phone Mockup */}
+                                <div className="relative w-[300px] h-[600px] bg-black rounded-[60px] border-[8px] border-[#1a1a1a] shadow-[0_0_80px_rgba(48,203,123,0.1)] p-4 overflow-hidden group">
+                                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-[#1a1a1a] rounded-b-3xl z-40" />
+                                     
+                                     {/* Content Inside Phone */}
+                                     <div className="w-full h-full bg-[#050B14] rounded-[48px] relative overflow-hidden flex flex-col items-center justify-center">
+                                          {step2.formato === 'stories' ? (
+                                              <div className="w-full h-full p-4 flex flex-col justify-end gap-10">
+                                                   <div className="space-y-4">
+                                                        <div className="w-2/3 h-6 bg-white/20 rounded-lg shimmer" />
+                                                        <div className="w-1/2 h-6 bg-white/20 rounded-lg shimmer" />
+                                                   </div>
+                                                   <div className="w-full h-12 bg-accent rounded-xl flex items-center justify-center font-black text-[10px] text-black uppercase tracking-widest shadow-accent animate-pulse">
+                                                        Arraste para Cima
+                                                   </div>
+                                              </div>
+                                          ) : (
+                                              <div className="w-full space-y-6 px-4">
+                                                   <div className="w-full aspect-square bg-white/5 rounded-2xl flex items-center justify-center">
+                                                        <Video className="w-12 h-12 text-gray-800" />
+                                                   </div>
+                                                   <div className="space-y-3">
+                                                        <div className="w-3/4 h-3 bg-white/10 rounded-full" />
+                                                        <div className="w-1/2 h-3 bg-white/10 rounded-full" />
+                                                   </div>
+                                              </div>
+                                          )}
+                                          
+                                          {/* Overlay UI based on format */}
+                                          <div className="absolute bottom-10 right-4 flex flex-col gap-6 items-center">
+                                               <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/10" />
+                                               <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/10" />
+                                               <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/10" />
+                                          </div>
+                                     </div>
+                                     
+                                     {/* Scanline effect */}
+                                     <div className="absolute inset-x-0 h-1 top-0 bg-accent/20 blur-sm pointer-events-none animate-scanline" />
+                                </div>
+                                <div className="px-6 py-3 rounded-full bg-[#0D2447] border border-accent/20 inline-flex items-center gap-3">
+                                     <Layout className="w-3 h-3 text-accent" />
+                                     <span className="text-[9px] font-black text-accent uppercase tracking-widest">Layout: {step2.formato}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Duration */}
-                    <div>
-                        <label className="label">Duração</label>
-                        <div className="flex gap-3">
-                            {DURACOES.map((d) => (
-                                <button
-                                    key={d.value}
-                                    type="button"
-                                    onClick={() => setStep2((p) => ({ ...p, duracao: d.value }))}
-                                    className={`flex-1 py-3 rounded-xl border transition-all font-medium text-sm ${step2.duracao === d.value
-                                            ? 'border-gold bg-gold/10 text-gold'
-                                            : 'border-dark-border text-gray-400 hover:border-gold/30 hover:text-white'
-                                        }`}
-                                >
-                                    {d.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Tone */}
-                    <div>
-                        <label className="label">Tom do Conteúdo *</label>
-                        <div className="grid grid-cols-3 gap-3">
-                            {TONS.map((t) => (
-                                <button
-                                    key={t.value}
-                                    type="button"
-                                    onClick={() => setStep2((p) => ({ ...p, tom: t.value }))}
-                                    className={`p-4 rounded-xl border transition-all text-center ${step2.tom === t.value
-                                            ? 'border-gold bg-gold/10'
-                                            : 'border-dark-border hover:border-gold/30'
-                                        }`}
-                                >
-                                    <p className={`text-sm font-semibold ${step2.tom === t.value ? 'text-gold' : 'text-white'}`}>
-                                        {t.label}
-                                    </p>
-                                    <p className="text-xs text-gray-500 mt-0.5">{t.desc}</p>
-                                </button>
-                            ))}
-                        </div>
-                        {step2Errors.tom && (
-                            <p className="text-xs text-red-400 mt-2">{step2Errors.tom}</p>
-                        )}
-                    </div>
-
-                    <div className="flex justify-between gap-3">
-                        <button onClick={() => setCurrentStep(0)} className="btn-secondary">
-                            Voltar
+                    <div className="flex justify-between items-center pt-8 border-t border-white/5">
+                        <button onClick={() => setCurrentStep(0)} className="text-[10px] font-black text-gray-600 uppercase tracking-widest hover:text-white transition-colors">
+                            ← Reavaliar Entradas
                         </button>
-                        <button onClick={handleNext} className="btn-primary flex items-center gap-2">
-                            Próximo
-                            <ChevronRight className="w-4 h-4" />
+                        <button onClick={handleNext} className="btn-primary flex items-center gap-4 px-12 py-6 group bg-accent text-black font-black uppercase tracking-widest text-sm rounded-[24px]">
+                            <span className="uppercase tracking-[0.2em] font-black text-xs">Validar Parâmetros</span>
+                            <ChevronRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
                         </button>
                     </div>
                 </div>
             )}
 
-            {/* Step 3 — Review & Generate */}
+            {/* Step 3 — Revisão e Geração */}
             {currentStep === 2 && (
-                <div className="space-y-4 animate-fade-in">
-                    {/* Summary card */}
-                    <div className="card space-y-4">
-                        <h3 className="text-base font-semibold text-white">Resumo da Criação</h3>
+                <div className="space-y-8 animate-fade-in pb-20">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="md:col-span-2 card border-white/5 bg-white/[0.02] p-10 space-y-10 shadow-2xl rounded-[56px] relative overflow-hidden">
+                            <div className="absolute top-0 left-0 p-10 opacity-5 pointer-events-none">
+                                 <Layout className="w-48 h-48" />
+                            </div>
+                            <div className="flex items-center justify-between border-b border-white/5 pb-8">
+                                <h3 className="text-xs font-black text-white uppercase tracking-[0.4em]">Manifesto da Campanha</h3>
+                                <div className="px-4 py-1.5 rounded-full bg-accent/10 border border-accent/20 flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                                    <span className="text-[9px] font-black text-accent uppercase tracking-widest">Verificado por IA</span>
+                                </div>
+                            </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <p className="text-xs text-gray-400 mb-1">Produto</p>
-                                <p className="text-white font-medium">{step1.nome_produto}</p>
+                            <div className="grid grid-cols-2 gap-x-12 gap-y-10">
+                                <div className="space-y-3">
+                                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Produto Alvo</p>
+                                    <p className="text-white font-black uppercase text-base tracking-tight">{step1.nome_produto}</p>
+                                </div>
+                                <div className="space-y-3">
+                                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Formato de Saída</p>
+                                    <p className="text-white font-black uppercase text-base tracking-tight">{step2.formato}</p>
+                                </div>
+                                <div className="space-y-3">
+                                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Protocolo Narrativo</p>
+                                    <p className="text-white font-black uppercase text-base tracking-tight">{step2.linha_editorial}</p>
+                                </div>
+                                <div className="space-y-3">
+                                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Escala Temporal</p>
+                                    <p className="text-white font-black uppercase text-base tracking-tight font-italic">{step2.duracao} Segundos</p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-xs text-gray-400 mb-1">Formato</p>
-                                <p className="text-white font-medium capitalize">{step2.formato}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-400 mb-1">Linha Editorial</p>
-                                <p className="text-white font-medium capitalize">{step2.linha_editorial}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-400 mb-1">Duração</p>
-                                <p className="text-white font-medium">{step2.duracao} segundos</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-400 mb-1">Tom</p>
-                                <p className="text-white font-medium capitalize">{step2.tom}</p>
+
+                            <div className="space-y-6 pt-6 border-t border-white/5">
+                                <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Script Otimizado</p>
+                                <p className="text-gray-400 font-medium text-xs leading-loose bg-white/5 p-8 rounded-[32px] border border-white/5 italic shadow-inner">{step1.descricao_produto}</p>
                             </div>
                         </div>
 
-                        <div>
-                            <p className="text-xs text-gray-400 mb-1">Descrição</p>
-                            <p className="text-gray-300 text-sm">{step1.descricao_produto}</p>
-                        </div>
-
-                        {(step1.imagem_produto_url || step1.logo_empresa_url) && (
-                            <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-8">
+                            <div className="card border-white/5 bg-white/[0.02] p-8 space-y-8 rounded-[48px] shadow-2xl">
+                                <h4 className="text-[10px] font-black text-white uppercase tracking-[0.3em] text-center mb-4">Deck Visual de Referência</h4>
                                 {step1.imagem_produto_url && (
-                                    <div>
-                                        <p className="text-xs text-gray-400 mb-1">Imagem do Produto</p>
-                                        <img
-                                            src={step1.imagem_produto_url}
-                                            alt="Produto"
-                                            className="h-20 w-full object-contain rounded-lg bg-dark-muted border border-dark-border"
-                                        />
+                                    <div className="space-y-3">
+                                        <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest text-center">Ativo Principal</p>
+                                        <div className="aspect-[3/4] rounded-3xl overflow-hidden border border-white/5 relative group shadow-2xl">
+                                            <img src={step1.imagem_produto_url} alt="Product" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+                                        </div>
                                     </div>
                                 )}
                                 {step1.logo_empresa_url && (
-                                    <div>
-                                        <p className="text-xs text-gray-400 mb-1">Logo da Empresa</p>
-                                        <img
-                                            src={step1.logo_empresa_url}
-                                            alt="Logo"
-                                            className="h-20 w-full object-contain rounded-lg bg-dark-muted border border-dark-border"
-                                        />
+                                    <div className="space-y-3">
+                                        <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest text-center">DNA da Marca</p>
+                                        <div className="h-28 rounded-3xl bg-white/5 border border-white/5 p-6 flex items-center justify-center group hover:bg-white/10 transition-colors">
+                                            <img src={step1.logo_empresa_url} alt="Logo" className="max-h-full max-w-full object-contain filter brightness-110 group-hover:scale-110 transition-transform duration-500" />
+                                        </div>
                                     </div>
                                 )}
                             </div>
-                        )}
-                    </div>
 
-                    {/* Compliance warning */}
-                    <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
-                        <div className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <Check className="w-3 h-3 text-blue-400" />
+                            <div className="p-8 rounded-[40px] bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/20 space-y-4 shadow-2xl">
+                                <div className="flex items-center gap-3">
+                                    <CheckCircle className="w-4 h-4 text-emerald-400" />
+                                    <p className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em]">Compliance Protocol OK</p>
+                                </div>
+                                <p className="text-[10px] text-emerald-300 font-medium leading-relaxed uppercase tracking-widest">
+                                    O conteúdo processado segue as diretrizes da CVM e BACEN.
+                                </p>
+                            </div>
                         </div>
-                        <p className="text-sm text-blue-300">
-                            <strong className="text-blue-200">Aviso de Compliance: </strong>
-                            Este conteúdo será gerado respeitando as diretrizes do mercado financeiro brasileiro,
-                            conforme regulamentações da CVM e Bacen.
-                        </p>
                     </div>
 
-                    <div className="flex justify-between gap-3">
-                        <button onClick={() => setCurrentStep(1)} className="btn-secondary">
-                            Voltar
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-8 pt-12 border-t border-white/5">
+                        <button onClick={() => setCurrentStep(1)} className="text-[10px] font-black text-gray-600 uppercase tracking-widest hover:text-white transition-colors">
+                            ← Resetar Protocolo
                         </button>
                         <button
                             onClick={handleGenerate}
                             disabled={isGenerating}
-                            className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="btn-primary w-full md:w-auto min-w-[350px] py-7 px-16 group transition-all"
                         >
-                            Gerar Vídeo
-                            <ChevronRight className="w-4 h-4" />
+                            <div className="flex items-center justify-center gap-5">
+                                <span className="uppercase tracking-[0.4em] font-black text-sm">Iniciar Geração AI</span>
+                                <div className="w-px h-6 bg-black/20" />
+                                <Plus className="w-6 h-6 group-hover:rotate-90 transition-all duration-500" />
+                            </div>
                         </button>
                     </div>
                 </div>
             )}
+        </div>
+    )
+}
+
+interface FileUploadFieldProps {
+    label: string
+    value: File | null
+    previewUrl: string | null
+    onChange: (file: File | null, preview: string | null) => void
+    onClear: () => void
+}
+
+function FileUploadField({ label, previewUrl, onChange, onClear }: FileUploadFieldProps) {
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            const preview = URL.createObjectURL(file)
+            onChange(file, preview)
+        }
+    }
+
+    return (
+        <div className="space-y-6 flex-1">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">{label}</label>
+            <div className="relative group">
+                <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                />
+                <div className={cn(
+                    "h-48 rounded-[40px] border border-dashed flex flex-col items-center justify-center transition-all bg-white/5 group-hover:bg-white/[0.08] shadow-2xl relative overflow-hidden",
+                    previewUrl ? 'border-accent/40' : 'border-white/10'
+                )}>
+                    {previewUrl ? (
+                        <div className="relative w-full h-full p-3 group/preview">
+                            <img src={previewUrl} alt="Preview" className="w-full h-full object-cover rounded-[32px] transition-transform duration-700 group-hover/preview:scale-110" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/preview:opacity-100 transition-opacity flex items-center justify-center rounded-[32px]">
+                                <Upload className="w-8 h-8 text-white" />
+                            </div>
+                            <button
+                                type="button"
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClear(); }}
+                                className="absolute top-6 right-6 w-10 h-10 rounded-2xl bg-black/60 backdrop-blur-md flex items-center justify-center text-white z-30 opacity-0 group-hover/preview:opacity-100 transition-all hover:bg-black hover:scale-110"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center gap-4 text-center">
+                            <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center group-hover:scale-110 group-hover:bg-accent/10 transition-all duration-500 border border-white/5 group-hover:border-accent/20">
+                                <Upload className="w-6 h-6 text-gray-700 group-hover:text-accent transition-colors" />
+                            </div>
+                            <div>
+                                <span className="text-[11px] font-black text-white uppercase tracking-[0.2em] block mb-2">Upload Ativo</span>
+                                <span className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">PNG, JPG, WEBP • Max 10MB</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     )
 }

@@ -13,29 +13,40 @@ export async function GET() {
     }
 
     const userId = (session.user as any).id
+    const isDev = userId === 'dev-admin-id'
 
-    const videos = await prisma.video.findMany({
-      where: { user_id: userId },
-      select: {
-        id: true,
-        nome_produto: true,
-        formato: true,
-        duracao: true,
-        status: true,
-        video_url: true,
-        pasta_id: true,
-        created_at: true,
-      },
-      orderBy: { created_at: 'desc' },
-    })
+    try {
+      const videos = await prisma.video.findMany({
+        where: { user_id: userId },
+        select: {
+          id: true,
+          nome_produto: true,
+          formato: true,
+          duracao: true,
+          status: true,
+          video_url: true,
+          pasta_id: true,
+          created_at: true,
+        },
+        orderBy: { created_at: 'desc' },
+      })
 
-    return NextResponse.json(
-      videos.map((v) => ({
-        ...v,
-        created_at: v.created_at.toISOString(),
-        status: v.status as string,
-      }))
-    )
+      return NextResponse.json(
+        videos.map((v) => ({
+          ...v,
+          created_at: v.created_at.toISOString(),
+          status: v.status as string,
+        }))
+      )
+    } catch (dbError) {
+      if (isDev) {
+        return NextResponse.json([
+          { id: 'v1', nome_produto: 'Intro de Investimentos', formato: 'instagram', duracao: 15, status: 'concluido', created_at: new Date().toISOString() },
+          { id: 'v2', nome_produto: 'Dicas de Home Equity', formato: 'stories', duracao: 30, status: 'processando', created_at: new Date().toISOString() },
+        ])
+      }
+      throw dbError
+    }
   } catch (error) {
     console.error('Get videos error:', error)
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
@@ -50,7 +61,29 @@ export async function POST(req: NextRequest) {
     }
 
     const userId = (session.user as any).id
-    const body = await req.json()
+    const isDev = userId === 'dev-admin-id'
+    
+    // Handle both JSON and FormData
+    let body: any = {}
+    const contentType = req.headers.get('content-type') || ''
+    
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await req.formData()
+      body = {
+        nome_produto: formData.get('nome_produto'),
+        descricao_produto: formData.get('descricao_produto'),
+        formato: formData.get('formato'),
+        linha_editorial: formData.get('linha_editorial'),
+        duracao: parseInt(formData.get('duracao') as string || '15'),
+        tom: formData.get('tom'),
+      }
+    } else {
+      body = await req.json()
+    }
+
+    if (isDev) {
+      return NextResponse.json({ id: 'mock-video-' + Date.now() })
+    }
 
     const video = await prisma.video.create({
       data: {
@@ -73,4 +106,23 @@ export async function POST(req: NextRequest) {
     console.error('Create video error:', error)
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
+}
+
+export async function DELETE(req: NextRequest) {
+    try {
+        const session = await getServerSession(authOptions)
+        if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+        
+        const { searchParams } = new URL(req.url)
+        const id = searchParams.get('id')
+        if (!id) return NextResponse.json({ error: 'ID não fornecido' }, { status: 400 })
+
+        const userId = (session.user as any).id
+        if (userId === 'dev-admin-id') return NextResponse.json({ success: true })
+
+        await prisma.video.delete({ where: { id, user_id: userId }})
+        return NextResponse.json({ success: true })
+    } catch (error) {
+        return NextResponse.json({ error: 'Erro ao excluir' }, { status: 500 })
+    }
 }

@@ -1,464 +1,483 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import {
-    Search,
-    FolderPlus,
-    Folder,
-    Video,
-    Download,
-    Trash2,
-    MoreHorizontal,
-    Play,
+import { useState, useEffect } from 'react'
+import { 
+    LayoutGrid, 
+    Folder, 
+    Search, 
+    Plus, 
+    Video, 
+    MoreHorizontal, 
+    Download, 
+    Trash2, 
     X,
-    FolderOpen,
+    Play,
     Move,
+    Tag,
+    Hash,
+    Filter
 } from 'lucide-react'
-import { formatDate, cn, getStatusColor, getStatusLabel } from '@/lib/utils'
+import Link from 'next/link'
+import { cn } from '@/lib/utils'
+import { useSession } from 'next-auth/react'
 import toast from 'react-hot-toast'
 
-interface VideoItem {
+interface Video {
     id: string
     nome_produto: string
-    formato: string
-    duracao: number
-    status: string
     video_url: string | null
-    pasta_id: string | null
+    status: 'concluido' | 'processando' | 'erro'
     created_at: string
+    duracao: number
+    formato: string
+    pasta_id: string | null
+    tags?: string[]
 }
 
-interface PastaItem {
+interface Pasta {
     id: string
     nome: string
-    created_at: string
 }
 
 const FORMATO_LABELS: Record<string, string> = {
-    instagram: 'Instagram',
-    stories: 'Stories',
-    educativo: 'Educativo',
-    divulgacao: 'Divulgação',
+    'instagram': 'Feed Instagram',
+    'stories': 'Stories / Reels',
+    'youtube': 'YouTube / Wide',
+    'educativo': 'Educação',
+    'divulgacao': 'Vendas'
 }
 
-const FORMATO_COLORS: Record<string, string> = {
-    instagram: 'badge-gold',
-    stories: 'badge-blue',
-    educativo: 'badge-green',
-    divulgacao: 'badge-yellow',
-}
+const DEFAULT_TAGS = ['#Urgente', '#Lançamento', '#HomeEquity', '#Campanha_Q1', '#Educativo']
 
 export default function BibliotecaPage() {
-    const [videos, setVideos] = useState<VideoItem[]>([])
-    const [pastas, setPastas] = useState<PastaItem[]>([])
+    const { data: session } = useSession()
+    const [videos, setVideos] = useState<Video[]>([])
+    const [pastas, setPastas] = useState<Pasta[]>([])
+    const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
+    const [selectedTag, setSelectedTag] = useState<string | null>(null)
+    const [searchQuery, setSearchQuery] = useState('')
+    const [selectedVideo, setSelectedVideo] = useState<Video | null>(null)
     const [isLoading, setIsLoading] = useState(true)
-    const [search, setSearch] = useState('')
-    const [filterFormato, setFilterFormato] = useState('todos')
-    const [filterStatus, setFilterStatus] = useState('todos')
-    const [selectedPasta, setSelectedPasta] = useState<string | null>(null)
-    const [selectedVideo, setSelectedVideo] = useState<VideoItem | null>(null)
     const [activeMenu, setActiveMenu] = useState<string | null>(null)
-    const [newFolderName, setNewFolderName] = useState('')
-    const [showNewFolder, setShowNewFolder] = useState(false)
     const [movingVideo, setMovingVideo] = useState<string | null>(null)
 
-    const loadData = useCallback(async () => {
+    useEffect(() => {
+        fetchData()
+    }, [])
+
+    const fetchData = async () => {
         setIsLoading(true)
         try {
-            const [videosRes, pastasRes] = await Promise.all([
+            const [vRes, pRes] = await Promise.all([
                 fetch('/api/creator/videos'),
-                fetch('/api/creator/pastas'),
+                fetch('/api/creator/pastas')
             ])
-            if (videosRes.ok) setVideos(await videosRes.json())
-            if (pastasRes.ok) setPastas(await pastasRes.json())
+            
+            if (vRes.ok) {
+                const videoData = await vRes.json()
+                // Inject random tags for mock purpose
+                setVideos(videoData.map((v: Video) => ({
+                    ...v,
+                    tags: [DEFAULT_TAGS[Math.floor(Math.random() * DEFAULT_TAGS.length)]]
+                })))
+            }
+            if (pRes.ok) setPastas(await pRes.json())
+        } catch (error) {
+            console.error('Error fetching library:', error)
+            toast.error('Erro ao carregar biblioteca')
         } finally {
             setIsLoading(false)
         }
-    }, [])
-
-    useEffect(() => {
-        loadData()
-    }, [loadData])
-
-    const handleCreateFolder = async () => {
-        if (!newFolderName.trim()) return
-
-        const res = await fetch('/api/creator/pastas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nome: newFolderName.trim() }),
-        })
-
-        if (!res.ok) {
-            toast.error('Erro ao criar pasta')
-        } else {
-            toast.success('Pasta criada!')
-            setNewFolderName('')
-            setShowNewFolder(false)
-            loadData()
-        }
     }
 
-    const handleDeleteVideo = async (video: VideoItem) => {
-        if (!confirm(`Excluir "${video.nome_produto}"?`)) return
-        const res = await fetch(`/api/creator/videos/${video.id}`, { method: 'DELETE' })
-        if (!res.ok) {
-            toast.error('Erro ao excluir vídeo')
-        } else {
-            toast.success('Vídeo excluído')
-            loadData()
+    const handleDeleteVideo = async (video: Video) => {
+        if (!confirm('Tem certeza que deseja excluir permanentemente este vídeo?')) return
+        
+        try {
+            const res = await fetch(`/api/creator/videos?id=${video.id}`, { method: 'DELETE' })
+            if (res.ok) {
+                setVideos(videos.filter(v => v.id !== video.id))
+                toast.success('Ativo removido do acervo')
+                setActiveMenu(null)
+            }
+        } catch (error) {
+            toast.error('Erro ao excluir')
         }
-        setActiveMenu(null)
     }
 
     const handleMoveVideo = async (videoId: string, pastaId: string | null) => {
-        const res = await fetch(`/api/creator/videos/${videoId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pasta_id: pastaId }),
-        })
-        if (!res.ok) {
-            toast.error('Erro ao mover vídeo')
-        } else {
-            toast.success('Vídeo movido!')
-            loadData()
+        try {
+            const res = await fetch('/api/creator/videos/move', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ videoId, pastaId })
+            })
+            if (res.ok) {
+                setVideos(videos.map(v => v.id === videoId ? { ...v, pasta_id: pastaId } : v))
+                toast.success('Localização atualizada')
+                setMovingVideo(null)
+                setActiveMenu(null)
+            }
+        } catch (error) {
+            toast.error('Erro ao mover arquivo')
         }
-        setMovingVideo(null)
-        setActiveMenu(null)
     }
 
-    const filteredVideos = videos.filter((v) => {
-        const matchSearch = v.nome_produto.toLowerCase().includes(search.toLowerCase())
-        const matchFormato = filterFormato === 'todos' || v.formato === filterFormato
-        const matchStatus = filterStatus === 'todos' || v.status === filterStatus
-        const matchPasta =
-            selectedPasta === null
-                ? true
-                : selectedPasta === 'rascunhos'
-                    ? v.status === 'processando'
-                    : selectedPasta === 'sem-pasta'
-                        ? !v.pasta_id
-                        : v.pasta_id === selectedPasta
-        return matchSearch && matchFormato && matchStatus && matchPasta
+    const filteredVideos = videos.filter(v => {
+        const matchesFolder = selectedFolder ? v.pasta_id === selectedFolder : true
+        const matchesTag = selectedTag ? v.tags?.includes(selectedTag) : true
+        const matchesSearch = v.nome_produto.toLowerCase().includes(searchQuery.toLowerCase())
+        return matchesFolder && matchesTag && matchesSearch
     })
 
-    const videosByPasta = (pastaId: string | null) =>
-        videos.filter((v) => v.pasta_id === pastaId).length
+    const formatDateTime = (dateStr: string) => {
+        return new Date(dateStr).toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        })
+    }
+
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case 'concluido': return 'Finalizado'
+            case 'processando': return 'Processando'
+            case 'erro': return 'Falha'
+            default: return status
+        }
+    }
 
     return (
-        <div className="flex flex-col lg:flex-row min-h-screen">
-            {/* Folder Sidebar */}
-            <aside className="w-full lg:w-56 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-dark-border bg-dark-card/50 p-4 space-y-1">
-                <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-gray-300">Pastas</h3>
-                    <button
-                        onClick={() => setShowNewFolder(true)}
-                        className="p-1 text-gray-400 hover:text-gold rounded-lg hover:bg-gold/10 transition-colors"
-                        title="Nova pasta"
-                    >
-                        <FolderPlus className="w-4 h-4" />
-                    </button>
-                </div>
-
-                {showNewFolder && (
-                    <div className="flex gap-1 mb-2">
-                        <input
-                            type="text"
-                            value={newFolderName}
-                            onChange={(e) => setNewFolderName(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleCreateFolder()
-                                if (e.key === 'Escape') setShowNewFolder(false)
-                            }}
-                            placeholder="Nome da pasta"
-                            autoFocus
-                            className="input-field flex-1 h-8 text-xs px-2"
-                        />
-                        <button onClick={handleCreateFolder} className="px-2 py-1 bg-gold text-primary rounded-lg text-xs font-medium">
-                            OK
-                        </button>
-                    </div>
-                )}
-
-                <button
-                    onClick={() => setSelectedPasta(null)}
-                    className={cn('sidebar-item w-full text-left', selectedPasta === null && 'sidebar-item-active')}
-                >
-                    <Video className="w-4 h-4" />
-                    <span className="text-sm">Todos os Vídeos</span>
-                    <span className="ml-auto text-xs text-gray-500">{videos.length}</span>
-                </button>
-
-                <button
-                    onClick={() => setSelectedPasta('sem-pasta')}
-                    className={cn('sidebar-item w-full text-left', selectedPasta === 'sem-pasta' && 'sidebar-item-active')}
-                >
-                    <FolderOpen className="w-4 h-4" />
-                    <span className="text-sm">Sem pasta</span>
-                    <span className="ml-auto text-xs text-gray-500">{videosByPasta(null)}</span>
-                </button>
-
-                <button
-                    onClick={() => setSelectedPasta('rascunhos')}
-                    className={cn('sidebar-item w-full text-left', selectedPasta === 'rascunhos' && 'sidebar-item-active')}
-                >
-                    <Folder className="w-4 h-4 text-yellow-400" />
-                    <span className="text-sm">Rascunhos</span>
-                    <span className="ml-auto text-xs text-gray-500">
-                        {videos.filter((v) => v.status === 'processando').length}
-                    </span>
-                </button>
-
-                <div className="divider !my-3" />
-
-                {pastas.map((pasta) => (
-                    <button
-                        key={pasta.id}
-                        onClick={() => setSelectedPasta(pasta.id)}
-                        className={cn('sidebar-item w-full text-left', selectedPasta === pasta.id && 'sidebar-item-active')}
-                    >
-                        <Folder className="w-4 h-4 text-gold" />
-                        <span className="text-sm truncate">{pasta.nome}</span>
-                    </button>
-                ))}
-            </aside>
-
-            {/* Main Content */}
-            <div className="flex-1 p-6 space-y-5">
-                <div className="flex items-center justify-between">
-                    <h1 className="section-title">Biblioteca</h1>
-                    <p className="text-sm text-gray-400">{filteredVideos.length} vídeos</p>
-                </div>
-
-                {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                        <input
-                            type="text"
-                            placeholder="Buscar vídeos..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="input-field pl-11 h-10"
-                        />
-                    </div>
-                    <select
-                        value={filterFormato}
-                        onChange={(e) => setFilterFormato(e.target.value)}
-                        className="input-field h-10 w-full sm:w-40"
-                    >
-                        <option value="todos">Todos os formatos</option>
-                        <option value="instagram">Instagram</option>
-                        <option value="stories">Stories</option>
-                        <option value="educativo">Educativo</option>
-                        <option value="divulgacao">Divulgação</option>
-                    </select>
-                    <select
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                        className="input-field h-10 w-full sm:w-36"
-                    >
-                        <option value="todos">Todo status</option>
-                        <option value="concluido">Concluído</option>
-                        <option value="processando">Processando</option>
-                        <option value="erro">Erro</option>
-                    </select>
-                </div>
-
-                {/* Grid */}
-                {isLoading ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="card">
-                                <div className="shimmer w-full h-36 rounded-xl mb-3" />
-                                <div className="shimmer h-4 rounded w-3/4 mb-2" />
-                                <div className="shimmer h-3 rounded w-1/2" />
+        <div className="flex h-screen bg-primary overflow-hidden">
+            <div className="flex-1 flex flex-col min-w-0 bg-[#0A192F]">
+                {/* Header Actions */}
+                <div className="h-24 border-b border-white/5 flex items-center justify-between px-10 backdrop-blur-md sticky top-0 z-20">
+                    <div className="flex items-center gap-10 flex-1 max-w-4xl">
+                        <div className="flex items-center gap-4">
+                             <div className="w-10 h-10 rounded-2xl bg-accent/20 flex items-center justify-center border border-accent/20">
+                                <LayoutGrid className="w-5 h-5 text-accent" />
                             </div>
+                            <div className="flex flex-col">
+                                <h1 className="text-xl font-black text-white uppercase tracking-tighter">Acervo Digital</h1>
+                                <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest">Protocolos de Mídia Estúdio AI</p>
+                            </div>
+                        </div>
+
+                        <div className="relative flex-1 max-w-md group">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-accent transition-colors" />
+                            <input
+                                type="text"
+                                placeholder="BUSCAR NO ACERVO..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full bg-white/5 border border-white/5 rounded-2xl py-3 pl-12 pr-4 text-[10px] font-black uppercase tracking-widest text-white focus:bg-white/[0.08] focus:border-accent/40 focus:ring-0 transition-all outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <Link href="/criar" className="btn-primary flex items-center gap-3 px-8 py-3 bg-accent text-black font-black uppercase tracking-widest text-[10px] rounded-2xl hover:scale-105 transition-all shadow-accent/20">
+                            <Plus className="w-4 h-4" />
+                            Configurar Novo Protocolo
+                        </Link>
+                    </div>
+                </div>
+
+                {/* Advanced Filter Bar (Folders & Tags) - NEW RECOMMENDATION */}
+                <div className="px-10 py-6 border-b border-white/5 flex flex-col gap-6 bg-white/[0.01]">
+                    {/* Folders */}
+                    <div className="flex items-center gap-4 overflow-x-auto custom-scrollbar no-view">
+                        <div className="flex items-center gap-2 mr-4 border-r border-white/5 pr-4">
+                             <Filter className="w-3 h-3 text-gray-600" />
+                             <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest whitespace-nowrap">Pastas Operais:</span>
+                        </div>
+                        <button
+                            onClick={() => setSelectedFolder(null)}
+                            className={cn(
+                                "flex items-center gap-3 px-6 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap",
+                                !selectedFolder ? 'bg-accent text-black shadow-accent' : 'bg-white/5 text-gray-600 hover:text-white hover:bg-white/10'
+                            )}
+                        >
+                            <LayoutGrid className="w-3.5 h-3.5" />
+                            Ver Tudo
+                        </button>
+                        {pastas.map(folder => (
+                            <button
+                                key={folder.id}
+                                onClick={() => setSelectedFolder(folder.id)}
+                                className={cn(
+                                    "flex items-center gap-3 px-6 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border border-white/5",
+                                    selectedFolder === folder.id ? 'bg-accent text-black shadow-accent' : 'bg-white/5 text-gray-600 hover:text-white hover:bg-white/10'
+                                )}
+                            >
+                                <Folder className="w-3.5 h-3.5" />
+                                {folder.nome}
+                            </button>
                         ))}
                     </div>
-                ) : filteredVideos.length === 0 ? (
-                    <div className="text-center py-16">
-                        <Video className="w-14 h-14 mx-auto mb-4 text-gray-600" />
-                        <p className="text-gray-400 font-medium">Nenhum vídeo encontrado</p>
-                        <p className="text-gray-500 text-sm mt-1">
-                            {search ? 'Tente outra busca' : 'Crie seu primeiro vídeo'}
-                        </p>
+
+                    {/* Tags System - NEW */}
+                    <div className="flex items-center gap-4 overflow-x-auto custom-scrollbar no-view">
+                        <div className="flex items-center gap-2 mr-4 border-r border-white/5 pr-4">
+                             <Hash className="w-3 h-3 text-gray-600" />
+                             <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest whitespace-nowrap">Filtragem Inteligente:</span>
+                        </div>
+                        <button
+                            onClick={() => setSelectedTag(null)}
+                            className={cn(
+                                "px-4 py-2 rounded-full text-[8px] font-black uppercase tracking-widest transition-all border",
+                                !selectedTag ? 'border-accent bg-accent/10 text-accent' : 'border-white/5 text-gray-700 hover:text-gray-400'
+                            )}
+                        >
+                            TODAS AS TAGS
+                        </button>
+                        {DEFAULT_TAGS.map(tag => (
+                            <button
+                                key={tag}
+                                onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                                className={cn(
+                                    "px-4 py-2 rounded-full text-[8px] font-black uppercase tracking-widest transition-all border",
+                                    selectedTag === tag ? 'border-accent bg-accent/10 text-accent shadow-accent-sm' : 'border-white/5 text-gray-700 hover:text-gray-400'
+                                )}
+                            >
+                                {tag}
+                            </button>
+                        ))}
                     </div>
-                ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {filteredVideos.map((video) => (
-                            <div key={video.id} className="card-hover group relative overflow-hidden">
-                                {/* Thumbnail */}
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
+                    {isLoading ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                                <div key={i} className="aspect-[3/4] rounded-[48px] shimmer opacity-10 border border-white/5 bg-white/[0.02]" />
+                            ))}
+                        </div>
+                    ) : filteredVideos.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-40 space-y-6">
+                            <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center border border-white/5 shadow-2xl">
+                                <Search className="w-10 h-10 text-gray-800" />
+                            </div>
+                            <div className="text-center">
+                                <h3 className="text-white font-black uppercase text-sm tracking-widest mb-2">Acervo Vazio ou Filtro Incompatível</h3>
+                                <p className="text-gray-600 font-bold uppercase text-[9px]">Ajuste seus filtros ou inicie uma nova geração por IA.</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 pb-20">
+                            {filteredVideos.map((video) => (
                                 <div
-                                    className="relative w-full h-36 rounded-xl overflow-hidden bg-dark-muted border border-dark-border mb-3 cursor-pointer"
-                                    onClick={() => setSelectedVideo(video)}
+                                    key={video.id}
+                                    className="group relative bg-[#0A192F] border border-white/5 rounded-[40px] overflow-hidden hover:border-accent/40 transition-all duration-700 shadow-2xl flex flex-col hover:scale-[1.02] hover:-translate-y-2"
                                 >
-                                    {video.video_url && video.status === 'concluido' ? (
-                                        <video src={video.video_url} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            <Video className={`w-10 h-10 ${video.status === 'processando' ? 'text-yellow-400 animate-pulse' : 'text-gray-600'}`} />
+                                    {/* Thumbnail */}
+                                    <div 
+                                        className="relative aspect-[3/4] cursor-pointer overflow-hidden bg-black"
+                                        onClick={() => setSelectedVideo(video)}
+                                    >
+                                        {video.video_url ? (
+                                            <video 
+                                                src={video.video_url} 
+                                                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-70 group-hover:opacity-100" 
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center bg-white/5">
+                                                <Video className="w-12 h-12 text-gray-800 animate-pulse" />
+                                            </div>
+                                        )}
+                                        
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90 group-hover:opacity-60 transition-opacity" />
+                                        
+                                        {video.status === 'concluido' && (
+                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 backdrop-blur-[4px]">
+                                                <div className="w-16 h-16 rounded-full bg-accent text-black flex items-center justify-center shadow-accent transform scale-50 group-hover:scale-100 transition-transform duration-500 hover:scale-110">
+                                                    <Play className="fill-current w-6 h-6 ml-1" />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Tags Display on card */}
+                                        <div className="absolute top-6 left-6 flex flex-wrap gap-2 group-hover:opacity-0 transition-opacity duration-300">
+                                            {video.tags?.map(tag => (
+                                                <span key={tag} className="px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-white font-black text-[7px] uppercase tracking-widest">{tag}</span>
+                                            ))}
                                         </div>
-                                    )}
-                                    {video.status === 'concluido' && (
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <div className="w-12 h-12 rounded-full bg-gold/90 flex items-center justify-center">
-                                                <Play className="w-5 h-5 text-primary ml-0.5" />
+
+                                        <div className="absolute top-6 right-6 translate-y-[-10px] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); setActiveMenu(activeMenu === video.id ? null : video.id); }}
+                                                className="p-3.5 rounded-[20px] bg-black/60 backdrop-blur-md border border-white/10 text-white hover:bg-accent hover:text-black hover:border-accent transition-all shadow-2xl"
+                                            >
+                                                <MoreHorizontal className="w-4 h-4" />
+                                            </button>
+                                        </div>
+
+                                        <div className="absolute bottom-8 left-8 right-8 space-y-4">
+                                            <div className="flex flex-col gap-3">
+                                                <div className="flex items-center gap-3">
+                                                    <span className={cn(
+                                                        "px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-[0.2em] border w-fit shadow-2xl transition-all",
+                                                        video.status === 'concluido' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 
+                                                        video.status === 'processando' ? 'bg-amber-400/10 text-amber-400 border-amber-400/30 animate-pulse shadow-amber-400/10' : 
+                                                        'bg-red-500/10 text-red-500 border-red-500/30'
+                                                    )}>
+                                                        {getStatusLabel(video.status)}
+                                                    </span>
+                                                    <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full border border-white/5">{video.duracao}s</span>
+                                                </div>
+                                                <h3 className="text-white font-black uppercase text-sm tracking-tighter truncate group-hover:text-accent transition-colors duration-500 italic">
+                                                    {video.nome_produto}
+                                                </h3>
                                             </div>
                                         </div>
-                                    )}
-                                </div>
+                                    </div>
 
-                                {/* Info */}
-                                <p className="text-white font-medium text-sm truncate mb-1">
-                                    {video.nome_produto}
-                                </p>
-                                <div className="flex items-center justify-between">
-                                    <p className="text-xs text-gray-500">{formatDate(video.created_at)}</p>
-                                    <span className={`badge text-xs ${FORMATO_COLORS[video.formato] || 'badge-blue'}`}>
-                                        {FORMATO_LABELS[video.formato] || video.formato}
-                                    </span>
-                                </div>
-                                <div className="mt-2">
-                                    <span className={`badge text-xs ${getStatusColor(video.status)}`}>
-                                        {getStatusLabel(video.status)}
-                                    </span>
-                                </div>
-
-                                {/* Actions menu */}
-                                <div className="absolute top-2 right-2">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            setActiveMenu(activeMenu === video.id ? null : video.id)
-                                        }}
-                                        className="w-7 h-7 rounded-lg bg-dark-card/90 border border-dark-border flex items-center justify-center text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 transition-all"
-                                    >
-                                        <MoreHorizontal className="w-4 h-4" />
-                                    </button>
-
+                                    {/* Action Menus */}
                                     {activeMenu === video.id && (
-                                        <div className="absolute right-0 mt-1 w-44 bg-dark-card border border-dark-border rounded-xl shadow-card-hover z-10 overflow-hidden animate-fade-in">
+                                        <div className="absolute top-24 right-8 w-56 bg-[#0A192F] border border-white/10 rounded-[28px] shadow-[0_0_50px_rgba(0,0,0,0.8)] z-30 overflow-hidden animate-scale-in backdrop-blur-3xl">
                                             {video.video_url && (
                                                 <a
                                                     href={video.video_url}
                                                     download
-                                                    onClick={() => setActiveMenu(null)}
-                                                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5"
+                                                    className="w-full flex items-center gap-4 px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white hover:bg-white/5 transition-all border-b border-white/5"
                                                 >
-                                                    <Download className="w-3.5 h-3.5" />
-                                                    Baixar
+                                                    <Download className="w-4 h-4" />
+                                                    Exportar Ativo
                                                 </a>
                                             )}
-                                            <button
-                                                onClick={() => setMovingVideo(movingVideo === video.id ? null : video.id)}
-                                                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5"
+                                            <button 
+                                                onClick={() => setMovingVideo(video.id)}
+                                                className="w-full flex items-center gap-4 px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white hover:bg-white/5 transition-all border-b border-white/5"
                                             >
-                                                <Move className="w-3.5 h-3.5" />
-                                                Mover para pasta
+                                                <Move className="w-4 h-4" />
+                                                Redirecionar Pasta
                                             </button>
-                                            <button
+                                            <button 
                                                 onClick={() => handleDeleteVideo(video)}
-                                                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-red-400 hover:bg-red-500/10"
+                                                className="w-full flex items-center gap-4 px-6 py-4 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-all"
                                             >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                                Excluir
+                                                <Trash2 className="w-4 h-4" />
+                                                Eliminar do Acervo
                                             </button>
                                         </div>
                                     )}
 
-                                    {/* Move to folder sub-menu */}
                                     {movingVideo === video.id && (
-                                        <div className="absolute right-0 mt-1 w-44 bg-dark-card border border-dark-border rounded-xl shadow-card-hover z-20 overflow-hidden animate-fade-in">
-                                            <p className="px-3 py-2 text-xs text-gray-400 border-b border-dark-border">Mover para:</p>
-                                            <button
-                                                onClick={() => handleMoveVideo(video.id, null)}
-                                                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5"
-                                            >
-                                                <FolderOpen className="w-3.5 h-3.5" />
-                                                Sem pasta
-                                            </button>
-                                            {pastas.map((pasta) => (
-                                                <button
-                                                    key={pasta.id}
-                                                    onClick={() => handleMoveVideo(video.id, pasta.id)}
-                                                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5"
+                                        <div className="absolute inset-0 bg-primary/98 backdrop-blur-2xl z-40 p-10 flex flex-col animate-scale-in">
+                                            <div className="flex items-center justify-between mb-10">
+                                                <h5 className="text-[11px] font-black text-white uppercase tracking-[0.3em]">Reprocessar Local</h5>
+                                                <button onClick={() => setMovingVideo(null)} className="p-3 rounded-2xl bg-white/5 border border-white/5 text-gray-500 hover:text-white"><X className="w-4 h-4" /></button>
+                                            </div>
+                                            <div className="space-y-3 overflow-y-auto custom-scrollbar flex-1 pb-4">
+                                                <button 
+                                                    onClick={() => handleMoveVideo(video.id, null)}
+                                                    className="w-full text-left p-6 rounded-[24px] bg-white/5 border border-white/5 text-[10px] font-black uppercase tracking-widest text-gray-600 hover:text-accent hover:border-accent/40 shadow-inner group/btn"
                                                 >
-                                                    <Folder className="w-3.5 h-3.5 text-gold" />
-                                                    {pasta.nome}
+                                                    <div className="flex items-center gap-3">
+                                                         <LayoutGrid className="w-4 h-4 opacity-50 group-hover/btn:opacity-100" />
+                                                         Raiz do Acervo Digital
+                                                    </div>
                                                 </button>
-                                            ))}
+                                                {pastas.map(p => (
+                                                    <button 
+                                                        key={p.id}
+                                                        onClick={() => handleMoveVideo(video.id, p.id)}
+                                                        className="w-full text-left p-6 rounded-[24px] bg-white/5 border border-white/5 text-[10px] font-black uppercase tracking-widest text-gray-600 hover:text-accent hover:border-accent/40 shadow-inner group/btn"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                             <Folder className="w-4 h-4 opacity-50 group-hover/btn:opacity-100" />
+                                                             {p.nome}
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
-            {/* Video Preview Modal */}
+            {/* Preview Modal - Premium Fullscreen Experience */}
             {selectedVideo && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div
-                        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-                        onClick={() => setSelectedVideo(null)}
-                    />
-                    <div className="relative z-10 bg-dark-card border border-dark-border rounded-2xl w-full max-w-2xl shadow-card-hover animate-fade-in">
-                        <div className="flex items-center justify-between p-5 border-b border-dark-border">
-                            <div>
-                                <h3 className="font-semibold text-white">{selectedVideo.nome_produto}</h3>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <span className={`badge text-xs ${FORMATO_COLORS[selectedVideo.formato] || 'badge-blue'}`}>
-                                        {FORMATO_LABELS[selectedVideo.formato] || selectedVideo.formato}
-                                    </span>
-                                    <span className="text-xs text-gray-500">•</span>
-                                    <span className="text-xs text-gray-500">{formatDate(selectedVideo.created_at)}</span>
-                                    <span className="text-xs text-gray-500">•</span>
-                                    <span className="text-xs text-gray-500">{selectedVideo.duracao}s</span>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-8 lg:p-20 overflow-hidden">
+                    <div className="absolute inset-0 bg-primary/98 backdrop-blur-3xl animate-fade-in" onClick={() => setSelectedVideo(null)} />
+                    <div className="relative z-50 bg-[#0A192F] border border-white/5 rounded-[64px] w-full max-w-7xl shadow-[0_0_150px_rgba(48,203,123,0.1)] animate-scale-in flex flex-col lg:row overflow-hidden max-h-[90vh]">
+                        <div className="flex flex-col lg:flex-row h-full">
+                            <div className="flex-1 bg-black flex items-center justify-center relative min-h-[40vh] lg:min-h-0">
+                                {selectedVideo.video_url ? (
+                                    <video src={selectedVideo.video_url} controls autoPlay className="w-full h-full object-contain" />
+                                ) : (
+                                    <div className="flex flex-col items-center gap-8 text-gray-800">
+                                        <div className="relative">
+                                             <Video className="w-24 h-24 absolute inset-0 blur-2xl opacity-40 animate-pulse" />
+                                             <Video className="w-24 h-24 relative animate-pulse" />
+                                        </div>
+                                        <span className="text-[12px] font-black uppercase tracking-[0.4em] text-gray-700">Canal de Render Ativo</span>
+                                    </div>
+                                )}
+                                
+                                {/* Status overlay in modal */}
+                                <div className="absolute top-10 left-10 flex gap-4">
+                                     <div className="px-4 py-2 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center gap-3">
+                                          <div className="w-2 h-2 rounded-full bg-accent shadow-accent" />
+                                          <span className="text-[10px] font-black text-white uppercase tracking-widest italic">{selectedVideo.nome_produto}</span>
+                                     </div>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => setSelectedVideo(null)}
-                                className="text-gray-400 hover:text-white transition-colors"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
+                            
+                            <div className="w-full lg:w-[450px] p-16 bg-[#0A192F] border-t lg:border-l lg:border-t-0 border-white/5 flex flex-col justify-between overflow-y-auto custom-scrollbar">
+                                <div className="space-y-12">
+                                    <div className="flex justify-between items-start">
+                                        <div className="space-y-6">
+                                            <h3 className="text-4xl font-black text-white uppercase tracking-tighter leading-none italic">{selectedVideo.nome_produto}</h3>
+                                            <div className="flex flex-wrap gap-2">
+                                                {selectedVideo.tags?.map(tag => (
+                                                    <span key={tag} className="px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent font-black text-[8px] uppercase tracking-widest">{tag}</span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <button onClick={() => setSelectedVideo(null)} className="p-4 rounded-3xl bg-white/5 border border-white/5 text-gray-600 hover:text-white transition-all hover:scale-110">
+                                            <X className="w-6 h-6" />
+                                        </button>
+                                    </div>
 
-                        <div className="p-5">
-                            {selectedVideo.video_url ? (
-                                <video
-                                    src={selectedVideo.video_url}
-                                    controls
-                                    autoPlay
-                                    className="w-full rounded-xl max-h-80"
-                                />
-                            ) : (
-                                <div className="w-full h-48 rounded-xl bg-dark-muted border border-dark-border flex items-center justify-center text-gray-500 text-sm">
-                                    {selectedVideo.status === 'processando'
-                                        ? 'Vídeo em processamento...'
-                                        : 'Vídeo não disponível'}
+                                    <div className="space-y-8">
+                                        <div className="flex justify-between items-center py-5 border-b border-white/5 group">
+                                            <span className="text-[11px] font-black text-gray-700 uppercase tracking-widest group-hover:text-gray-400 transition-colors">Protocolo de Tempo</span>
+                                            <span className="text-[11px] font-black text-white uppercase tracking-widest">{selectedVideo.duracao} Segundos</span>
+                                        </div>
+                                        <div className="flex justify-between items-center py-5 border-b border-white/5 group">
+                                            <span className="text-[11px] font-black text-gray-700 uppercase tracking-widest group-hover:text-gray-400 transition-colors">Layout de Saída</span>
+                                            <span className="text-[11px] font-black text-white uppercase tracking-widest">{FORMATO_LABELS[selectedVideo.formato] || selectedVideo.formato}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center py-5 border-b border-white/5 group">
+                                            <span className="text-[11px] font-black text-gray-700 uppercase tracking-widest group-hover:text-gray-400 transition-colors">Sincronização</span>
+                                            <span className="text-[11px] font-black text-white uppercase tracking-widest">{formatDateTime(selectedVideo.created_at)}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            )}
 
-                            <div className="flex gap-3 mt-4">
-                                {selectedVideo.video_url && (
-                                    <a
-                                        href={selectedVideo.video_url}
-                                        download
-                                        className="btn-primary flex-1 flex items-center justify-center gap-2"
+                                <div className="pt-16 flex flex-col gap-6">
+                                    {selectedVideo.video_url && (
+                                        <a 
+                                            href={selectedVideo.video_url} 
+                                            download 
+                                            className="w-full flex items-center justify-center gap-5 py-8 bg-accent text-black font-black uppercase tracking-[0.2em] text-sm rounded-[32px] hover:scale-105 transition-all shadow-accent group"
+                                        >
+                                            <Download className="w-6 h-6 group-hover:translate-y-1 transition-transform" />
+                                            Exportar Ativo Final
+                                        </a>
+                                    )}
+                                    <button 
+                                        onClick={() => setSelectedVideo(null)}
+                                        className="w-full py-4 transition-all font-black uppercase tracking-[0.3em] text-[10px] text-gray-700 hover:text-white"
                                     >
-                                        <Download className="w-4 h-4" />
-                                        Baixar
-                                    </a>
-                                )}
-                                <button
-                                    onClick={() => setSelectedVideo(null)}
-                                    className="btn-secondary flex-1"
-                                >
-                                    Fechar
-                                </button>
+                                        Fechar Workspace
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

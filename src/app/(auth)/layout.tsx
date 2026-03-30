@@ -1,105 +1,120 @@
 import { type ReactNode } from 'react'
 import Image from 'next/image'
+import { Sparkles, ShieldCheck, Zap, Activity } from 'lucide-react'
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
     return (
-        <div className="min-h-screen flex bg-gradient-primary">
-            {/* Left panel - Branding */}
-            <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden">
-                {/* Background decoration */}
-                <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-gold/5 blur-3xl" />
-                    <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-gold/5 blur-3xl" />
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-blue-500/3 blur-3xl" />
-                </div>
+        <div className="min-h-screen flex bg-[#0A192F] overflow-hidden relative font-sans">
+            {/* Background decoration - Advanced blurs */}
+            <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-accent/10 blur-[120px] opacity-40 animate-pulse" />
+                <div className="absolute top-[20%] right-[5%] w-[30%] h-[30%] rounded-full bg-accent/5 blur-[100px] opacity-30" />
+                <div className="absolute -bottom-[15%] left-[20%] w-[50%] h-[50%] rounded-full bg-accent/10 blur-[150px] opacity-25" />
+            </div>
 
-                <div className="relative z-10">
-                    {/* Logo */}
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-gold flex items-center justify-center shadow-gold">
-                            <span className="text-primary font-black text-lg">I+</span>
+            {/* Left panel - Branding (Digital Asset Vibe) */}
+            <div className="hidden lg:flex lg:w-3/5 flex-col justify-between p-20 relative z-10">
+                <div className="relative">
+                    {/* Logo Premium */}
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-[20px] bg-accent flex items-center justify-center shadow-accent border border-white/20 transform hover:rotate-6 transition-transform duration-500">
+                            <span className="text-black font-black text-2xl tracking-tighter">I+</span>
                         </div>
-                        <span className="text-white font-bold text-2xl tracking-tight">
-                            Invest<span className="text-gradient-gold">Mais</span>
-                        </span>
+                        <div className="flex flex-col">
+                            <span className="text-white font-black text-3xl tracking-tighter leading-none">
+                                INVEST<span className="text-accent underline decoration-accent/30 decoration-4 underline-offset-4 ml-1">MAIS</span>
+                            </span>
+                            <span className="text-[10px] text-gray-500 font-bold tracking-[0.3em] uppercase mt-2">
+                                Estúdio de Conteúdo AI
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                <div className="relative z-10 space-y-8">
-                    {/* Headline */}
-                    <div>
-                        <h1 className="text-4xl font-bold text-white leading-tight">
-                            Conteúdo Financeiro{' '}
-                            <span className="text-gradient-gold">Profissional</span> com IA
+                <div className="max-w-2xl space-y-16">
+                    {/* Headline Matriz */}
+                    <div className="space-y-8">
+                        <h1 className="text-7xl font-black text-white leading-[1.05] tracking-tighter uppercase italic">
+                            O Futuro do <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-emerald-400">
+                                Conteúdo Ativo.
+                            </span>
                         </h1>
-                        <p className="mt-4 text-gray-400 text-lg leading-relaxed">
-                            Automatize a criação de vídeos para Home Equity, Financiamento
-                            Imobiliário e outros produtos financeiros.
+                        <p className="text-gray-500 text-xl leading-relaxed font-medium max-w-lg">
+                            Potencialize suas conversões financeiras com ativos digitais de alta performance gerados por inteligência artificial.
                         </p>
                     </div>
 
-                    {/* Features */}
-                    <div className="space-y-4">
+                    {/* Feature Cards Grid */}
+                    <div className="grid grid-cols-2 gap-6">
                         {[
                             {
-                                icon: '🎬',
-                                text: 'Vídeos profissionais gerados por IA em minutos',
+                                title: 'Criativos em Massa',
+                                desc: 'Escalabilidade total de roteiros e vídeos.',
+                                icon: Zap,
+                                color: 'text-accent'
                             },
                             {
-                                icon: '📊',
-                                text: 'Conteúdo alinhado às diretrizes do mercado financeiro',
-                            },
-                            {
-                                icon: '🚀',
-                                text: 'Múltiplos formatos: Instagram, Stories, YouTube',
-                            },
-                        ].map((feature, i) => (
-                            <div key={i} className="flex items-center gap-3">
-                                <span className="text-2xl">{feature.icon}</span>
-                                <span className="text-gray-300 text-sm">{feature.text}</span>
+                                title: 'Inteligência de CVM',
+                                desc: 'Compliance e termos técnicos garantidos.',
+                                icon: ShieldCheck,
+                                color: 'text-emerald-400'
+                            }
+                        ].map((item, i) => (
+                            <div key={i} className="bg-white/5 backdrop-blur-xl border border-white/5 p-8 rounded-[32px] group hover:border-accent/40 transition-all cursor-default shadow-2xl">
+                                <item.icon className={cn("w-8 h-8 mb-6", item.color)} />
+                                <h4 className="text-white font-black text-sm uppercase tracking-widest">{item.title}</h4>
+                                <p className="text-gray-600 text-[10px] mt-3 font-bold uppercase leading-relaxed tracking-wider">{item.desc}</p>
                             </div>
                         ))}
                     </div>
 
-                    {/* Stats */}
-                    <div className="grid grid-cols-3 gap-4">
-                        {[
-                            { number: '10k+', label: 'Vídeos gerados' },
-                            { number: '500+', label: 'Profissionais' },
-                            { number: '98%', label: 'Satisfação' },
-                        ].map((stat, i) => (
-                            <div
-                                key={i}
-                                className="bg-dark-card/60 border border-dark-border rounded-xl p-4 text-center"
-                            >
-                                <div className="text-2xl font-bold text-gold">{stat.number}</div>
-                                <div className="text-xs text-gray-400 mt-1">{stat.label}</div>
-                            </div>
-                        ))}
+                    {/* Confidence Indicator */}
+                    <div className="flex items-center gap-8 pt-6">
+                        <div className="flex -space-x-4">
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="w-12 h-12 rounded-full border-4 border-[#0A192F] bg-white/5 flex items-center justify-center text-[10px] text-accent font-black ring-1 ring-white/10">
+                                    AI
+                                </div>
+                            ))}
+                        </div>
+                        <div className="space-y-1">
+                            <span className="text-white font-black text-sm uppercase tracking-widest">500+ Especialistas</span>
+                            <p className="text-gray-600 text-[10px] font-bold uppercase tracking-widest">Escalando resultados agora mesmo</p>
+                        </div>
                     </div>
                 </div>
 
-                <div className="relative z-10 text-gray-500 text-xs">
-                    © 2024 InvestMais. Todos os direitos reservados.
+                <div className="text-gray-700 text-[10px] font-black tracking-[0.4em] uppercase border-t border-white/5 pt-8">
+                    © 2024 InvestMais Hub • Todos os Direitos Reservados
                 </div>
             </div>
 
-            {/* Right panel - Auth form */}
-            <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+            {/* Right panel - Auth form (Glass Container) */}
+            <div className="flex-1 flex items-center justify-center p-8 lg:p-24 relative z-10 bg-[#0A192F]/40 backdrop-blur-sm lg:bg-transparent">
                 <div className="w-full max-w-md">
                     {/* Mobile logo */}
-                    <div className="lg:hidden flex items-center gap-3 mb-8">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-gold flex items-center justify-center shadow-gold">
-                            <span className="text-primary font-black text-lg">I+</span>
+                    <div className="lg:hidden flex flex-col items-center gap-4 mb-16">
+                        <div className="w-16 h-16 rounded-[24px] bg-accent flex items-center justify-center shadow-accent border border-white/20">
+                            <span className="text-black font-black text-2xl uppercase">I+</span>
                         </div>
-                        <span className="text-white font-bold text-2xl tracking-tight">
-                            Invest<span className="text-gradient-gold">Mais</span>
+                        <span className="text-white font-black text-4xl tracking-tighter uppercase italic">
+                            INVEST<span className="text-accent">MAIS</span>
                         </span>
                     </div>
 
-                    {children}
+                    <div className="bg-[#0A192F] border border-white/5 p-12 rounded-[48px] shadow-[0_0_100px_rgba(48,203,123,0.05)] relative overflow-hidden group">
+                        {/* Subtle accent border on top */}
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent to-emerald-400 opacity-40" />
+                        
+                        {children}
+                    </div>
                 </div>
             </div>
         </div>
     )
+}
+
+function cn(...inputs: any[]) {
+    return inputs.filter(Boolean).join(' ')
 }

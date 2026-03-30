@@ -6,14 +6,14 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
-import { Eye, EyeOff, Loader2, Lock, Mail, User } from 'lucide-react'
+import { Eye, EyeOff, Loader2, Lock, Mail, User, ChevronRight, Check } from 'lucide-react'
 import Link from 'next/link'
 import { signIn } from 'next-auth/react'
-import clsx from 'clsx'
+import { cn } from '@/lib/utils'
 
 const cadastroSchema = z.object({
-    nome: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
-    email: z.string().email('E-mail inválido'),
+    nome: z.string().min(3, 'Nome deve conter pelo menos 3 caracteres'),
+    email: z.string().email('E-mail institucional inválido'),
     senha: z
         .string()
         .min(8, 'Mínimo 8 caracteres')
@@ -28,21 +28,9 @@ const cadastroSchema = z.object({
 
 type CadastroForm = z.infer<typeof cadastroSchema>
 
-// Helper to calculate password strength (0 to 4)
-const calculateStrength = (password: string) => {
-    let strength = 0
-    if (!password) return strength
-    if (password.length >= 8) strength += 1
-    if (/[A-Z]/.test(password)) strength += 1
-    if (/[0-9]/.test(password)) strength += 1
-    if (/[^A-Za-z0-9]/.test(password)) strength += 1
-    return strength
-}
-
 export default function CadastroPage() {
     const router = useRouter()
     const [showPassword, setShowPassword] = useState(false)
-    const [showConfirm, setShowConfirm] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
 
     const {
@@ -54,28 +42,18 @@ export default function CadastroPage() {
         resolver: zodResolver(cadastroSchema),
     })
 
-    // Watch password to calculate strength
     const senhaValue = watch('senha', '')
-    const strength = calculateStrength(senhaValue)
-
-    const getStrengthColor = () => {
-        if (strength === 0) return 'bg-gray-700'
-        if (strength <= 2) return 'bg-red-500'       // Fraca
-        if (strength === 3) return 'bg-yellow-500' // Média
-        return 'bg-green-500'                      // Forte
-    }
-
-    const getStrengthLabel = () => {
-        if (strength === 0) return 'Digite uma senha'
-        if (strength <= 2) return 'Fraca'
-        if (strength === 3) return 'Média'
-        return 'Forte'
-    }
+    
+    const requirements = [
+        { label: '8+ Caracteres', met: senhaValue.length >= 8 },
+        { label: 'Maiúscula', met: /[A-Z]/.test(senhaValue) },
+        { label: 'Número', met: /[0-9]/.test(senhaValue) },
+        { label: 'Símbolo', met: /[^A-Za-z0-9]/.test(senhaValue) },
+    ]
 
     const onSubmit = async (data: CadastroForm) => {
         setIsLoading(true)
         try {
-            // 1. Create user via API
             const response = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -89,15 +67,12 @@ export default function CadastroPage() {
             const result = await response.json()
 
             if (!response.ok) {
-                if (result.error?.includes('Email já cadastrado') || result.error?.includes('already')) {
-                    toast.error('Este e-mail já está em uso. Tente fazer login.')
-                } else {
-                    toast.error(result.error || 'Erro ao criar conta. Tente novamente.')
-                }
+                toast.error(result.error || 'ERRO: Falha ao registrar credencial.')
                 return
             }
 
-            // 2. Sign in automatically
+            toast.success('CONTA CRIADA: Sincronizando acesso...')
+
             const signInResult = await signIn('credentials', {
                 email: data.email,
                 password: data.senha,
@@ -105,160 +80,154 @@ export default function CadastroPage() {
             })
 
             if (signInResult?.ok) {
-                toast.success('Conta criada com sucesso! Bem-vindo ao InvestMais.')
                 router.push('/dashboard')
                 router.refresh()
             } else {
-                toast.success('Conta criada! Faça login para continuar.')
                 router.push('/login')
             }
         } catch {
-            toast.error('Erro ao criar conta. Tente novamente.')
+            toast.error('ERRO CRÍTICO: Protocolo de registro falhou.')
         } finally {
             setIsLoading(false)
         }
     }
 
     return (
-        <div className="animate-fade-in">
-            <div className="mb-7">
-                <h2 className="text-3xl font-bold text-white">Crie sua conta</h2>
-                <p className="text-gray-400 mt-2">
-                    Comece a gerar conteúdo profissional hoje
+        <div className="animate-fade-in space-y-10">
+            <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                     <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                     <span className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em]">Novo Registro de Parceiro</span>
+                </div>
+                <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic leading-none">Criar Credencial</h2>
+                <p className="text-gray-600 font-bold uppercase tracking-widest text-[9px]">
+                    Cadastre-se para acessar o núcleo de <br /> inteligência criativa da InvestMais.
                 </p>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {/* Nome */}
-                <div>
-                    <label htmlFor="nome" className="label">Nome completo</label>
-                    <div className="relative">
-                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <div className="space-y-3">
+                    <label htmlFor="nome" className="text-[10px] font-black text-gray-500 uppercase tracking-widest block pl-2">Nome Completo</label>
+                    <div className="relative group">
+                        <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-accent transition-colors" />
                         <input
                             id="nome"
                             type="text"
-                            autoComplete="name"
-                            placeholder="João Silva"
-                            className={clsx('input-field pl-11', errors.nome && 'border-red-500/60')}
+                            placeholder="Ex: João da Silva"
+                            className={cn(
+                                "w-full bg-white/5 border rounded-[28px] py-4 pl-14 pr-6 text-white font-black uppercase tracking-widest text-[11px] focus:bg-white/[0.08] focus:ring-0 transition-all outline-none",
+                                errors.nome ? 'border-red-500/60' : 'border-white/5 focus:border-accent/40'
+                            )}
                             {...register('nome')}
                         />
                     </div>
-                    {errors.nome && <p className="mt-1.5 text-xs text-red-400">{errors.nome.message}</p>}
+                    {errors.nome && <p className="mt-2 text-[9px] font-black text-red-500 uppercase tracking-widest pr-4 text-right italic">{errors.nome.message}</p>}
                 </div>
 
                 {/* E-mail */}
-                <div>
-                    <label htmlFor="email" className="label">E-mail</label>
-                    <div className="relative">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <div className="space-y-3">
+                    <label htmlFor="email" className="text-[10px] font-black text-gray-500 uppercase tracking-widest block pl-2">E-mail Institucional</label>
+                    <div className="relative group">
+                        <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-accent transition-colors" />
                         <input
                             id="email"
                             type="email"
-                            autoComplete="email"
-                            placeholder="seu@email.com"
-                            className={clsx('input-field pl-11', errors.email && 'border-red-500/60')}
+                            placeholder="seu@investmais.com"
+                            className={cn(
+                                "w-full bg-white/5 border rounded-[28px] py-4 pl-14 pr-6 text-white font-black uppercase tracking-widest text-[11px] focus:bg-white/[0.08] focus:ring-0 transition-all outline-none",
+                                errors.email ? 'border-red-500/60' : 'border-white/5 focus:border-accent/40'
+                            )}
                             {...register('email')}
                         />
                     </div>
-                    {errors.email && <p className="mt-1.5 text-xs text-red-400">{errors.email.message}</p>}
+                    {errors.email && <p className="mt-2 text-[9px] font-black text-red-500 uppercase tracking-widest pr-4 text-right italic">{errors.email.message}</p>}
                 </div>
 
                 {/* Senha */}
-                <div>
-                    <label htmlFor="senha" className="label">Senha</label>
-                    <div className="relative">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <div className="space-y-4">
+                    <label htmlFor="senha" className="text-[10px] font-black text-gray-500 uppercase tracking-widest block pl-2">Chave de Segurança</label>
+                    <div className="relative group">
+                        <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-accent transition-colors" />
                         <input
                             id="senha"
                             type={showPassword ? 'text' : 'password'}
-                            autoComplete="new-password"
-                            placeholder="Crie uma senha segura"
-                            className={clsx('input-field pl-11 pr-12', errors.senha && 'border-red-500/60')}
+                            placeholder="••••••••"
+                            className={cn(
+                                "w-full bg-white/5 border rounded-[28px] py-4 pl-14 pr-14 text-white font-black uppercase tracking-widest text-[11px] focus:bg-white/[0.08] focus:ring-0 transition-all outline-none",
+                                errors.senha ? 'border-red-500/60' : 'border-white/5 focus:border-accent/40'
+                            )}
                             {...register('senha')}
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                            className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-600 hover:text-white transition-colors"
                         >
                             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                     </div>
 
-                    {/* Indicador de Força */}
-                    <div className="mt-2 flex items-center justify-between">
-                        <div className="flex gap-1 flex-1 mr-4">
-                            {[1, 2, 3, 4].map((level) => (
-                                <div
-                                    key={level}
-                                    className={clsx(
-                                        'h-1 rounded-full flex-1 transition-colors duration-300',
-                                        strength >= level ? getStrengthColor() : 'bg-gray-800'
-                                    )}
-                                />
-                            ))}
-                        </div>
-                        <span className="text-xs text-gray-500 w-12 text-right">
-                            {getStrengthLabel()}
-                        </span>
+                    {/* Requirements Tags */}
+                    <div className="flex flex-wrap gap-2 px-2">
+                        {requirements.map((req, i) => (
+                            <div key={i} className={cn(
+                                "flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all",
+                                req.met ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-white/5 border-white/5 text-gray-700 opacity-50'
+                            )}>
+                                {req.met && <Check className="w-2.5 h-2.5" />}
+                                <span className="text-[8px] font-black uppercase tracking-widest">{req.label}</span>
+                            </div>
+                        ))}
                     </div>
-
-                    {errors.senha && <p className="mt-1.5 text-xs text-red-400">{errors.senha.message}</p>}
-                    {!errors.senha && (
-                        <p className="mt-1 text-xs text-gray-500">
-                            Mínimo 8 caracteres, com maiúscula, número e símbolo
-                        </p>
-                    )}
                 </div>
 
-                {/* Confirmar senha */}
-                <div>
-                    <label htmlFor="confirmarSenha" className="label">Confirmar senha</label>
-                    <div className="relative">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                {/* Confirmar Senha */}
+                <div className="space-y-3">
+                    <label htmlFor="confirmarSenha" className="text-[10px] font-black text-gray-500 uppercase tracking-widest block pl-2">Confirmar Chave</label>
+                    <div className="relative group">
+                        <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-accent transition-colors" />
                         <input
                             id="confirmarSenha"
-                            type={showConfirm ? 'text' : 'password'}
-                            autoComplete="new-password"
-                            placeholder="Repita a senha"
-                            className={clsx('input-field pl-11 pr-12', errors.confirmarSenha && 'border-red-500/60')}
+                            type="password"
+                            placeholder="••••••••"
+                            className={cn(
+                                "w-full bg-white/5 border rounded-[28px] py-4 pl-14 pr-6 text-white font-black uppercase tracking-widest text-[11px] focus:bg-white/[0.08] focus:ring-0 transition-all outline-none",
+                                errors.confirmarSenha ? 'border-red-500/60' : 'border-white/5 focus:border-accent/40'
+                            )}
                             {...register('confirmarSenha')}
                         />
-                        <button
-                            type="button"
-                            onClick={() => setShowConfirm(!showConfirm)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
-                        >
-                            {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
                     </div>
-                    {errors.confirmarSenha && (
-                        <p className="mt-1.5 text-xs text-red-400">{errors.confirmarSenha.message}</p>
-                    )}
                 </div>
 
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+                    className="btn-primary w-full flex items-center justify-center gap-4 py-6 rounded-[32px] group mt-4 transition-all"
                 >
                     {isLoading ? (
                         <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Criando Conta...
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            <span className="uppercase tracking-[0.4em] font-black text-[11px]">Sincronizando...</span>
                         </>
                     ) : (
-                        'Criar Conta'
+                        <>
+                            <span className="uppercase tracking-[0.4em] font-black text-[11px]">Consolidar Registro</span>
+                            <ChevronRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                        </>
                     )}
                 </button>
             </form>
 
-            <p className="mt-6 text-center text-sm text-gray-400">
-                Já tem uma conta?{' '}
-                <Link href="/login" className="text-gold hover:text-gold-300 font-medium transition-colors">
-                    Fazer login
-                </Link>
-            </p>
+            <div className="pt-8 border-t border-white/5 text-center">
+                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-700">
+                    Já possui acesso?{' '}
+                    <Link href="/login" className="text-accent hover:opacity-80 transition-all ml-4 inline-flex items-center gap-2 group">
+                        Autorizar Login
+                        <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                </p>
+            </div>
         </div>
     )
 }

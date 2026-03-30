@@ -4,19 +4,15 @@ import { useState, useEffect, useRef } from 'react'
 import {
     User,
     Lock,
-    Puzzle,
     Palette,
-    Save,
     Eye,
     EyeOff,
     Loader2,
-    CheckCircle,
-    XCircle,
+    ChevronRight,
+    Camera,
+    Palette as PaletteIcon,
+    Settings,
     Upload,
-    HardDrive,
-    Instagram,
-    Facebook,
-    Webhook,
 } from 'lucide-react'
 import { cn, getInitials } from '@/lib/utils'
 import toast from 'react-hot-toast'
@@ -25,9 +21,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
 const TABS = [
-    { id: 'perfil', label: 'Perfil', icon: User },
-    { id: 'integracoes', label: 'Integrações', icon: Puzzle },
-    { id: 'personalizacao', label: 'Personalização', icon: Palette },
+    { id: 'perfil', label: 'Perfil do Usuário', icon: User },
+    { id: 'personalizacao', label: 'DNA da Marca', icon: Palette },
 ]
 
 const passwordSchema = z.object({
@@ -46,20 +41,6 @@ const passwordSchema = z.object({
 
 type PasswordForm = z.infer<typeof passwordSchema>
 
-interface Integration {
-    tipo: string
-    ativo: boolean
-    configuracoes?: Record<string, string>
-}
-
-const INTEGRATIONS = [
-    { id: 'google_drive', label: 'Google Drive', icon: HardDrive, desc: 'Salve vídeos automaticamente' },
-    { id: 'dropbox', label: 'Dropbox', icon: HardDrive, desc: 'Backup na nuvem' },
-    { id: 'instagram', label: 'Instagram', icon: Instagram, desc: 'Agende posts automaticamente' },
-    { id: 'facebook', label: 'Facebook', icon: Facebook, desc: 'Publique na sua página' },
-    { id: 'webhook', label: 'Webhook Personalizado', icon: Webhook, desc: 'Integre com qualquer sistema' },
-]
-
 export default function ConfiguracoesPage() {
     const [activeTab, setActiveTab] = useState('perfil')
     const [profile, setProfile] = useState({ nome: '', email: '', avatar_url: null as string | null })
@@ -68,10 +49,8 @@ export default function ConfiguracoesPage() {
     const [showOldPw, setShowOldPw] = useState(false)
     const [showNewPw, setShowNewPw] = useState(false)
     const [isSavingPw, setIsSavingPw] = useState(false)
-    const [integrations, setIntegrations] = useState<Record<string, Integration>>({})
-    const [webhookUrl, setWebhookUrl] = useState('')
     const [logoPreview, setLogoPreview] = useState<string | null>(null)
-    const [brandColors, setBrandColors] = useState({ primary: '#0A1628', secondary: '#C9A84C' })
+    const [brandColors, setBrandColors] = useState({ primary: '#0A192F', secondary: '#30CB7B' })
     const logoInputRef = useRef<HTMLInputElement>(null)
     const avatarInputRef = useRef<HTMLInputElement>(null)
 
@@ -85,24 +64,10 @@ export default function ConfiguracoesPage() {
     useEffect(() => {
         async function loadData() {
             try {
-                const [profileRes, intRes] = await Promise.all([
-                    fetch('/api/creator/profile'),
-                    fetch('/api/creator/integracoes'),
-                ])
-
+                const profileRes = await fetch('/api/creator/profile')
                 if (profileRes.ok) {
                     const data = await profileRes.json()
                     setProfile({ nome: data.nome || '', email: data.email || '', avatar_url: data.avatar_url || null })
-                }
-
-                if (intRes.ok) {
-                    const data: Integration[] = await intRes.json()
-                    const map: Record<string, Integration> = {}
-                    data.forEach((i) => {
-                        map[i.tipo] = { tipo: i.tipo, ativo: i.ativo, configuracoes: (i.configuracoes as Record<string, string>) || {} }
-                    })
-                    setIntegrations(map)
-                    if (map.webhook?.configuracoes?.url) setWebhookUrl(map.webhook.configuracoes.url)
                 }
             } finally {
                 setIsLoadingProfile(false)
@@ -150,35 +115,7 @@ export default function ConfiguracoesPage() {
         if (!file) return
         const preview = URL.createObjectURL(file)
         setProfile((p) => ({ ...p, avatar_url: preview }))
-        toast.success('Avatar atualizado!')
-    }
-
-    const handleToggleIntegration = async (tipo: string) => {
-        const current = integrations[tipo]
-        const newState = !current?.ativo
-
-        const res = await fetch('/api/creator/integracoes', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                tipo,
-                ativo: newState,
-                token_acesso: null,
-                configuracoes: tipo === 'webhook' ? { url: webhookUrl } : {},
-            }),
-        })
-
-        if (!res.ok) {
-            toast.error('Erro ao atualizar integração')
-            return
-        }
-
-        setIntegrations((prev) => ({
-            ...prev,
-            [tipo]: { tipo, ativo: newState, configuracoes: tipo === 'webhook' ? { url: webhookUrl } : {} },
-        }))
-
-        toast.success(newState ? `${tipo} conectado!` : `${tipo} desconectado`)
+        toast.success('Avatar atualizado! (Simulação)')
     }
 
     const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -190,29 +127,43 @@ export default function ConfiguracoesPage() {
 
     if (isLoadingProfile) {
         return (
-            <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
-                <div className="shimmer h-8 w-48 rounded mb-2" />
-                <div className="shimmer h-4 w-72 rounded" />
+             <div className="p-8 lg:p-12 max-w-4xl mx-auto space-y-12 bg-primary">
+                <div className="shimmer h-8 w-48 rounded-[24px] mb-2 opacity-20" />
+                <div className="shimmer h-4 w-72 rounded-[12px] opacity-10" />
             </div>
         )
     }
 
     return (
-        <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
-            <div>
-                <h1 className="section-title">Configurações</h1>
-                <p className="section-subtitle">Gerencie sua conta e preferências</p>
+        <div className="p-8 lg:p-12 max-w-4xl mx-auto space-y-12 animate-fade-in bg-primary pb-20 min-h-screen">
+            <div className="space-y-4 text-center md:text-left border-b border-white/5 pb-12 overflow-hidden">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 mb-4 transition-all hover:bg-accent/20">
+                    <Settings className="w-3 h-3 text-accent" />
+                    <span className="text-[10px] font-black text-accent uppercase tracking-[0.2em]">Preferências do Sistema</span>
+                </div>
+                <h1 className="text-5xl font-black text-white tracking-tighter leading-none">
+                    Ajustes de <br />
+                    <span className="text-transparent bg-clip-text bg-gradient-accent">Parâmetros</span>
+                </h1>
+                <p className="text-gray-500 font-medium uppercase tracking-widest text-[10px]">
+                    Gerencie suas credenciais de acesso e protocolos de identidade visual
+                </p>
             </div>
 
-            {/* Tabs */}
-            <div className="flex gap-1 p-1 bg-dark-card border border-dark-border rounded-xl">
+            {/* Premium Tabs */}
+            <div className="flex gap-2 p-2 bg-white/[0.02] border border-white/5 rounded-[32px] max-w-2xl">
                 {TABS.map((tab) => {
                     const Icon = tab.icon
                     return (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={cn('flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all', activeTab === tab.id ? 'bg-gold text-primary' : 'text-gray-400 hover:text-white hover:bg-white/5')}
+                            className={cn(
+                                'flex-1 flex items-center justify-center gap-3 py-3 px-6 rounded-[24px] text-[10px] uppercase font-black tracking-widest transition-all duration-300',
+                                activeTab === tab.id 
+                                    ? 'bg-accent text-black shadow-accent active:scale-95' 
+                                    : 'text-gray-500 hover:text-white hover:bg-white/5'
+                            )}
                         >
                             <Icon className="w-4 h-4" />
                             <span className="hidden sm:inline">{tab.label}</span>
@@ -223,106 +174,106 @@ export default function ConfiguracoesPage() {
 
             {/* Profile Tab */}
             {activeTab === 'perfil' && (
-                <div className="space-y-4 animate-fade-in">
-                    {/* Avatar */}
-                    <div className="card">
-                        <h3 className="text-base font-semibold text-white mb-4">Foto de Perfil</h3>
-                        <div className="flex items-center gap-4">
-                            <div className="relative">
-                                <div className="w-16 h-16 rounded-full bg-gold/10 border-2 border-gold/30 flex items-center justify-center overflow-hidden">
+                <div className="space-y-8 animate-fade-in">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="md:col-span-1 card border-white/5 bg-white/[0.02] p-8 flex flex-col items-center justify-center space-y-6">
+                            <h3 className="text-[10px] font-black text-white uppercase tracking-widest text-center">Identidade Visual</h3>
+                            <div className="relative group">
+                                <div className="w-24 h-24 rounded-[40px] bg-white/5 border-2 border-white/10 flex items-center justify-center overflow-hidden transition-all duration-500 group-hover:border-accent/40 shadow-xl">
                                     {profile.avatar_url ? (
-                                        <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                                        <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
                                     ) : (
-                                        <span className="text-gold text-xl font-bold">{getInitials(profile.nome || 'U')}</span>
+                                        <span className="text-white text-3xl font-black">{getInitials(profile.nome || 'U')}</span>
                                     )}
                                 </div>
                                 <button
                                     onClick={() => avatarInputRef.current?.click()}
-                                    className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gold flex items-center justify-center shadow-gold"
+                                    className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl bg-accent text-black flex items-center justify-center shadow-accent transition-transform hover:scale-110"
                                 >
-                                    <Upload className="w-3 h-3 text-primary" />
+                                    <Camera className="w-5 h-5" />
                                 </button>
                             </div>
-                            <div>
-                                <button onClick={() => avatarInputRef.current?.click()} className="btn-secondary text-sm h-9">
-                                    Alterar foto
-                                </button>
-                                <p className="text-xs text-gray-500 mt-1">JPG, PNG. Máx 2MB</p>
+                            <div className="text-center">
+                                <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">JPG, PNG Otimizado</p>
+                                <p className="text-[8px] text-gray-700 font-bold uppercase mt-1">Limite Máximo 2MB</p>
                             </div>
+                            <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
                         </div>
-                        <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
-                    </div>
 
-                    {/* Info */}
-                    <div className="card space-y-4">
-                        <h3 className="text-base font-semibold text-white">Informações Pessoais</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label className="label">Nome completo</label>
-                                <input
-                                    type="text"
-                                    value={profile.nome}
-                                    onChange={(e) => setProfile((p) => ({ ...p, nome: e.target.value }))}
-                                    className="input-field"
-                                />
+                        <div className="md:col-span-2 card border-white/5 bg-white/[0.02] p-10 space-y-10">
+                            <h3 className="text-[10px] font-black text-white uppercase tracking-widest pb-4 border-b border-white/5">Parâmetros Pessoais</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Nome Completo</label>
+                                    <input
+                                        type="text"
+                                        value={profile.nome}
+                                        onChange={(e) => setProfile((p) => ({ ...p, nome: e.target.value }))}
+                                        className="input-field h-14 bg-white/5 border-white/5 rounded-2xl uppercase text-[10px] font-black tracking-widest outline-none focus:bg-white/[0.08]"
+                                    />
+                                </div>
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Endpoint de E-mail</label>
+                                    <input
+                                        type="email"
+                                        value={profile.email}
+                                        onChange={(e) => setProfile((p) => ({ ...p, email: e.target.value }))}
+                                        className="input-field h-14 bg-white/5 border-white/5 rounded-2xl lowercase text-[10px] font-black tracking-widest outline-none focus:bg-white/[0.08]"
+                                    />
+                                </div>
                             </div>
-                            <div>
-                                <label className="label">E-mail</label>
-                                <input
-                                    type="email"
-                                    value={profile.email}
-                                    onChange={(e) => setProfile((p) => ({ ...p, email: e.target.value }))}
-                                    className="input-field"
-                                />
+                            <div className="flex justify-end pt-6">
+                                <button
+                                    onClick={handleSaveProfile}
+                                    disabled={isSavingProfile}
+                                    className="btn-primary py-5 px-10 flex items-center gap-3 transition-all hover:gap-4 bg-accent text-black font-black uppercase tracking-widest text-[10px] rounded-xl"
+                                >
+                                    <span>{isSavingProfile ? 'Sincronizando...' : 'confirmar perfil'}</span>
+                                    {isSavingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
+                                </button>
                             </div>
-                        </div>
-                        <div className="flex justify-end">
-                            <button
-                                onClick={handleSaveProfile}
-                                disabled={isSavingProfile}
-                                className="btn-primary flex items-center gap-2"
-                            >
-                                {isSavingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                Salvar
-                            </button>
                         </div>
                     </div>
 
-                    {/* Password */}
-                    <div className="card space-y-4">
-                        <h3 className="text-base font-semibold text-white">Alterar Senha</h3>
-                        <form onSubmit={handleSubmit(handleChangePassword)} className="space-y-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div>
-                                    <label className="label">Senha atual</label>
+                    {/* Access Layer */}
+                    <div className="card border-white/5 bg-white/[0.02] p-10 space-y-12">
+                        <div className="flex items-center gap-3 pb-4 border-b border-white/5">
+                            <Lock className="w-4 h-4 text-gray-500" />
+                            <h3 className="text-[10px] font-black text-white uppercase tracking-widest">Camada de Segurança</h3>
+                        </div>
+                        <form onSubmit={handleSubmit(handleChangePassword)} className="space-y-10">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Chave Atual</label>
                                     <div className="relative">
-                                        <input type={showOldPw ? 'text' : 'password'} className={`input-field pr-10 ${passwordErrors.senhaAtual ? 'border-red-500/60' : ''}`} {...register('senhaAtual')} />
-                                        <button type="button" onClick={() => setShowOldPw(!showOldPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                                        <input type={showOldPw ? 'text' : 'password'} className={cn("input-field h-14 bg-white/5 border-white/5 rounded-2xl pr-12 text-[12px] outline-none w-full px-4", passwordErrors.senhaAtual && 'border-red-500/50')} {...register('senhaAtual')} />
+                                        <button type="button" onClick={() => setShowOldPw(!showOldPw)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-white transition-colors">
                                             {showOldPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                         </button>
                                     </div>
-                                    {passwordErrors.senhaAtual && <p className="text-xs text-red-400 mt-1">{passwordErrors.senhaAtual.message}</p>}
+                                    {passwordErrors.senhaAtual && <p className="text-[8px] text-red-400 font-bold uppercase tracking-widest">{passwordErrors.senhaAtual.message}</p>}
                                 </div>
-                                <div>
-                                    <label className="label">Nova senha</label>
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Novo Protocolo</label>
                                     <div className="relative">
-                                        <input type={showNewPw ? 'text' : 'password'} className={`input-field pr-10 ${passwordErrors.novaSenha ? 'border-red-500/60' : ''}`} {...register('novaSenha')} />
-                                        <button type="button" onClick={() => setShowNewPw(!showNewPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                                        <input type={showNewPw ? 'text' : 'password'} className={cn("input-field h-14 bg-white/5 border-white/5 rounded-2xl pr-12 text-[12px] outline-none w-full px-4", passwordErrors.novaSenha && 'border-red-500/50')} {...register('novaSenha')} />
+                                        <button type="button" onClick={() => setShowNewPw(!showNewPw)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-white transition-colors">
                                             {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                         </button>
                                     </div>
-                                    {passwordErrors.novaSenha && <p className="text-xs text-red-400 mt-1">{passwordErrors.novaSenha.message}</p>}
+                                    {passwordErrors.novaSenha && <p className="text-[8px] text-red-400 font-bold uppercase tracking-widest">{passwordErrors.novaSenha.message}</p>}
                                 </div>
-                                <div>
-                                    <label className="label">Confirmar nova senha</label>
-                                    <input type="password" className={`input-field ${passwordErrors.confirmarSenha ? 'border-red-500/60' : ''}`} {...register('confirmarSenha')} />
-                                    {passwordErrors.confirmarSenha && <p className="text-xs text-red-400 mt-1">{passwordErrors.confirmarSenha.message}</p>}
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Confirmar Sequência</label>
+                                    <input type="password" className={cn("input-field h-14 bg-white/5 border-white/5 rounded-2xl text-[12px] outline-none w-full px-4", passwordErrors.confirmarSenha && 'border-red-500/50')} {...register('confirmarSenha')} />
+                                    {passwordErrors.confirmarSenha && <p className="text-[8px] text-red-400 font-bold uppercase tracking-widest">{passwordErrors.confirmarSenha.message}</p>}
                                 </div>
                             </div>
                             <div className="flex justify-end">
-                                <button type="submit" disabled={isSavingPw} className="btn-primary flex items-center gap-2">
-                                    {isSavingPw ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
-                                    Alterar senha
+                                <button type="submit" disabled={isSavingPw} className="btn-secondary py-5 px-10 border-white/10 hover:border-accent/40 group">
+                                    <div className="flex items-center gap-3">
+                                        <span className="uppercase tracking-[0.2em] font-black text-xs text-gray-400 group-hover:text-accent transition-colors">{isSavingPw ? 'Processando...' : 'Recalibrar Senha'}</span>
+                                    </div>
                                 </button>
                             </div>
                         </form>
@@ -330,139 +281,106 @@ export default function ConfiguracoesPage() {
                 </div>
             )}
 
-            {/* Integrations Tab */}
-            {activeTab === 'integracoes' && (
-                <div className="space-y-4 animate-fade-in">
-                    {INTEGRATIONS.map((int) => {
-                        const Icon = int.icon
-                        const isActive = integrations[int.id]?.ativo || false
-                        return (
-                            <div key={int.id} className="card flex items-center gap-4">
-                                <div className="w-11 h-11 rounded-xl bg-dark-muted border border-dark-border flex items-center justify-center flex-shrink-0">
-                                    <Icon className="w-5 h-5 text-gray-400" />
-                                </div>
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2">
-                                        <p className="font-medium text-white">{int.label}</p>
-                                        {isActive ? (
-                                            <span className="badge badge-green text-xs">
-                                                <CheckCircle className="w-3 h-3 mr-1" />
-                                                Conectado
-                                            </span>
-                                        ) : (
-                                            <span className="badge badge-red text-xs">
-                                                <XCircle className="w-3 h-3 mr-1" />
-                                                Desconectado
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p className="text-sm text-gray-500">{int.desc}</p>
-                                    {int.id === 'webhook' && (
-                                        <input
-                                            type="url"
-                                            placeholder="https://seu-endpoint.com/webhook"
-                                            value={webhookUrl}
-                                            onChange={(e) => setWebhookUrl(e.target.value)}
-                                            className="input-field mt-2 h-9 text-sm"
-                                        />
-                                    )}
-                                </div>
-                                <button
-                                    onClick={() => handleToggleIntegration(int.id)}
-                                    className={isActive ? 'btn-danger' : 'btn-secondary text-sm whitespace-nowrap'}
-                                >
-                                    {isActive ? 'Desconectar' : 'Conectar'}
-                                </button>
-                            </div>
-                        )
-                    })}
-                </div>
-            )}
-
             {/* Personalization Tab */}
             {activeTab === 'personalizacao' && (
-                <div className="space-y-4 animate-fade-in">
-                    <div className="card space-y-4">
-                        <h3 className="text-base font-semibold text-white">Logo Padrão da Empresa</h3>
-                        <p className="text-sm text-gray-400">
-                            Esta logo será usada automaticamente em todas as criações de vídeo.
-                        </p>
-                        <div
-                            className="w-full h-32 rounded-xl border-2 border-dashed border-dark-border hover:border-gold/40 bg-dark-muted/50 flex flex-col items-center justify-center gap-2 transition-all cursor-pointer group"
-                            onClick={() => logoInputRef.current?.click()}
-                        >
-                            {logoPreview ? (
-                                <img src={logoPreview} alt="Logo" className="h-full object-contain p-4" />
-                            ) : (
-                                <>
-                                    <Upload className="w-6 h-6 text-gray-500 group-hover:text-gold transition-colors" />
-                                    <span className="text-sm text-gray-500">Clique para fazer upload da logo</span>
-                                </>
-                            )}
+                <div className="space-y-8 animate-fade-in">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="card space-y-8 border-white/5 bg-white/[0.02] p-10 flex flex-col items-center justify-between">
+                            <div className="text-center space-y-4">
+                                <h3 className="text-[10px] font-black text-white uppercase tracking-[0.4em]">Identidade da Marca</h3>
+                                <p className="text-[10px] text-gray-500 font-medium uppercase tracking-widest max-w-[200px] mx-auto leading-loose">
+                                    Vetor corporativo padrão para marca d'água automatizada
+                                </p>
+                            </div>
+                            <div
+                                className="w-full aspect-video rounded-[32px] border-4 border-dashed border-white/5 hover:border-accent/20 bg-white/[0.01] hover:bg-white/[0.03] flex flex-col items-center justify-center gap-4 transition-all cursor-pointer group relative overflow-hidden"
+                                onClick={() => logoInputRef.current?.click()}
+                            >
+                                {logoPreview ? (
+                                    <img src={logoPreview} alt="Logo" className="w-full h-full object-contain p-8 filter brightness-110 transition-transform group-hover:scale-105" />
+                                ) : (
+                                    <>
+                                        <div className="w-16 h-16 rounded-3xl bg-white/5 flex items-center justify-center group-hover:bg-accent/10 transition-colors">
+                                            <Upload className="w-7 h-7 text-gray-600 group-hover:text-accent" />
+                                        </div>
+                                        <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest group-hover:text-accent transition-colors">Injetar Logotipo</span>
+                                    </>
+                                )}
+                            </div>
+                            <p className="text-[8px] text-gray-700 font-bold uppercase">SVG, AI ou PNG Otimizado Sem Fundo</p>
+                            <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                         </div>
-                        <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                    </div>
 
-                    <div className="card space-y-4">
-                        <h3 className="text-base font-semibold text-white">Paleta de Cores da Marca</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="label">Cor Primária</label>
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        type="color"
-                                        value={brandColors.primary}
-                                        onChange={(e) => setBrandColors((p) => ({ ...p, primary: e.target.value }))}
-                                        className="w-10 h-10 rounded-lg border border-dark-border cursor-pointer"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={brandColors.primary}
-                                        onChange={(e) => setBrandColors((p) => ({ ...p, primary: e.target.value }))}
-                                        className="input-field flex-1 font-mono text-sm uppercase"
-                                    />
+                        <div className="card space-y-12 border-white/5 bg-white/[0.02] p-10 flex flex-col justify-between">
+                             <div className="space-y-8">
+                                <h3 className="text-[10px] font-black text-white uppercase tracking-[0.4em] text-center md:text-left">Matrix Cromática</h3>
+                                <div className="space-y-8">
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColors.primary }} />
+                                            Cor Primária
+                                        </label>
+                                        <div className="flex items-center gap-4">
+                                            <input
+                                                type="color"
+                                                value={brandColors.primary}
+                                                onChange={(e) => setBrandColors((p) => ({ ...p, primary: e.target.value }))}
+                                                className="w-14 h-14 rounded-2xl border-none cursor-pointer bg-white/5 p-1"
+                                            />
+                                            <input
+                                                type="text"
+                                                value={brandColors.primary}
+                                                onChange={(e) => setBrandColors((p) => ({ ...p, primary: e.target.value }))}
+                                                className="input-field h-14 flex-1 font-mono text-[10px] uppercase font-bold tracking-widest bg-white/5 border-white/5 rounded-2xl px-6 outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: brandColors.secondary }} />
+                                            Cor de Destaque
+                                        </label>
+                                        <div className="flex items-center gap-4">
+                                            <input
+                                                type="color"
+                                                value={brandColors.secondary}
+                                                onChange={(e) => setBrandColors((p) => ({ ...p, secondary: e.target.value }))}
+                                                className="w-14 h-14 rounded-2xl border-none cursor-pointer bg-white/5 p-1"
+                                            />
+                                            <input
+                                                type="text"
+                                                value={brandColors.secondary}
+                                                onChange={(e) => setBrandColors((p) => ({ ...p, secondary: e.target.value }))}
+                                                className="input-field h-14 flex-1 font-mono text-[10px] uppercase font-bold tracking-widest bg-white/5 border-white/5 rounded-2xl px-6 outline-none"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div>
-                                <label className="label">Cor Secundária</label>
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        type="color"
-                                        value={brandColors.secondary}
-                                        onChange={(e) => setBrandColors((p) => ({ ...p, secondary: e.target.value }))}
-                                        className="w-10 h-10 rounded-lg border border-dark-border cursor-pointer"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={brandColors.secondary}
-                                        onChange={(e) => setBrandColors((p) => ({ ...p, secondary: e.target.value }))}
-                                        className="input-field flex-1 font-mono text-sm uppercase"
-                                    />
-                                </div>
+                            <button
+                                onClick={() => toast.success('DNA visual pronto!')}
+                                className="btn-primary py-5 w-full flex items-center justify-center gap-3 group bg-accent text-black font-black uppercase tracking-widest text-[10px] rounded-xl"
+                            >
+                                <PaletteIcon className="w-4 h-4" />
+                                <span className="uppercase tracking-[0.2em] font-black text-xs italic">Atualizar Matrix DNA</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="card space-y-10 border-white/5 bg-white/[0.02] p-10">
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                            <div className="space-y-4 text-center md:text-left">
+                                <h3 className="text-[10px] font-black text-white uppercase tracking-widest">Motor de Tipografia</h3>
+                                <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">Selecione a fonte padrão para os ativos</p>
+                            </div>
+                            <div className="w-full md:w-80">
+                                <select className="input-field h-16 bg-white/5 border-white/5 rounded-2xl px-8 uppercase text-[10px] font-black tracking-widest outline-none transition-all focus:bg-white/[0.08] cursor-pointer">
+                                    {['Inter', 'Outfit', 'Montserrat', 'Open Sans', 'Lato'].map((f) => (
+                                        <option key={f} value={f} className="bg-[#0A192F] text-white py-4">{f}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
-                    </div>
-
-                    <div className="card space-y-4">
-                        <h3 className="text-base font-semibold text-white">Fontes Preferidas</h3>
-                        <div>
-                            <label className="label">Fonte principal</label>
-                            <select className="input-field">
-                                {['Inter', 'Roboto', 'Poppins', 'Montserrat', 'Outfit', 'Open Sans', 'Lato'].map((f) => (
-                                    <option key={f} value={f}>{f}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="flex justify-end">
-                        <button
-                            onClick={() => toast.success('Preferências de personalização salvas!')}
-                            className="btn-primary flex items-center gap-2"
-                        >
-                            <Save className="w-4 h-4" />
-                            Salvar Preferências
-                        </button>
                     </div>
                 </div>
             )}
