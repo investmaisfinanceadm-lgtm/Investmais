@@ -65,8 +65,7 @@ const LINHAS = [
 
 const DURACOES = [
     { value: 15, label: '15 SEG' },
-    { value: 30, label: '30 SEG' },
-    { value: 60, label: '60 SEG' },
+    { value: 20, label: '20 SEG' },
 ]
 
 const TONS = [
