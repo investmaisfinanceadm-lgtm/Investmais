@@ -101,7 +101,7 @@ export default function EsqueciSenhaPage() {
                             type="email"
                             placeholder="seu@investmais.com"
                             className={cn(
-                                "w-full bg-white/5 border rounded-[28px] py-5 pl-14 pr-6 text-white font-black uppercase tracking-widest text-[11px] focus:bg-white/[0.08] focus:ring-0 transition-all outline-none",
+                                "w-full bg-white/5 border rounded-[28px] py-5 pl-14 pr-6 text-white font-semibold text-[13px] focus:bg-white/[0.08] focus:ring-0 transition-all outline-none",
                                 errors.email ? 'border-red-500/60 shadow-red-500/10' : 'border-white/5 focus:border-accent/40'
                             )}
                             {...register('email')}
