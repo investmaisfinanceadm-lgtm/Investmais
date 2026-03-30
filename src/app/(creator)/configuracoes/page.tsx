@@ -50,7 +50,7 @@ export default function ConfiguracoesPage() {
     const [showNewPw, setShowNewPw] = useState(false)
     const [isSavingPw, setIsSavingPw] = useState(false)
     const [logoPreview, setLogoPreview] = useState<string | null>(null)
-    const [brandColors, setBrandColors] = useState({ primary: '#0A192F', secondary: '#30CB7B' })
+    const [brandColors, setBrandColors] = useState({ primary: '#0A192F', secondary: '#2563EB' })
     const logoInputRef = useRef<HTMLInputElement>(null)
     const avatarInputRef = useRef<HTMLInputElement>(null)
 

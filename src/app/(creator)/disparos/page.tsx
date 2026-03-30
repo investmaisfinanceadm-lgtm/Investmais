@@ -52,7 +52,7 @@ const MOCK_DISPATCHES: Dispatch[] = [
 ]
 
 const MOCK_EVENTS: CalendarEvent[] = [
-  { id: '1', title: 'Reunião de assessoria', date: '2026-04-03', time: '10:00', linkedContact: 'Rafael Mendonça', description: 'Revisão de carteira trimestral e ajuste de alocação.', color: '#30CB7B' },
+  { id: '1', title: 'Reunião de assessoria', date: '2026-04-03', time: '10:00', linkedContact: 'Rafael Mendonça', description: 'Revisão de carteira trimestral e ajuste de alocação.', color: '#2563EB' },
   { id: '2', title: 'Webinar: Renda Variável 2026', date: '2026-04-10', time: '19:30', linkedContact: 'Todos os leads', description: 'Transmissão ao vivo sobre perspectivas do mercado acionário.', color: '#DAAF37' },
   { id: '3', title: 'Follow-up proposta CDB', date: '2026-04-15', time: '14:00', linkedContact: 'Camila Torres', description: 'Retorno sobre proposta CDB 120% CDI enviada na semana anterior.', color: '#818cf8' },
 ]
@@ -358,8 +358,8 @@ function NewEventModal({ onClose, onSave }: { onClose: () => void; onSave: (e: C
     defaultValues: { linkedContact: '' },
   })
 
-  const EVENT_COLORS = ['#30CB7B', '#DAAF37', '#818cf8', '#f87171', '#60a5fa']
-  const [selectedColor, setSelectedColor] = useState('#30CB7B')
+  const EVENT_COLORS = ['#2563EB', '#DAAF37', '#818cf8', '#f87171', '#60a5fa']
+  const [selectedColor, setSelectedColor] = useState('#2563EB')
 
   const onSubmit = (data: EventFormValues) => {
     onSave({

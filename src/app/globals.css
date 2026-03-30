@@ -6,7 +6,7 @@
 
 :root {
   --color-primary: #0A192F;
-  --color-accent: #30CB7B;
+  --color-accent: #2563EB;
   --color-gold: #DAAF37;
   --color-dark-card: #131B2B;
   --color-dark-border: #1E293B;
@@ -55,7 +55,7 @@ body {
 /* Accent utilities */
 @layer components {
   .btn-primary {
-    @apply bg-accent text-black font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-all duration-200 shadow-accent hover:shadow-accent-lg active:scale-95;
+    @apply bg-accent text-white font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-all duration-200 shadow-accent hover:shadow-accent-lg active:scale-95;
   }
 
   .btn-secondary {

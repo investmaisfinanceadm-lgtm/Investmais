@@ -17,17 +17,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                 <div className="relative">
                     {/* Logo Premium */}
                     <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-[20px] bg-accent flex items-center justify-center shadow-accent border border-white/20 transform hover:rotate-6 transition-transform duration-500">
-                            <span className="text-black font-black text-2xl tracking-tighter">I+</span>
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-white font-black text-3xl tracking-tighter leading-none">
-                                INVEST<span className="text-accent underline decoration-accent/30 decoration-4 underline-offset-4 ml-1">MAIS</span>
-                            </span>
-                            <span className="text-[10px] text-gray-500 font-bold tracking-[0.3em] uppercase mt-2">
-                                Estúdio de Conteúdo AI
-                            </span>
-                        </div>
+                        <img src="/logo.jpg" alt="InvestMais Finance" className="h-14 w-auto object-contain" />
                     </div>
                 </div>
 
@@ -36,7 +26,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                     <div className="space-y-8">
                         <h1 className="text-7xl font-black text-white leading-[1.05] tracking-tighter uppercase italic">
                             O Futuro do <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-emerald-400">
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-blue-400">
                                 Conteúdo Ativo.
                             </span>
                         </h1>
@@ -95,17 +85,12 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                 <div className="w-full max-w-md">
                     {/* Mobile logo */}
                     <div className="lg:hidden flex flex-col items-center gap-4 mb-16">
-                        <div className="w-16 h-16 rounded-[24px] bg-accent flex items-center justify-center shadow-accent border border-white/20">
-                            <span className="text-black font-black text-2xl uppercase">I+</span>
-                        </div>
-                        <span className="text-white font-black text-4xl tracking-tighter uppercase italic">
-                            INVEST<span className="text-accent">MAIS</span>
-                        </span>
+                        <img src="/logo.jpg" alt="InvestMais Finance" className="h-16 w-auto object-contain rounded-2xl" />
                     </div>
 
-                    <div className="bg-[#0A192F] border border-white/5 p-12 rounded-[48px] shadow-[0_0_100px_rgba(48,203,123,0.05)] relative overflow-hidden group">
+                    <div className="bg-[#0A192F] border border-white/5 p-12 rounded-[48px] shadow-[0_0_100px_rgba(30,92,214,0.05)] relative overflow-hidden group">
                         {/* Subtle accent border on top */}
-                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent to-emerald-400 opacity-40" />
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent to-blue-400 opacity-40" />
                         
                         {children}
                     </div>

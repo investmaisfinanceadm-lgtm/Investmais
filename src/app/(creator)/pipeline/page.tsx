@@ -148,7 +148,7 @@ const initialColumns: KanbanColumn[] = [
   {
     id: 'proposta',
     name: 'Proposta',
-    color: '#30CB7B',
+    color: '#2563EB',
     cards: [
       {
         id: 'c6',
@@ -256,7 +256,7 @@ const priorityConfig: Record<Priority, { label: string; color: string; dotClass:
   },
   baixa: {
     label: 'Baixa',
-    color: '#30CB7B',
+    color: '#2563EB',
     dotClass: 'bg-accent',
     textClass: 'text-accent',
     bgClass: 'bg-accent/10 border-accent/20 text-accent',
@@ -751,7 +751,7 @@ function BoardSelector({
 
 // ─── New Column Modal ──────────────────────────────────────────────────────────
 
-const COLUMN_COLORS = ['#3B82F6', '#30CB7B', '#A855F7', '#F59E0B', '#EF4444', '#EC4899', '#14B8A6']
+const COLUMN_COLORS = ['#2563EB', '#3B82F6', '#A855F7', '#F59E0B', '#EF4444', '#EC4899', '#14B8A6']
 
 function NewColumnModal({ onClose, onAdd }: { onClose: () => void; onAdd: (name: string, color: string) => void }) {
   const [name, setName] = useState('')

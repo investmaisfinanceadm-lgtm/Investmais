@@ -68,17 +68,7 @@ export function CreatorSidebar() {
             {/* Logo */}
             <div className="p-8 border-b border-white/5">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-gradient-accent flex items-center justify-center shadow-accent flex-shrink-0 border border-white/10">
-                        <span className="text-black font-black text-sm">I+</span>
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-white font-bold text-lg tracking-tighter leading-none">
-                            INVEST<span className="text-accent">MAIS</span>
-                        </span>
-                        <span className="text-[8px] text-accent font-semibold tracking-[0.2em] uppercase mt-1">
-                            Estúdio AI
-                        </span>
-                    </div>
+                    <img src="/logo.jpg" alt="InvestMais Finance" className="h-10 w-auto object-contain rounded-xl" />
                 </div>
             </div>
 
@@ -192,8 +182,8 @@ export function CreatorSidebar() {
             {/* Mobile Header */}
             <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-dark-card/80 backdrop-blur-2xl border-b border-white/5">
                 <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-accent flex items-center justify-center shadow-accent border border-white/10">
-                        <span className="text-black font-black text-sm">I+</span>
+                    <div className="w-9 h-9 flex-shrink-0">
+                        <img src="/logo.jpg" alt="InvestMais Finance" className="h-9 w-auto object-contain rounded-lg" />
                     </div>
                     <span className="text-white font-bold text-xl tracking-tighter">
                         INVEST<span className="text-accent">MAIS</span>

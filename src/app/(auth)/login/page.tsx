@@ -74,7 +74,7 @@ export default function LoginPage() {
         <div className="animate-fade-in space-y-12">
             <div className="text-center md:text-left space-y-4">
                 <div className="flex items-center gap-3 self-start md:self-auto justify-center md:justify-start">
-                     <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                     <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
                      <span className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em]">Canal Seguro Ativo</span>
                 </div>
                 <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic">Acesse o Estúdio</h2>
