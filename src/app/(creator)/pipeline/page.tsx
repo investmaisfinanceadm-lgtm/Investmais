@@ -365,9 +365,11 @@ function KanbanCardItem({
 function KanbanColumnComponent({
   column,
   onCardClick,
+  onAddCard,
 }: {
   column: KanbanColumn
   onCardClick: (card: KanbanCard) => void
+  onAddCard: () => void
 }) {
   const totalValue = column.cards.reduce((sum, c) => sum + c.value, 0)
 
@@ -414,7 +416,7 @@ function KanbanColumnComponent({
       </div>
 
       {/* Add card button */}
-      <button className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-white/10 text-gray-600 hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all duration-200 text-xs font-semibold">
+      <button onClick={onAddCard} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-white/10 text-gray-600 hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all duration-200 text-xs font-semibold">
         <Plus className="w-3.5 h-3.5" />
         Adicionar Card
       </button>
@@ -428,10 +430,12 @@ function CardDetailModal({
   card,
   columns,
   onClose,
+  onMove,
 }: {
   card: KanbanCard
   columns: KanbanColumn[]
   onClose: () => void
+  onMove: (cardId: string, targetColumnId: string) => void
 }) {
   const [comment, setComment] = useState('')
   const [comments, setComments] = useState<{ id: string; text: string; user: string; date: string }[]>([
@@ -540,7 +544,10 @@ function CardDetailModal({
               <MoveRight className="w-4 h-4 text-gray-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
             {moveTo !== card.columnId && (
-              <button className="mt-2 w-full btn-primary text-sm py-2.5 flex items-center justify-center gap-2">
+              <button
+                onClick={() => onMove(card.id, moveTo)}
+                className="mt-2 w-full btn-primary text-sm py-2.5 flex items-center justify-center gap-2"
+              >
                 <MoveRight className="w-4 h-4" />
                 Confirmar Movimentação
               </button>
@@ -740,13 +747,211 @@ function BoardSelector({
   )
 }
 
+// ─── New Column Modal ──────────────────────────────────────────────────────────
+
+const COLUMN_COLORS = ['#3B82F6', '#30CB7B', '#A855F7', '#F59E0B', '#EF4444', '#EC4899', '#14B8A6']
+
+function NewColumnModal({ onClose, onAdd }: { onClose: () => void; onAdd: (name: string, color: string) => void }) {
+  const [name, setName] = useState('')
+  const [color, setColor] = useState(COLUMN_COLORS[0])
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!name.trim()) return
+    onAdd(name.trim(), color)
+    onClose()
+  }
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="bg-dark-card border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-base font-black text-white uppercase tracking-wider">Nova Coluna</h3>
+            <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg border border-white/10 text-gray-500 hover:text-white transition-all">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="label">Nome da coluna</label>
+              <input
+                autoFocus
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="input-field"
+                placeholder="Ex: Em Negociação"
+              />
+            </div>
+            <div>
+              <label className="label">Cor</label>
+              <div className="flex gap-2 flex-wrap">
+                {COLUMN_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setColor(c)}
+                    className="w-8 h-8 rounded-full transition-all border-2"
+                    style={{
+                      backgroundColor: c,
+                      borderColor: color === c ? '#fff' : 'transparent',
+                      boxShadow: color === c ? `0 0 0 3px ${c}40` : 'none',
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={onClose} className="btn-secondary flex-1 text-sm py-2.5">Cancelar</button>
+              <button type="submit" disabled={!name.trim()} className="btn-primary flex-1 text-sm py-2.5 disabled:opacity-40">Criar Coluna</button>
+            </div>
+          </form>
+        </div>
+      </motion.div>
+    </>
+  )
+}
+
+// ─── New Card Modal ────────────────────────────────────────────────────────────
+
+function NewCardModal({
+  columns,
+  defaultColumnId,
+  onClose,
+  onAdd,
+}: {
+  columns: KanbanColumn[]
+  defaultColumnId: string
+  onClose: () => void
+  onAdd: (card: KanbanCard) => void
+}) {
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [value, setValue] = useState('')
+  const [dueDate, setDueDate] = useState('')
+  const [priority, setPriority] = useState<Priority>('media')
+  const [responsible, setResponsible] = useState('')
+  const [columnId, setColumnId] = useState(defaultColumnId)
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!title.trim()) return
+    const initials = responsible.trim()
+      ? responsible.trim().split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
+      : 'US'
+    onAdd({
+      id: String(Date.now()),
+      title: title.trim(),
+      description: description.trim(),
+      category: 'Novo',
+      categoryColor: 'blue',
+      priority,
+      responsible: { name: responsible.trim() || 'Sem responsável', initials, color: '#30CB7B' },
+      dueDate: dueDate || new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
+      value: parseFloat(value.replace(',', '.')) || 0,
+      columnId,
+    })
+    onClose()
+  }
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="bg-dark-card border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-base font-black text-white uppercase tracking-wider">Novo Card</h3>
+            <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg border border-white/10 text-gray-500 hover:text-white transition-all">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="label">Título *</label>
+              <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} className="input-field" placeholder="Nome da oportunidade" />
+            </div>
+            <div>
+              <label className="label">Descrição</label>
+              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="input-field resize-none" placeholder="Detalhes do card..." />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label">Valor (R$)</label>
+                <input value={value} onChange={(e) => setValue(e.target.value)} className="input-field" placeholder="0,00" />
+              </div>
+              <div>
+                <label className="label">Vencimento</label>
+                <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="input-field" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label">Prioridade</label>
+                <select value={priority} onChange={(e) => setPriority(e.target.value as Priority)} className="input-field">
+                  <option value="alta">Alta</option>
+                  <option value="media">Média</option>
+                  <option value="baixa">Baixa</option>
+                </select>
+              </div>
+              <div>
+                <label className="label">Coluna</label>
+                <select value={columnId} onChange={(e) => setColumnId(e.target.value)} className="input-field">
+                  {columns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="label">Responsável</label>
+              <input value={responsible} onChange={(e) => setResponsible(e.target.value)} className="input-field" placeholder="Nome do responsável" />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={onClose} className="btn-secondary flex-1 text-sm py-2.5">Cancelar</button>
+              <button type="submit" disabled={!title.trim()} className="btn-primary flex-1 text-sm py-2.5 disabled:opacity-40">Criar Card</button>
+            </div>
+          </form>
+        </div>
+      </motion.div>
+    </>
+  )
+}
+
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
 export default function PipelinePage() {
   const [selectedBoard, setSelectedBoard] = useState<BoardName>('Vendas')
-  const [columns] = useState<KanbanColumn[]>(initialColumns)
+  const [columns, setColumns] = useState<KanbanColumn[]>(initialColumns)
   const [selectedCard, setSelectedCard] = useState<KanbanCard | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isNewColumnOpen, setIsNewColumnOpen] = useState(false)
+  const [isNewCardOpen, setIsNewCardOpen] = useState(false)
+  const [activeColumnId, setActiveColumnId] = useState<string>('leads')
 
   function handleCardClick(card: KanbanCard) {
     setSelectedCard(card)
@@ -756,6 +961,39 @@ export default function PipelinePage() {
   function handleCloseModal() {
     setIsModalOpen(false)
     setTimeout(() => setSelectedCard(null), 300)
+  }
+
+  function handleAddColumn(name: string, color: string) {
+    const id = name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now()
+    setColumns((prev) => [...prev, { id, name, color, cards: [] }])
+  }
+
+  function handleAddCard(card: KanbanCard) {
+    setColumns((prev) =>
+      prev.map((col) =>
+        col.id === card.columnId ? { ...col, cards: [...col.cards, card] } : col
+      )
+    )
+  }
+
+  function handleMoveCard(cardId: string, targetColumnId: string) {
+    setColumns((prev) => {
+      const card = prev.flatMap((c) => c.cards).find((c) => c.id === cardId)
+      if (!card) return prev
+      const updated = { ...card, columnId: targetColumnId }
+      return prev.map((col) => ({
+        ...col,
+        cards: col.id === targetColumnId
+          ? [...col.cards.filter((c) => c.id !== cardId), updated]
+          : col.cards.filter((c) => c.id !== cardId),
+      }))
+    })
+    handleCloseModal()
+  }
+
+  function openNewCard(columnId: string) {
+    setActiveColumnId(columnId)
+    setIsNewCardOpen(true)
   }
 
   return (
@@ -778,7 +1016,7 @@ export default function PipelinePage() {
 
         <div className="flex flex-wrap items-center gap-3">
           <BoardSelector selected={selectedBoard} onChange={setSelectedBoard} />
-          <button className="btn-primary flex items-center gap-2 text-sm py-2.5 px-4">
+          <button onClick={() => setIsNewColumnOpen(true)} className="btn-primary flex items-center gap-2 text-sm py-2.5 px-4">
             <Plus className="w-4 h-4" />
             Nova Coluna
           </button>
@@ -800,12 +1038,13 @@ export default function PipelinePage() {
               key={col.id}
               column={col}
               onCardClick={handleCardClick}
+              onAddCard={() => openNewCard(col.id)}
             />
           ))}
 
           {/* Add column placeholder */}
           <div className="flex-shrink-0 w-72">
-            <button className="w-full h-full min-h-[180px] flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-white/10 text-gray-600 hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all duration-200 group">
+            <button onClick={() => setIsNewColumnOpen(true)} className="w-full h-full min-h-[180px] flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-white/10 text-gray-600 hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all duration-200 group">
               <div className="w-10 h-10 rounded-xl border-2 border-dashed border-current flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Plus className="w-5 h-5" />
               </div>
@@ -822,6 +1061,29 @@ export default function PipelinePage() {
             card={selectedCard}
             columns={columns}
             onClose={handleCloseModal}
+            onMove={handleMoveCard}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── New Column Modal ── */}
+      <AnimatePresence>
+        {isNewColumnOpen && (
+          <NewColumnModal
+            onClose={() => setIsNewColumnOpen(false)}
+            onAdd={handleAddColumn}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── New Card Modal ── */}
+      <AnimatePresence>
+        {isNewCardOpen && (
+          <NewCardModal
+            columns={columns}
+            defaultColumnId={activeColumnId}
+            onClose={() => setIsNewCardOpen(false)}
+            onAdd={handleAddCard}
           />
         )}
       </AnimatePresence>
