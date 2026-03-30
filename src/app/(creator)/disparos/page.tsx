@@ -3,8 +3,8 @@
 import { useState, useMemo } from 'react'
 import {
   Send, Mail, Calendar, Plus, X, ChevronLeft, ChevronRight,
-  CheckCircle2, Clock, XCircle, Eye, Users, BarChart3,
-  AlertCircle, Settings, Trash2, ExternalLink, RefreshCw,
+  CheckCircle2, Clock, XCircle, Eye, Users,
+  Settings, Trash2,
   Tag, ToggleLeft, ToggleRight, User
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -66,7 +66,10 @@ const dispatchSchema = z.object({
   subject: z.string().min(3, 'Assunto obrigatório'),
   body: z.string().min(10, 'Corpo do e-mail obrigatório'),
   segment: z.enum(['todos', 'leads', 'clientes', 'manual'] as const),
-  manualEmails: z.string().optional(),
+  manualEmails: z.string().optional().refine((val) => {
+    if (!val) return true
+    return val.split(',').every(e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim()))
+  }, { message: 'Um ou mais e-mails são inválidos' }),
   scheduleToggle: z.boolean(),
   scheduledDate: z.string().optional(),
   scheduledTime: z.string().optional(),
@@ -120,6 +123,74 @@ function ModalOverlay({ children, onClose }: { children: React.ReactNode; onClos
         {children}
       </motion.div>
     </motion.div>
+  )
+}
+
+// ─────────────────────────────────────────────
+// Dispatch Detail Modal
+// ─────────────────────────────────────────────
+function DispatchDetailModal({ dispatch, onClose }: { dispatch: Dispatch; onClose: () => void }) {
+  const { label, className } = {
+    enviado: { label: 'Enviado', className: 'badge-accent' },
+    agendado: { label: 'Agendado', className: 'badge-gold' },
+    falhou: { label: 'Falhou', className: 'badge-red' },
+  }[dispatch.status]
+
+  return (
+    <ModalOverlay onClose={onClose}>
+      <div className="p-6 border-b border-dark-border flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-black text-white uppercase tracking-wider">Detalhe do Disparo</h2>
+          <p className="text-xs text-gray-400 mt-0.5 truncate max-w-xs">{dispatch.subject}</p>
+        </div>
+        <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors">
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+      <div className="p-6 space-y-5">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-dark-muted rounded-xl p-4 border border-white/5">
+            <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Status</p>
+            <span className={`badge ${className}`}>{label}</span>
+          </div>
+          <div className="bg-dark-muted rounded-xl p-4 border border-white/5">
+            <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Destinatários</p>
+            <p className="text-base font-black text-white">{dispatch.recipientsCount.toLocaleString('pt-BR')}</p>
+          </div>
+          <div className="bg-dark-muted rounded-xl p-4 border border-white/5">
+            <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">
+              {dispatch.status === 'agendado' ? 'Agendado para' : 'Enviado em'}
+            </p>
+            <p className="text-sm font-semibold text-white">
+              {format(parseISO(dispatch.sentAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+            </p>
+          </div>
+          <div className="bg-dark-muted rounded-xl p-4 border border-white/5">
+            <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Taxa de Abertura</p>
+            <p className={`text-base font-black ${dispatch.openRate > 0 ? 'text-accent' : 'text-gray-600'}`}>
+              {dispatch.openRate > 0 ? `${dispatch.openRate}%` : '—'}
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-dark-muted rounded-xl p-4 border border-white/5">
+          <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2">Assunto</p>
+          <p className="text-sm text-white font-semibold">{dispatch.subject}</p>
+        </div>
+
+        {dispatch.status === 'falhou' && (
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-red-500/5 border border-red-500/20">
+            <XCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-red-400">Falha no envio</p>
+              <p className="text-xs text-gray-500 mt-0.5">Verifique a conexão com o Google e tente novamente.</p>
+            </div>
+          </div>
+        )}
+
+        <button onClick={onClose} className="btn-secondary w-full">Fechar</button>
+      </div>
+    </ModalOverlay>
   )
 }
 
@@ -447,6 +518,7 @@ export default function DisparosPage() {
   const [events, setEvents] = useState<CalendarEvent[]>(MOCK_EVENTS)
   const [showDispatchModal, setShowDispatchModal] = useState(false)
   const [showEventModal, setShowEventModal] = useState(false)
+  const [selectedDispatch, setSelectedDispatch] = useState<Dispatch | null>(null)
 
   // Stats derived from dispatches
   const stats = useMemo(() => {
@@ -642,7 +714,11 @@ export default function DisparosPage() {
                             </td>
                             <td className="table-cell text-center">
                               <div className="flex items-center justify-center gap-1">
-                                <button className="p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-white transition-colors">
+                                <button
+                                  onClick={() => setSelectedDispatch(d)}
+                                  className="p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-white transition-colors"
+                                  title="Ver detalhes"
+                                >
                                   <Eye className="w-3.5 h-3.5" />
                                 </button>
                                 <button onClick={() => setDispatches(prev => prev.filter(x => x.id !== d.id))}
@@ -734,6 +810,12 @@ export default function DisparosPage() {
           <NewEventModal
             onClose={() => setShowEventModal(false)}
             onSave={(e) => setEvents(prev => [e, ...prev])}
+          />
+        )}
+        {selectedDispatch && (
+          <DispatchDetailModal
+            dispatch={selectedDispatch}
+            onClose={() => setSelectedDispatch(null)}
           />
         )}
       </AnimatePresence>
