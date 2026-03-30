@@ -13,11 +13,11 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             </div>
 
             {/* Left panel - Branding (Digital Asset Vibe) */}
-            <div className="hidden lg:flex lg:w-3/5 flex-col justify-between p-20 relative z-10">
+            <div className="hidden lg:flex lg:w-3/5 flex-col justify-between pt-10 px-20 pb-20 relative z-10">
                 <div className="relative">
                     {/* Logo Premium */}
                     <div className="flex items-center gap-4">
-                        <img src="/logo.jpg" alt="InvestMais Finance" className="h-14 w-auto object-contain" />
+                        <img src="/logo.jpg" alt="InvestMais Finance" className="h-20 w-auto object-contain" />
                     </div>
                 </div>
 
