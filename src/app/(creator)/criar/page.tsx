@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { 
-    ChevronRight, 
-    Upload, 
-    Video, 
-    Plus, 
-    CheckCircle, 
-    Instagram, 
+    ChevronRight,
+    Upload,
+    Video,
+    Plus,
+    CheckCircle,
+    Instagram,
     Play,
     Zap,
     Layout,
@@ -19,7 +19,8 @@ import {
     Smartphone,
     Phone,
     Type,
-    Wand2
+    Wand2,
+    Activity
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
