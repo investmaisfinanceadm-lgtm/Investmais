@@ -28,7 +28,7 @@ import { ptBR } from 'date-fns/locale'
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Priority = 'alta' | 'media' | 'baixa'
-type BoardName = 'Vendas' | 'Projetos' | 'Suporte'
+type BoardName = string
 
 interface KanbanCard {
   id: string
@@ -61,7 +61,7 @@ interface HistoryEntry {
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
-const BOARDS: BoardName[] = ['Vendas', 'Projetos', 'Suporte']
+const DEFAULT_BOARDS: BoardName[] = ['Vendas', 'Projetos', 'Suporte']
 
 const MOCK_HISTORY: HistoryEntry[] = [
   { id: '1', action: 'Criou o card', user: 'Lucas Mendes', date: '2026-03-10T09:15:00' },
@@ -699,9 +699,11 @@ function StatsBar({ columns }: { columns: KanbanColumn[] }) {
 // ─── Board Selector ────────────────────────────────────────────────────────────
 
 function BoardSelector({
+  boards,
   selected,
   onChange,
 }: {
+  boards: BoardName[]
   selected: BoardName
   onChange: (b: BoardName) => void
 }) {
@@ -724,9 +726,9 @@ function BoardSelector({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 mt-1 w-44 bg-dark-card border border-white/10 rounded-xl shadow-card-hover z-20 overflow-hidden"
+            className="absolute top-full left-0 mt-1 w-48 bg-dark-card border border-white/10 rounded-xl shadow-card-hover z-20 overflow-hidden"
           >
-            {BOARDS.map((b) => (
+            {boards.map((b) => (
               <button
                 key={b}
                 onClick={() => { onChange(b); setOpen(false) }}
@@ -942,16 +944,92 @@ function NewCardModal({
   )
 }
 
+// ─── New Board Modal ───────────────────────────────────────────────────────────
+
+function NewBoardModal({ onClose, onAdd }: { onClose: () => void; onAdd: (name: string) => void }) {
+  const [name, setName] = useState('')
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!name.trim()) return
+    onAdd(name.trim())
+    onClose()
+  }
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="bg-dark-card border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-base font-black text-white uppercase tracking-wider">Novo Board</h3>
+            <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg border border-white/10 text-gray-500 hover:text-white transition-all">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="label">Nome do board</label>
+              <input
+                autoFocus
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="input-field"
+                placeholder="Ex: Marketing, Parcerias..."
+              />
+            </div>
+            <p className="text-xs text-gray-500">O novo board começará vazio. Adicione colunas depois.</p>
+            <div className="flex gap-3 pt-1">
+              <button type="button" onClick={onClose} className="btn-secondary flex-1 text-sm py-2.5">Cancelar</button>
+              <button type="submit" disabled={!name.trim()} className="btn-primary flex-1 text-sm py-2.5 disabled:opacity-40">Criar Board</button>
+            </div>
+          </form>
+        </div>
+      </motion.div>
+    </>
+  )
+}
+
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
+const initialBoardColumns: Record<string, KanbanColumn[]> = {
+  'Vendas': initialColumns,
+  'Projetos': [],
+  'Suporte': [],
+}
+
 export default function PipelinePage() {
+  const [boards, setBoards] = useState<BoardName[]>(DEFAULT_BOARDS)
   const [selectedBoard, setSelectedBoard] = useState<BoardName>('Vendas')
-  const [columns, setColumns] = useState<KanbanColumn[]>(initialColumns)
+  const [boardColumns, setBoardColumns] = useState<Record<string, KanbanColumn[]>>(initialBoardColumns)
   const [selectedCard, setSelectedCard] = useState<KanbanCard | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isNewColumnOpen, setIsNewColumnOpen] = useState(false)
   const [isNewCardOpen, setIsNewCardOpen] = useState(false)
-  const [activeColumnId, setActiveColumnId] = useState<string>('leads')
+  const [isNewBoardOpen, setIsNewBoardOpen] = useState(false)
+  const [activeColumnId, setActiveColumnId] = useState<string>('')
+
+  const columns = boardColumns[selectedBoard] ?? []
+
+  function setColumns(updater: (prev: KanbanColumn[]) => KanbanColumn[]) {
+    setBoardColumns((prev) => ({
+      ...prev,
+      [selectedBoard]: updater(prev[selectedBoard] ?? []),
+    }))
+  }
 
   function handleCardClick(card: KanbanCard) {
     setSelectedCard(card)
@@ -961,6 +1039,12 @@ export default function PipelinePage() {
   function handleCloseModal() {
     setIsModalOpen(false)
     setTimeout(() => setSelectedCard(null), 300)
+  }
+
+  function handleAddBoard(name: string) {
+    setBoards((prev) => [...prev, name])
+    setBoardColumns((prev) => ({ ...prev, [name]: [] }))
+    setSelectedBoard(name)
   }
 
   function handleAddColumn(name: string, color: string) {
@@ -1015,12 +1099,12 @@ export default function PipelinePage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <BoardSelector selected={selectedBoard} onChange={setSelectedBoard} />
+          <BoardSelector boards={boards} selected={selectedBoard} onChange={setSelectedBoard} />
           <button onClick={() => setIsNewColumnOpen(true)} className="btn-primary flex items-center gap-2 text-sm py-2.5 px-4">
             <Plus className="w-4 h-4" />
             Nova Coluna
           </button>
-          <button className="btn-secondary flex items-center gap-2 text-sm py-2.5 px-4">
+          <button onClick={() => setIsNewBoardOpen(true)} className="btn-secondary flex items-center gap-2 text-sm py-2.5 px-4">
             <Plus className="w-4 h-4" />
             Novo Board
           </button>
@@ -1084,6 +1168,16 @@ export default function PipelinePage() {
             defaultColumnId={activeColumnId}
             onClose={() => setIsNewCardOpen(false)}
             onAdd={handleAddCard}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── New Board Modal ── */}
+      <AnimatePresence>
+        {isNewBoardOpen && (
+          <NewBoardModal
+            onClose={() => setIsNewBoardOpen(false)}
+            onAdd={handleAddBoard}
           />
         )}
       </AnimatePresence>
