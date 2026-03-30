@@ -46,7 +46,7 @@ function maskCNPJ(value: string): string {
 // ─────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────
-type SituacaoCadastral = 'ATIVA' | 'INAATIVA' | 'SUSPENSA'
+type SituacaoCadastral = 'ATIVA' | 'INATIVA' | 'SUSPENSA'
 
 interface Socio {
   nome: string
@@ -127,7 +127,7 @@ function SituacaoBadge({ situacao }: { situacao: SituacaoCadastral }) {
       className: 'badge-accent',
       icon: <CheckCircle2 className="w-3.5 h-3.5" />,
     },
-    INAATIVA: {
+    INATIVA: {
       label: 'INATIVA',
       className: 'badge-red',
       icon: <XCircle className="w-3.5 h-3.5" />,

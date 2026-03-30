@@ -79,6 +79,7 @@ const config: Config = {
                 "slide-up": "slideUp 0.4s ease-out",
                 "pulse-gold": "pulseGold 2s ease-in-out infinite",
                 shimmer: "shimmer 2s linear infinite",
+                "scale-in": "scaleIn 0.25s ease-out",
             },
             keyframes: {
                 fadeIn: {
@@ -96,6 +97,10 @@ const config: Config = {
                 shimmer: {
                     "0%": { backgroundPosition: "-200% 0" },
                     "100%": { backgroundPosition: "200% 0" },
+                },
+                scaleIn: {
+                    "0%": { opacity: "0", transform: "scale(0.95)" },
+                    "100%": { opacity: "1", transform: "scale(1)" },
                 },
             },
         },

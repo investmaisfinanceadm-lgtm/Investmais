@@ -673,7 +673,7 @@ export default function CriarPage() {
                                 </div>
                                 <div className="space-y-3">
                                     <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Escala Temporal</p>
-                                    <p className="text-white font-black uppercase text-base tracking-tight font-italic">{step2.duracao} Segundos</p>
+                                    <p className="text-white font-black uppercase text-base tracking-tight italic">{step2.duracao} Segundos</p>
                                 </div>
                             </div>
 

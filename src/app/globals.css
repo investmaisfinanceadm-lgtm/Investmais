@@ -189,3 +189,28 @@ body {
 .notification-dot {
   @apply absolute -top-1 -right-1 w-2 h-2 bg-gold rounded-full;
 }
+
+/* Custom scrollbar (thin, hidden on non-hover) */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 4px;
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-dark-border);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+
+/* Hide scrollbar visually but keep scroll functionality */
+.no-view::-webkit-scrollbar {
+  display: none;
+}
+.no-view {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
