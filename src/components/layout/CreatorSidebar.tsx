@@ -14,6 +14,10 @@ import {
     X,
     Bell,
     ChevronRight,
+    Kanban,
+    Users,
+    Send,
+    Building2,
 } from 'lucide-react'
 import { useSession, signOut } from 'next-auth/react'
 import { cn, getInitials } from '@/lib/utils'
@@ -24,6 +28,10 @@ const navItems = [
     { href: '/criar', label: 'Criar Vídeo', icon: Video, highlight: true },
     { href: '/biblioteca', label: 'Biblioteca', icon: Library },
     { href: '/agenda', label: 'Agenda', icon: Calendar },
+    { href: '/pipeline', label: 'Pipeline', icon: Kanban },
+    { href: '/crm', label: 'CRM', icon: Users },
+    { href: '/disparos', label: 'Disparos', icon: Send },
+    { href: '/cnpj', label: 'Consulta CNPJ', icon: Building2 },
     { href: '/configuracoes', label: 'Configurações', icon: Settings },
 ]
 

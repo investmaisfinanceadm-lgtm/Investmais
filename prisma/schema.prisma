@@ -20,11 +20,14 @@ model Profile {
   last_activity DateTime?
   created_at    DateTime  @default(now())
 
-  videos       Video[]
-  pastas       Pasta[]
-  integracoes  Integracao[]
-  notificacoes Notificacao[]
-  reset_tokens PasswordResetToken[]
+  videos           Video[]
+  pastas           Pasta[]
+  integracoes      Integracao[]
+  notificacoes     Notificacao[]
+  reset_tokens     PasswordResetToken[]
+  pipeline_boards  PipelineBoard[]
+  contatos         Contato[]
+  consultas_cnpj   ConsultaCNPJ[]
 
   @@map("profiles")
 }
@@ -119,4 +122,94 @@ model PasswordResetToken {
   user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("password_reset_tokens")
+}
+
+model PipelineBoard {
+  id         String           @id @default(uuid())
+  user_id    String
+  nome       String
+  descricao  String?
+  created_at DateTime         @default(now())
+  user       Profile          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  colunas    PipelineColuna[]
+
+  @@map("pipeline_boards")
+}
+
+model PipelineColuna {
+  id         String        @id @default(uuid())
+  board_id   String
+  nome       String
+  ordem      Int           @default(0)
+  cor        String        @default("#30CB7B")
+  created_at DateTime      @default(now())
+  board      PipelineBoard @relation(fields: [board_id], references: [id], onDelete: Cascade)
+  cards      PipelineCard[]
+
+  @@map("pipeline_colunas")
+}
+
+model PipelineCard {
+  id            String         @id @default(uuid())
+  coluna_id     String
+  titulo        String
+  descricao     String?
+  responsavel   String?
+  valor         Float?
+  vencimento    DateTime?
+  prioridade    String         @default("media")
+  categoria     String?
+  ordem         Int            @default(0)
+  historico     Json?
+  created_at    DateTime       @default(now())
+  coluna        PipelineColuna @relation(fields: [coluna_id], references: [id], onDelete: Cascade)
+
+  @@map("pipeline_cards")
+}
+
+model Contato {
+  id              String        @id @default(uuid())
+  user_id         String
+  nome            String
+  email           String?
+  telefone        String?
+  empresa         String?
+  cargo           String?
+  cnpj            String?
+  canal_origem    String?
+  status_funil    String        @default("lead")
+  tags            String[]
+  notas           String?
+  avatar_url      String?
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+  user            Profile       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  atividades      AtividadeCRM[]
+
+  @@map("contatos")
+}
+
+model AtividadeCRM {
+  id          String   @id @default(uuid())
+  contato_id  String
+  tipo        String
+  descricao   String
+  data        DateTime @default(now())
+  contato     Contato  @relation(fields: [contato_id], references: [id], onDelete: Cascade)
+
+  @@map("atividades_crm")
+}
+
+model ConsultaCNPJ {
+  id              String   @id @default(uuid())
+  user_id         String
+  cnpj            String
+  razao_social    String?
+  nome_fantasia   String?
+  situacao        String?
+  dados           Json?
+  created_at      DateTime @default(now())
+  user            Profile  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("consultas_cnpj")
 }

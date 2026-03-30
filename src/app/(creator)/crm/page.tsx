@@ -1,0 +1,1321 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { motion, AnimatePresence } from 'framer-motion'
+import { format, formatDistanceToNow } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import {
+  Users,
+  Upload,
+  Plus,
+  Search,
+  LayoutList,
+  LayoutGrid,
+  Phone,
+  Mail,
+  MessageSquare,
+  Calendar,
+  FileText,
+  Eye,
+  Pencil,
+  Trash2,
+  X,
+  Building2,
+  Tag,
+  ChevronRight,
+  UserCheck,
+  TrendingUp,
+  Activity,
+  Clock,
+  Instagram,
+  Globe,
+  Linkedin,
+  Briefcase,
+  CheckCircle2,
+  Circle,
+  ArrowRight,
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type FunilStatus = 'lead' | 'qualificado' | 'proposta' | 'cliente' | 'inativo'
+type Canal = 'Instagram' | 'Site' | 'Indicação' | 'LinkedIn' | 'WhatsApp'
+type ActivityType = 'phone' | 'email' | 'message' | 'meeting' | 'note'
+type ViewMode = 'list' | 'grid'
+type FilterTab = 'todos' | 'leads' | 'clientes' | 'inativos'
+type DetailTab = 'visao-geral' | 'atividades' | 'cnpj'
+
+interface ContactActivity {
+  id: string
+  type: ActivityType
+  description: string
+  date: Date
+}
+
+interface Contact {
+  id: string
+  nome: string
+  empresa: string
+  email: string
+  telefone: string
+  cargo: string
+  canal: Canal
+  status: FunilStatus
+  tags: string[]
+  cnpj?: string
+  notas: string
+  createdAt: Date
+  lastActivity: Date
+  activities: ContactActivity[]
+}
+
+// ─── Mock Data ────────────────────────────────────────────────────────────────
+
+const MOCK_CONTACTS: Contact[] = [
+  {
+    id: '1',
+    nome: 'Rafael Mendonça',
+    empresa: 'Vortex Capital',
+    email: 'rafael.mendonca@vortexcapital.com.br',
+    telefone: '(11) 99182-4455',
+    cargo: 'Diretor de Investimentos',
+    canal: 'LinkedIn',
+    status: 'cliente',
+    tags: ['VIP', 'Fundos', 'B2B'],
+    cnpj: '12.345.678/0001-90',
+    notas: 'Cliente premium. Prefere contato por WhatsApp após as 18h. Investidor ativo em FIIs.',
+    createdAt: new Date('2024-08-15'),
+    lastActivity: new Date('2026-03-20'),
+    activities: [
+      { id: 'a1', type: 'phone', description: 'Ligação para discutir carteira Q1 2026', date: new Date('2026-03-20') },
+      { id: 'a2', type: 'meeting', description: 'Reunião presencial - Escritório SP', date: new Date('2026-02-10') },
+      { id: 'a3', type: 'email', description: 'Envio de relatório mensal de performance', date: new Date('2026-01-05') },
+    ],
+  },
+  {
+    id: '2',
+    nome: 'Camila Souza',
+    empresa: 'Nexum Consultoria',
+    email: 'camila@nexumconsultoria.com.br',
+    telefone: '(21) 98765-3322',
+    cargo: 'Sócia-Fundadora',
+    canal: 'Indicação',
+    status: 'qualificado',
+    tags: ['Consultoria', 'Renda Fixa'],
+    notas: 'Indicada pelo Rafael Mendonça. Grande interesse em renda fixa e CDBs pós-fixados.',
+    createdAt: new Date('2025-11-20'),
+    lastActivity: new Date('2026-03-25'),
+    activities: [
+      { id: 'b1', type: 'message', description: 'WhatsApp: enviou dúvidas sobre CDB IPCA+', date: new Date('2026-03-25') },
+      { id: 'b2', type: 'email', description: 'Proposta de plano Investmais Pro enviada', date: new Date('2026-03-10') },
+    ],
+  },
+  {
+    id: '3',
+    nome: 'Bruno Almeida',
+    empresa: 'AlmaTech Soluções',
+    email: 'bruno.almeida@almatech.io',
+    telefone: '(31) 97654-1100',
+    cargo: 'CEO',
+    canal: 'Instagram',
+    status: 'lead',
+    tags: ['Tech', 'Startups'],
+    notas: 'Chegou via post do Instagram sobre Day Trade. Demonstrou interesse inicial.',
+    createdAt: new Date('2026-03-01'),
+    lastActivity: new Date('2026-03-28'),
+    activities: [
+      { id: 'c1', type: 'note', description: 'Comentou no post: "Quero saber mais"', date: new Date('2026-03-01') },
+      { id: 'c2', type: 'message', description: 'DM enviada com material de boas-vindas', date: new Date('2026-03-02') },
+    ],
+  },
+  {
+    id: '4',
+    nome: 'Juliana Ferreira',
+    empresa: 'Grupo Ferreira Holding',
+    email: 'juliana.ferreira@gfholding.com.br',
+    telefone: '(41) 99911-8877',
+    cargo: 'CFO',
+    canal: 'Site',
+    status: 'proposta',
+    tags: ['Holding', 'Alto Valor', 'Fundos'],
+    cnpj: '98.765.432/0001-11',
+    notas: 'Preencheu formulário no site. Gestão de patrimônio familiar. Budget acima de R$ 500k.',
+    createdAt: new Date('2025-12-10'),
+    lastActivity: new Date('2026-03-15'),
+    activities: [
+      { id: 'd1', type: 'meeting', description: 'Call de qualificação - 45 min', date: new Date('2026-01-20') },
+      { id: 'd2', type: 'email', description: 'Proposta personalizada enviada - R$ 12.000/ano', date: new Date('2026-03-01') },
+      { id: 'd3', type: 'phone', description: 'Follow-up: aguardando aprovação do conselho', date: new Date('2026-03-15') },
+    ],
+  },
+  {
+    id: '5',
+    nome: 'Thiago Nascimento',
+    empresa: 'Freelancer',
+    email: 'thiago.n@gmail.com',
+    telefone: '(85) 98833-2255',
+    cargo: 'Desenvolvedor Fullstack',
+    canal: 'Instagram',
+    status: 'inativo',
+    tags: ['Individual', 'Pequeno Investidor'],
+    notas: 'Cancelou assinatura em jan/26. Motivo: relocação para Portugal.',
+    createdAt: new Date('2024-06-01'),
+    lastActivity: new Date('2026-01-15'),
+    activities: [
+      { id: 'e1', type: 'email', description: 'Email de churn: confirmação de cancelamento', date: new Date('2026-01-15') },
+      { id: 'e2', type: 'note', description: 'Motivo: mudança internacional', date: new Date('2026-01-16') },
+    ],
+  },
+  {
+    id: '6',
+    nome: 'Fernanda Lima',
+    empresa: 'Lima & Associados Advocacia',
+    email: 'fernanda@limaadvocacia.adv.br',
+    telefone: '(11) 98800-6677',
+    cargo: 'Advogada Sócia',
+    canal: 'Indicação',
+    status: 'cliente',
+    tags: ['Jurídico', 'Renda Fixa', 'Previdência'],
+    cnpj: '45.678.901/0001-23',
+    notas: 'Muito organizada. Prefere relatórios detalhados por email. Foca em previdência privada.',
+    createdAt: new Date('2024-10-05'),
+    lastActivity: new Date('2026-03-22'),
+    activities: [
+      { id: 'f1', type: 'email', description: 'Relatório trimestral Q4 2025 enviado', date: new Date('2026-01-10') },
+      { id: 'f2', type: 'meeting', description: 'Revisão anual de carteira - Google Meet', date: new Date('2026-02-28') },
+      { id: 'f3', type: 'note', description: 'Solicitou análise de PGBL vs VGBL', date: new Date('2026-03-22') },
+    ],
+  },
+  {
+    id: '7',
+    nome: 'Rodrigo Carvalho',
+    empresa: 'Carvalho Agro Negócios',
+    email: 'rodrigo@carvalhoad.agr.br',
+    telefone: '(67) 99777-4433',
+    cargo: 'Proprietário',
+    canal: 'WhatsApp',
+    status: 'qualificado',
+    tags: ['Agronegócio', 'CRA', 'Alto Valor'],
+    notas: 'Contato via grupo de agro. Interesse em CRAs e fundos de agro. Ticket médio estimado R$ 200k.',
+    createdAt: new Date('2026-01-20'),
+    lastActivity: new Date('2026-03-27'),
+    activities: [
+      { id: 'g1', type: 'message', description: 'WhatsApp: primeiro contato no grupo', date: new Date('2026-01-20') },
+      { id: 'g2', type: 'phone', description: 'Ligação de 20 min: apresentação da plataforma', date: new Date('2026-02-05') },
+      { id: 'g3', type: 'email', description: 'Material sobre CRAs disponíveis enviado', date: new Date('2026-03-10') },
+    ],
+  },
+  {
+    id: '8',
+    nome: 'Patricia Moura',
+    empresa: 'Editora Moura Cultural',
+    email: 'patricia.moura@editoramoura.com.br',
+    telefone: '(19) 97722-9988',
+    cargo: 'Diretora Executiva',
+    canal: 'LinkedIn',
+    status: 'lead',
+    tags: ['Cultura', 'PME'],
+    notas: 'Conectou via LinkedIn após artigo sobre investimentos para PMEs. Ainda no estágio inicial.',
+    createdAt: new Date('2026-02-14'),
+    lastActivity: new Date('2026-02-20'),
+    activities: [
+      { id: 'h1', type: 'note', description: 'Conexão aceita no LinkedIn', date: new Date('2026-02-14') },
+      { id: 'h2', type: 'message', description: 'InMail enviado com link para demo gratuita', date: new Date('2026-02-20') },
+    ],
+  },
+  {
+    id: '9',
+    nome: 'Lucas Teixeira',
+    empresa: 'Teixeira Imóveis',
+    email: 'lucas@teixeiraimoveis.com.br',
+    telefone: '(51) 98811-3344',
+    cargo: 'Corretor Senior',
+    canal: 'Site',
+    status: 'cliente',
+    tags: ['Imóveis', 'FII', 'Renda Passiva'],
+    cnpj: '56.789.012/0001-34',
+    notas: 'Especialista em FIIs. Usa a plataforma para acompanhar carteira de clientes dele.',
+    createdAt: new Date('2024-07-22'),
+    lastActivity: new Date('2026-03-29'),
+    activities: [
+      { id: 'i1', type: 'email', description: 'Renovação anual processada automaticamente', date: new Date('2026-01-22') },
+      { id: 'i2', type: 'phone', description: 'Solicitou feature de comparativo entre FIIs', date: new Date('2026-03-29') },
+    ],
+  },
+  {
+    id: '10',
+    nome: 'Ana Clara Rocha',
+    empresa: 'Rocha & Partners',
+    email: 'anaclara@rochap.com.br',
+    telefone: '(47) 99933-7766',
+    cargo: 'Gestora de Patrimônio',
+    canal: 'Indicação',
+    status: 'proposta',
+    tags: ['Wealth Management', 'Multi-Family Office'],
+    cnpj: '67.890.123/0001-45',
+    notas: 'Indicada pela Fernanda Lima. Gerencia patrimônio de 12 famílias. Potencial B2B muito alto.',
+    createdAt: new Date('2026-02-28'),
+    lastActivity: new Date('2026-03-26'),
+    activities: [
+      { id: 'j1', type: 'meeting', description: 'Reunião de apresentação com parceira indicadora', date: new Date('2026-03-01') },
+      { id: 'j2', type: 'email', description: 'Proposta white-label enviada', date: new Date('2026-03-15') },
+      { id: 'j3', type: 'phone', description: 'Negociação de condições especiais B2B', date: new Date('2026-03-26') },
+    ],
+  },
+]
+
+// ─── Helper Functions ─────────────────────────────────────────────────────────
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+}
+
+const AVATAR_COLORS = [
+  'bg-accent/20 text-accent',
+  'bg-blue-500/20 text-blue-400',
+  'bg-purple-500/20 text-purple-400',
+  'bg-amber-500/20 text-amber-400',
+  'bg-rose-500/20 text-rose-400',
+  'bg-cyan-500/20 text-cyan-400',
+  'bg-orange-500/20 text-orange-400',
+  'bg-indigo-500/20 text-indigo-400',
+]
+
+function getAvatarColor(id: string): string {
+  const index = parseInt(id, 10) % AVATAR_COLORS.length
+  return AVATAR_COLORS[index] ?? AVATAR_COLORS[0]
+}
+
+function getStatusConfig(status: FunilStatus) {
+  switch (status) {
+    case 'lead':
+      return { label: 'Lead', classes: 'bg-gray-500/10 text-gray-400 border border-gray-500/20' }
+    case 'qualificado':
+      return { label: 'Qualificado', classes: 'bg-blue-500/10 text-blue-400 border border-blue-500/20' }
+    case 'proposta':
+      return { label: 'Proposta', classes: 'bg-amber-500/10 text-amber-400 border border-amber-500/20' }
+    case 'cliente':
+      return { label: 'Cliente', classes: 'bg-accent/10 text-accent border border-accent/20' }
+    case 'inativo':
+      return { label: 'Inativo', classes: 'bg-red-500/10 text-red-400 border border-red-500/20' }
+  }
+}
+
+function getCanalIcon(canal: Canal) {
+  switch (canal) {
+    case 'Instagram': return <Instagram className="w-3 h-3" />
+    case 'LinkedIn': return <Linkedin className="w-3 h-3" />
+    case 'Site': return <Globe className="w-3 h-3" />
+    case 'WhatsApp': return <MessageSquare className="w-3 h-3" />
+    case 'Indicação': return <UserCheck className="w-3 h-3" />
+  }
+}
+
+function getActivityIcon(type: ActivityType) {
+  switch (type) {
+    case 'phone': return <Phone className="w-4 h-4" />
+    case 'email': return <Mail className="w-4 h-4" />
+    case 'message': return <MessageSquare className="w-4 h-4" />
+    case 'meeting': return <Calendar className="w-4 h-4" />
+    case 'note': return <FileText className="w-4 h-4" />
+  }
+}
+
+function getActivityColor(type: ActivityType) {
+  switch (type) {
+    case 'phone': return 'bg-accent/10 text-accent border-accent/20'
+    case 'email': return 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+    case 'message': return 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+    case 'meeting': return 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+    case 'note': return 'bg-gray-500/10 text-gray-400 border-gray-500/20'
+  }
+}
+
+const FUNIL_STAGES: { key: FunilStatus; label: string }[] = [
+  { key: 'lead', label: 'Lead' },
+  { key: 'qualificado', label: 'Qualificado' },
+  { key: 'proposta', label: 'Proposta' },
+  { key: 'cliente', label: 'Cliente' },
+]
+
+// ─── Zod Schema ───────────────────────────────────────────────────────────────
+
+const addContactSchema = z.object({
+  nome: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
+  email: z.string().email('Email inválido'),
+  telefone: z.string().min(10, 'Telefone inválido'),
+  empresa: z.string().min(2, 'Empresa deve ter pelo menos 2 caracteres'),
+  cargo: z.string().min(2, 'Cargo deve ter pelo menos 2 caracteres'),
+  canal: z.enum(['Instagram', 'Site', 'Indicação', 'LinkedIn', 'WhatsApp']),
+  tags: z.string().optional(),
+  notas: z.string().optional(),
+})
+
+type AddContactFormData = z.infer<typeof addContactSchema>
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function MetricCard({
+  icon,
+  iconColor,
+  iconBg,
+  label,
+  value,
+  sub,
+  delay = 0,
+}: {
+  icon: React.ReactNode
+  iconColor: string
+  iconBg: string
+  label: string
+  value: string | number
+  sub?: string
+  delay?: number
+}) {
+  return (
+    <div
+      className="card-hover group border-white/5 bg-white/[0.02] p-8 rounded-[32px] relative overflow-hidden"
+      style={{ animationDelay: `${delay}s` }}
+    >
+      <div className="flex items-center justify-between mb-6">
+        <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center border group-hover:scale-110 transition-transform shadow-lg', iconBg)}>
+          <span className={iconColor}>{icon}</span>
+        </div>
+      </div>
+      <div>
+        <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">{label}</p>
+        <p className="text-3xl font-black text-white leading-none mb-2">{value}</p>
+        {sub && <p className="text-[10px] text-gray-600 font-semibold uppercase tracking-widest">{sub}</p>}
+      </div>
+    </div>
+  )
+}
+
+function ContactAvatar({ contact, size = 'md' }: { contact: Contact; size?: 'sm' | 'md' | 'lg' }) {
+  const sizeClasses = { sm: 'w-8 h-8 text-xs', md: 'w-10 h-10 text-sm', lg: 'w-16 h-16 text-xl' }
+  return (
+    <div className={cn('rounded-full flex items-center justify-center font-black shrink-0', sizeClasses[size], getAvatarColor(contact.id))}>
+      {getInitials(contact.nome)}
+    </div>
+  )
+}
+
+// ─── Add Contact Modal ────────────────────────────────────────────────────────
+
+function AddContactModal({ onClose, onAdd }: { onClose: () => void; onAdd: (contact: Contact) => void }) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<AddContactFormData>({ resolver: zodResolver(addContactSchema) })
+
+  function onSubmit(data: AddContactFormData) {
+    const newContact: Contact = {
+      id: String(Date.now()),
+      nome: data.nome,
+      email: data.email,
+      telefone: data.telefone,
+      empresa: data.empresa,
+      cargo: data.cargo,
+      canal: data.canal,
+      status: 'lead',
+      tags: data.tags ? data.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
+      notas: data.notas ?? '',
+      createdAt: new Date(),
+      lastActivity: new Date(),
+      activities: [],
+    }
+    onAdd(newContact)
+    onClose()
+  }
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        onClick={onClose}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      />
+      <motion.div
+        className="relative w-full max-w-lg bg-dark-card border border-white/5 rounded-3xl p-8 shadow-2xl overflow-y-auto max-h-[90vh]"
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-7 h-7 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
+                <Plus className="w-4 h-4 text-accent" />
+              </div>
+              <h2 className="text-sm font-black text-white uppercase tracking-widest">Novo Contato</h2>
+            </div>
+            <p className="text-xs text-gray-500">Preencha os dados para adicionar ao CRM</p>
+          </div>
+          <button onClick={onClose} className="btn-ghost p-2">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="label">Nome *</label>
+              <input {...register('nome')} className="input-field" placeholder="João Silva" />
+              {errors.nome && <p className="text-red-400 text-xs mt-1">{errors.nome.message}</p>}
+            </div>
+            <div>
+              <label className="label">Empresa *</label>
+              <input {...register('empresa')} className="input-field" placeholder="Empresa LTDA" />
+              {errors.empresa && <p className="text-red-400 text-xs mt-1">{errors.empresa.message}</p>}
+            </div>
+            <div>
+              <label className="label">Email *</label>
+              <input {...register('email')} type="email" className="input-field" placeholder="joao@empresa.com" />
+              {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
+            </div>
+            <div>
+              <label className="label">Telefone *</label>
+              <input {...register('telefone')} className="input-field" placeholder="(11) 99999-9999" />
+              {errors.telefone && <p className="text-red-400 text-xs mt-1">{errors.telefone.message}</p>}
+            </div>
+            <div>
+              <label className="label">Cargo *</label>
+              <input {...register('cargo')} className="input-field" placeholder="CEO, CFO, Diretor..." />
+              {errors.cargo && <p className="text-red-400 text-xs mt-1">{errors.cargo.message}</p>}
+            </div>
+            <div>
+              <label className="label">Canal de Origem *</label>
+              <select {...register('canal')} className="input-field bg-dark-muted">
+                <option value="">Selecione...</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Site">Site</option>
+                <option value="Indicação">Indicação</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="WhatsApp">WhatsApp</option>
+              </select>
+              {errors.canal && <p className="text-red-400 text-xs mt-1">{errors.canal.message}</p>}
+            </div>
+          </div>
+
+          <div>
+            <label className="label">Tags</label>
+            <input {...register('tags')} className="input-field" placeholder="VIP, Fundos, Alto Valor (separadas por vírgula)" />
+          </div>
+
+          <div>
+            <label className="label">Notas</label>
+            <textarea
+              {...register('notas')}
+              className="input-field resize-none"
+              rows={3}
+              placeholder="Informações adicionais sobre o contato..."
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onClose} className="btn-secondary flex-1">
+              Cancelar
+            </button>
+            <button type="submit" disabled={isSubmitting} className="btn-primary flex-1 flex items-center justify-center gap-2">
+              <Plus className="w-4 h-4" />
+              Adicionar Contato
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ─── Contact Detail Modal ─────────────────────────────────────────────────────
+
+function ContactDetailModal({
+  contact,
+  onClose,
+  onUpdate,
+  onDelete,
+}: {
+  contact: Contact
+  onClose: () => void
+  onUpdate: (updated: Contact) => void
+  onDelete: (id: string) => void
+}) {
+  const [activeTab, setActiveTab] = useState<DetailTab>('visao-geral')
+  const [isAddingActivity, setIsAddingActivity] = useState(false)
+  const [activityDesc, setActivityDesc] = useState('')
+  const [activityType, setActivityType] = useState<ActivityType>('note')
+
+  const statusConfig = getStatusConfig(contact.status)
+  const stageIndex = FUNIL_STAGES.findIndex((s) => s.key === contact.status)
+  const isInFunil = stageIndex !== -1
+
+  function updateStatus(newStatus: FunilStatus) {
+    onUpdate({ ...contact, status: newStatus, lastActivity: new Date() })
+  }
+
+  function addActivity() {
+    if (!activityDesc.trim()) return
+    const newActivity: ContactActivity = {
+      id: String(Date.now()),
+      type: activityType,
+      description: activityDesc,
+      date: new Date(),
+    }
+    const updated: Contact = {
+      ...contact,
+      activities: [newActivity, ...contact.activities],
+      lastActivity: new Date(),
+    }
+    onUpdate(updated)
+    setActivityDesc('')
+    setIsAddingActivity(false)
+  }
+
+  const tabs: { key: DetailTab; label: string }[] = [
+    { key: 'visao-geral', label: 'Visão Geral' },
+    { key: 'atividades', label: 'Atividades' },
+    { key: 'cnpj', label: 'CNPJ Vinculado' },
+  ]
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <motion.div
+        className="relative w-full sm:max-w-3xl bg-dark-card border border-white/5 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
+        initial={{ opacity: 0, y: 60 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 60 }}
+        transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+      >
+        {/* Modal Header */}
+        <div className="p-6 border-b border-white/5 shrink-0">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <ContactAvatar contact={contact} size="lg" />
+              <div>
+                <h2 className="text-xl font-black text-white">{contact.nome}</h2>
+                <p className="text-sm text-gray-400">{contact.cargo} · {contact.empresa}</p>
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  <span className={cn('badge', statusConfig.classes)}>{statusConfig.label}</span>
+                  {contact.tags.map((tag) => (
+                    <span key={tag} className="badge badge-accent text-[10px]">{tag}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => { onDelete(contact.id); onClose() }}
+                className="btn-danger p-2"
+                title="Excluir contato"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+              <button onClick={onClose} className="btn-ghost p-2">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex gap-1 mt-6 bg-dark-muted rounded-xl p-1">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={cn(
+                  'flex-1 py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all',
+                  activeTab === tab.key
+                    ? 'bg-accent/10 text-accent border border-accent/20'
+                    : 'text-gray-500 hover:text-white'
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Modal Body */}
+        <div className="overflow-y-auto flex-1 p-6">
+          <AnimatePresence mode="wait">
+            {activeTab === 'visao-geral' && (
+              <motion.div
+                key="visao"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="space-y-6"
+              >
+                {/* Funil Progress */}
+                <div className="bg-dark-muted rounded-2xl p-5 border border-white/5">
+                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Estágio no Funil</p>
+                  {contact.status === 'inativo' ? (
+                    <div className="flex items-center gap-2">
+                      <span className="badge bg-red-500/10 text-red-400 border border-red-500/20">Inativo</span>
+                      <button
+                        onClick={() => updateStatus('lead')}
+                        className="text-xs text-accent underline underline-offset-2"
+                      >
+                        Reativar como Lead
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      {FUNIL_STAGES.map((stage, idx) => {
+                        const current = FUNIL_STAGES.findIndex((s) => s.key === contact.status)
+                        const isPast = idx < current
+                        const isActive = idx === current
+                        return (
+                          <div key={stage.key} className="flex items-center gap-2 flex-1">
+                            <button
+                              onClick={() => updateStatus(stage.key)}
+                              className={cn(
+                                'flex-1 py-2 px-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-center transition-all border',
+                                isActive && 'bg-accent/10 text-accent border-accent/30 shadow-accent/10 shadow-md',
+                                isPast && 'bg-accent/5 text-accent/50 border-accent/10',
+                                !isActive && !isPast && 'bg-white/5 text-gray-600 border-white/5 hover:border-white/10 hover:text-gray-400'
+                              )}
+                            >
+                              {isPast && <CheckCircle2 className="w-3 h-3 inline mr-1" />}
+                              {isActive && <Circle className="w-3 h-3 inline mr-1 fill-accent text-accent" />}
+                              {stage.label}
+                            </button>
+                            {idx < FUNIL_STAGES.length - 1 && (
+                              <ArrowRight className={cn('w-3 h-3 shrink-0', isActive || isPast ? 'text-accent/40' : 'text-gray-700')} />
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Two columns data */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Dados Pessoais</p>
+                    <DataRow icon={<Mail className="w-4 h-4" />} label="Email" value={contact.email} />
+                    <DataRow icon={<Phone className="w-4 h-4" />} label="Telefone" value={contact.telefone} />
+                    <DataRow icon={<Briefcase className="w-4 h-4" />} label="Cargo" value={contact.cargo} />
+                    <DataRow
+                      icon={getCanalIcon(contact.canal)}
+                      label="Canal Origem"
+                      value={contact.canal}
+                    />
+                  </div>
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Dados da Empresa</p>
+                    <DataRow icon={<Building2 className="w-4 h-4" />} label="Empresa" value={contact.empresa} />
+                    {contact.cnpj && (
+                      <DataRow icon={<FileText className="w-4 h-4" />} label="CNPJ" value={contact.cnpj} />
+                    )}
+                    <div>
+                      <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1 flex items-center gap-1">
+                        <Tag className="w-3 h-3" /> Tags
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {contact.tags.length > 0 ? contact.tags.map((tag) => (
+                          <span key={tag} className="badge badge-accent text-[10px]">{tag}</span>
+                        )) : <span className="text-gray-600 text-xs">—</span>}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                {contact.notas && (
+                  <div className="bg-dark-muted rounded-xl p-4 border border-white/5">
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Notas</p>
+                    <p className="text-sm text-gray-300 leading-relaxed">{contact.notas}</p>
+                  </div>
+                )}
+
+                {/* Meta */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-dark-muted rounded-xl p-4 border border-white/5 text-center">
+                    <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Criado em</p>
+                    <p className="text-sm font-bold text-white">{format(contact.createdAt, 'dd/MM/yyyy', { locale: ptBR })}</p>
+                  </div>
+                  <div className="bg-dark-muted rounded-xl p-4 border border-white/5 text-center">
+                    <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Última Atividade</p>
+                    <p className="text-sm font-bold text-white">
+                      {formatDistanceToNow(contact.lastActivity, { locale: ptBR, addSuffix: true })}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'atividades' && (
+              <motion.div
+                key="atividades"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="space-y-5"
+              >
+                <button
+                  onClick={() => setIsAddingActivity(!isAddingActivity)}
+                  className="btn-primary w-full flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Registrar Atividade
+                </button>
+
+                <AnimatePresence>
+                  {isAddingActivity && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="bg-dark-muted rounded-2xl p-5 border border-accent/10 space-y-4">
+                        <p className="text-xs font-black text-accent uppercase tracking-widest">Nova Atividade</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                          {(['phone', 'email', 'message', 'meeting', 'note'] as ActivityType[]).map((t) => (
+                            <button
+                              key={t}
+                              onClick={() => setActivityType(t)}
+                              className={cn(
+                                'py-2 px-2 rounded-xl text-[10px] font-bold uppercase tracking-wider flex flex-col items-center gap-1 border transition-all',
+                                activityType === t ? getActivityColor(t) + ' border-opacity-100' : 'border-white/5 text-gray-500 hover:text-gray-300'
+                              )}
+                            >
+                              {getActivityIcon(t)}
+                              <span className="hidden sm:block">{t}</span>
+                            </button>
+                          ))}
+                        </div>
+                        <textarea
+                          className="input-field resize-none"
+                          rows={3}
+                          placeholder="Descreva a atividade..."
+                          value={activityDesc}
+                          onChange={(e) => setActivityDesc(e.target.value)}
+                        />
+                        <div className="flex gap-3">
+                          <button onClick={() => setIsAddingActivity(false)} className="btn-secondary flex-1 text-sm py-2">
+                            Cancelar
+                          </button>
+                          <button onClick={addActivity} className="btn-primary flex-1 text-sm py-2">
+                            Salvar
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Timeline */}
+                <div className="relative">
+                  <div className="absolute left-5 top-0 bottom-0 w-px bg-dark-border" />
+                  <div className="space-y-4">
+                    {contact.activities.length === 0 && (
+                      <p className="text-gray-600 text-sm text-center py-8">Nenhuma atividade registrada ainda.</p>
+                    )}
+                    {contact.activities.map((activity, idx) => (
+                      <motion.div
+                        key={activity.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="flex gap-4 pl-2"
+                      >
+                        <div className={cn('w-8 h-8 rounded-full flex items-center justify-center border shrink-0 z-10', getActivityColor(activity.type))}>
+                          {getActivityIcon(activity.type)}
+                        </div>
+                        <div className="flex-1 bg-dark-muted rounded-xl p-4 border border-white/5">
+                          <p className="text-sm text-gray-200">{activity.description}</p>
+                          <p className="text-[10px] text-gray-600 mt-1 font-semibold uppercase tracking-wider">
+                            {format(activity.date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                          </p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'cnpj' && (
+              <motion.div
+                key="cnpj"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="space-y-5"
+              >
+                {contact.cnpj ? (
+                  <div className="space-y-4">
+                    <div className="bg-dark-muted rounded-2xl p-6 border border-white/5">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
+                          <Building2 className="w-5 h-5 text-accent" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-white uppercase tracking-wider">{contact.empresa}</p>
+                          <p className="text-xs text-gray-500">{contact.cnpj}</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <DataRow icon={<FileText className="w-4 h-4" />} label="CNPJ" value={contact.cnpj} />
+                        <DataRow icon={<Building2 className="w-4 h-4" />} label="Razão Social" value={contact.empresa} />
+                        <DataRow icon={<Briefcase className="w-4 h-4" />} label="Responsável" value={contact.nome} />
+                        <DataRow icon={<Tag className="w-4 h-4" />} label="Segmento" value={contact.tags[0] ?? '—'} />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-4 rounded-xl bg-accent/5 border border-accent/10">
+                      <CheckCircle2 className="w-4 h-4 text-accent shrink-0" />
+                      <p className="text-xs text-gray-400">CNPJ vinculado e validado no cadastro do contato.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 rounded-2xl bg-dark-muted border border-white/5 flex items-center justify-center mx-auto mb-4">
+                      <Building2 className="w-8 h-8 text-gray-600" />
+                    </div>
+                    <p className="text-gray-500 text-sm font-medium">Nenhum CNPJ vinculado</p>
+                    <p className="text-gray-700 text-xs mt-1">Este contato não possui CNPJ cadastrado.</p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+function DataRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-0.5 flex items-center gap-1">
+        <span className="text-gray-600">{icon}</span> {label}
+      </p>
+      <p className="text-sm text-gray-200 font-medium">{value}</p>
+    </div>
+  )
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
+export default function CRMPage() {
+  const [contacts, setContacts] = useState<Contact[]>(MOCK_CONTACTS)
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>('list')
+  const [activeFilter, setActiveFilter] = useState<FilterTab>('todos')
+  const [search, setSearch] = useState('')
+
+  // Derived metrics
+  const totalContacts = contacts.length
+  const newThisMonth = contacts.filter((c) => {
+    const now = new Date()
+    return c.createdAt.getMonth() === now.getMonth() && c.createdAt.getFullYear() === now.getFullYear()
+  }).length
+  const clients = contacts.filter((c) => c.status === 'cliente').length
+  const conversionRate = totalContacts > 0 ? Math.round((clients / totalContacts) * 100) : 0
+  const upcomingActivities = contacts.filter((c) => {
+    const diff = (new Date().getTime() - c.lastActivity.getTime()) / (1000 * 60 * 60 * 24)
+    return diff > 7 && c.status !== 'inativo'
+  }).length
+
+  // Filtered contacts
+  const filteredContacts = contacts.filter((c) => {
+    const matchFilter =
+      activeFilter === 'todos' ? true :
+      activeFilter === 'leads' ? (c.status === 'lead' || c.status === 'qualificado' || c.status === 'proposta') :
+      activeFilter === 'clientes' ? c.status === 'cliente' :
+      activeFilter === 'inativos' ? c.status === 'inativo' : true
+
+    const q = search.toLowerCase()
+    const matchSearch = !q || [c.nome, c.empresa, c.email, c.telefone, c.canal].some((v) => v.toLowerCase().includes(q))
+
+    return matchFilter && matchSearch
+  })
+
+  function openDetail(contact: Contact) {
+    setSelectedContact(contact)
+    setIsDetailOpen(true)
+  }
+
+  function handleUpdate(updated: Contact) {
+    setContacts((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
+    setSelectedContact(updated)
+  }
+
+  function handleDelete(id: string) {
+    setContacts((prev) => prev.filter((c) => c.id !== id))
+    setIsDetailOpen(false)
+    setSelectedContact(null)
+  }
+
+  function handleAdd(contact: Contact) {
+    setContacts((prev) => [contact, ...prev])
+  }
+
+  const filterTabs: { key: FilterTab; label: string; count: number }[] = [
+    { key: 'todos', label: 'Todos', count: contacts.length },
+    { key: 'leads', label: 'Leads', count: contacts.filter((c) => ['lead', 'qualificado', 'proposta'].includes(c.status)).length },
+    { key: 'clientes', label: 'Clientes', count: contacts.filter((c) => c.status === 'cliente').length },
+    { key: 'inativos', label: 'Inativos', count: contacts.filter((c) => c.status === 'inativo').length },
+  ]
+
+  return (
+    <div className="p-6 lg:p-10 space-y-10 max-w-7xl mx-auto animate-fade-in pb-20">
+
+      {/* ── Header ── */}
+      <div className="flex flex-col gap-6 pb-8 border-b border-white/5">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20">
+              <Activity className="w-3 h-3 text-accent" />
+              <span className="text-[10px] font-black text-accent uppercase tracking-widest">Gestão de Relacionamentos</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center">
+                <Users className="w-5 h-5 text-accent" />
+              </div>
+              <h1 className="text-4xl font-black text-white tracking-tighter">CRM</h1>
+            </div>
+            <p className="text-gray-500 font-medium tracking-wide uppercase text-[10px]">
+              Central de Relacionamentos · {contacts.length} Contatos Ativos
+            </p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <button className="btn-secondary flex items-center gap-2 text-sm py-2.5 px-5">
+              <Upload className="w-4 h-4" />
+              Importar CSV
+            </button>
+            <button
+              onClick={() => setIsAddOpen(true)}
+              className="btn-primary flex items-center gap-2 text-sm py-2.5 px-5"
+            >
+              <Plus className="w-4 h-4" />
+              Novo Contato
+            </button>
+          </div>
+        </div>
+
+        {/* Search + Filters + View Toggle */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="relative flex-1 w-full sm:max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Buscar por nome, empresa, email..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="input-field pl-10 py-2.5 text-sm"
+            />
+          </div>
+          <div className="flex items-center gap-2 bg-dark-card border border-white/5 rounded-xl p-1">
+            {filterTabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveFilter(tab.key)}
+                className={cn(
+                  'px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5',
+                  activeFilter === tab.key ? 'sidebar-item-active' : 'text-gray-500 hover:text-white'
+                )}
+              >
+                {tab.label}
+                <span className={cn(
+                  'text-[10px] px-1.5 py-0.5 rounded-full',
+                  activeFilter === tab.key ? 'bg-accent/20 text-accent' : 'bg-white/5 text-gray-600'
+                )}>
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-1 bg-dark-muted border border-white/5 rounded-xl p-1 ml-auto">
+            <button
+              onClick={() => setViewMode('list')}
+              className={cn('p-2 rounded-lg transition-all', viewMode === 'list' ? 'bg-accent/10 text-accent' : 'text-gray-500 hover:text-white')}
+              title="Visualização em lista"
+            >
+              <LayoutList className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={cn('p-2 rounded-lg transition-all', viewMode === 'grid' ? 'bg-accent/10 text-accent' : 'text-gray-500 hover:text-white')}
+              title="Visualização em grade"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Metric Cards ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+        <MetricCard
+          icon={<Users className="w-6 h-6" />}
+          iconColor="text-accent"
+          iconBg="bg-accent/10 border-accent/20"
+          label="Total de Contatos"
+          value={totalContacts}
+          sub={`${clients} clientes ativos`}
+          delay={0}
+        />
+        <MetricCard
+          icon={<TrendingUp className="w-6 h-6" />}
+          iconColor="text-blue-400"
+          iconBg="bg-blue-500/10 border-blue-500/20"
+          label="Novos este Mês"
+          value={newThisMonth}
+          sub="Contatos adicionados"
+          delay={0.05}
+        />
+        <MetricCard
+          icon={<UserCheck className="w-6 h-6" />}
+          iconColor="text-purple-400"
+          iconBg="bg-purple-500/10 border-purple-500/20"
+          label="Taxa de Conversão"
+          value={`${conversionRate}%`}
+          sub="Lead → Cliente"
+          delay={0.1}
+        />
+        <MetricCard
+          icon={<Clock className="w-6 h-6" />}
+          iconColor="text-amber-400"
+          iconBg="bg-amber-500/10 border-amber-500/20"
+          label="Próximas Atividades"
+          value={upcomingActivities}
+          sub="Follow-ups pendentes"
+          delay={0.15}
+        />
+      </div>
+
+      {/* ── Contact List / Grid ── */}
+      {filteredContacts.length === 0 ? (
+        <div className="text-center py-20">
+          <div className="w-16 h-16 rounded-2xl bg-dark-card border border-white/5 flex items-center justify-center mx-auto mb-4">
+            <Users className="w-8 h-8 text-gray-600" />
+          </div>
+          <p className="text-gray-500 font-semibold">Nenhum contato encontrado</p>
+          <p className="text-gray-700 text-sm mt-1">Tente ajustar os filtros ou a busca</p>
+        </div>
+      ) : viewMode === 'list' ? (
+        /* ── List View ── */
+        <div className="bg-dark-card border border-white/5 rounded-2xl overflow-hidden">
+          {/* Table header */}
+          <div className="hidden md:grid grid-cols-[2.5fr_2fr_1.5fr_1fr_1fr_auto] gap-4 px-5 py-3 border-b border-white/5 bg-dark-muted/50">
+            <span className="table-header">Contato</span>
+            <span className="table-header">Email / Telefone</span>
+            <span className="table-header">Status</span>
+            <span className="table-header">Canal</span>
+            <span className="table-header">Última Atividade</span>
+            <span className="table-header">Ações</span>
+          </div>
+
+          <div className="divide-y divide-white/[0.04]">
+            {filteredContacts.map((contact, idx) => {
+              const statusConfig = getStatusConfig(contact.status)
+              return (
+                <motion.div
+                  key={contact.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.03 }}
+                  className="table-row grid grid-cols-1 md:grid-cols-[2.5fr_2fr_1.5fr_1fr_1fr_auto] gap-4 px-5 py-4 items-center cursor-pointer"
+                  onClick={() => openDetail(contact)}
+                >
+                  {/* Name + company */}
+                  <div className="flex items-center gap-3">
+                    <ContactAvatar contact={contact} size="md" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-white truncate">{contact.nome}</p>
+                      <p className="text-xs text-gray-500 truncate">{contact.empresa}</p>
+                    </div>
+                  </div>
+
+                  {/* Email / phone */}
+                  <div className="min-w-0">
+                    <p className="text-sm text-gray-300 truncate">{contact.email}</p>
+                    <p className="text-xs text-gray-500">{contact.telefone}</p>
+                  </div>
+
+                  {/* Status */}
+                  <div>
+                    <span className={cn('badge text-[10px]', statusConfig.classes)}>{statusConfig.label}</span>
+                  </div>
+
+                  {/* Canal */}
+                  <div className="flex items-center gap-1.5 text-gray-400 text-xs">
+                    {getCanalIcon(contact.canal)}
+                    <span>{contact.canal}</span>
+                  </div>
+
+                  {/* Last activity */}
+                  <div className="text-xs text-gray-500">
+                    {formatDistanceToNow(contact.lastActivity, { locale: ptBR, addSuffix: true })}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={() => openDetail(contact)}
+                      className="p-1.5 rounded-lg text-gray-500 hover:text-accent hover:bg-accent/10 transition-all"
+                      title="Ver detalhes"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => openDetail(contact)}
+                      className="p-1.5 rounded-lg text-gray-500 hover:text-blue-400 hover:bg-blue-400/10 transition-all"
+                      title="Editar"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(contact.id)}
+                      className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-400/10 transition-all"
+                      title="Excluir"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </motion.div>
+              )
+            })}
+          </div>
+        </div>
+      ) : (
+        /* ── Grid View ── */
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {filteredContacts.map((contact, idx) => {
+            const statusConfig = getStatusConfig(contact.status)
+            return (
+              <motion.div
+                key={contact.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.04 }}
+                className="card-hover group border-white/5 p-5 rounded-2xl cursor-pointer flex flex-col gap-4"
+                onClick={() => openDetail(contact)}
+              >
+                <div className="flex items-start justify-between">
+                  <ContactAvatar contact={contact} size="md" />
+                  <span className={cn('badge text-[10px]', statusConfig.classes)}>{statusConfig.label}</span>
+                </div>
+
+                <div>
+                  <p className="font-bold text-white text-sm">{contact.nome}</p>
+                  <p className="text-xs text-gray-500">{contact.cargo}</p>
+                  <p className="text-xs text-gray-600 mt-0.5">{contact.empresa}</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <Mail className="w-3 h-3 shrink-0" />
+                    <span className="truncate">{contact.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <Phone className="w-3 h-3 shrink-0" />
+                    <span>{contact.telefone}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                    {getCanalIcon(contact.canal)}
+                    <span>{contact.canal}</span>
+                  </div>
+                </div>
+
+                {contact.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {contact.tags.slice(0, 3).map((tag) => (
+                      <span key={tag} className="badge badge-accent text-[9px]">{tag}</span>
+                    ))}
+                    {contact.tags.length > 3 && (
+                      <span className="badge bg-white/5 text-gray-500 border border-white/5 text-[9px]">+{contact.tags.length - 3}</span>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                  <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {formatDistanceToNow(contact.lastActivity, { locale: ptBR, addSuffix: true })}
+                  </span>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={() => openDetail(contact)}
+                      className="p-1 rounded-lg text-gray-500 hover:text-accent hover:bg-accent/10 transition-all"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(contact.id)}
+                      className="p-1 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-400/10 transition-all"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ── Footer info ── */}
+      <div className="flex items-center justify-between px-1 text-[11px] text-gray-700 font-semibold uppercase tracking-widest">
+        <span>Mostrando {filteredContacts.length} de {contacts.length} contatos</span>
+        <span>CRM · Investmais</span>
+      </div>
+
+      {/* ── Modals ── */}
+      <AnimatePresence>
+        {isDetailOpen && selectedContact && (
+          <ContactDetailModal
+            contact={selectedContact}
+            onClose={() => { setIsDetailOpen(false); setSelectedContact(null) }}
+            onUpdate={handleUpdate}
+            onDelete={handleDelete}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isAddOpen && (
+          <AddContactModal
+            onClose={() => setIsAddOpen(false)}
+            onAdd={handleAdd}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
