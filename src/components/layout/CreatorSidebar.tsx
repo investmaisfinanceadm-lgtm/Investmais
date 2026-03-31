@@ -7,7 +7,6 @@ import {
     LayoutDashboard,
     Video,
     Library,
-    Calendar,
     Settings,
     LogOut,
     Menu,
@@ -17,7 +16,7 @@ import {
     Kanban,
     Users,
     Send,
-    Building2,
+    Search,
 } from 'lucide-react'
 import { useSession, signOut } from 'next-auth/react'
 import { cn, getInitials } from '@/lib/utils'
@@ -27,11 +26,10 @@ const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/criar', label: 'Criar Vídeo', icon: Video, highlight: true },
     { href: '/biblioteca', label: 'Biblioteca', icon: Library },
-    { href: '/agenda', label: 'Agenda', icon: Calendar },
     { href: '/pipeline', label: 'Pipeline', icon: Kanban },
     { href: '/crm', label: 'CRM', icon: Users },
     { href: '/disparos', label: 'Listas de Disparo', icon: Send },
-    { href: '/cnpj', label: 'Busca de Leads', icon: Building2 },
+    { href: '/cnpj', label: 'Busca de Leads', icon: Search },
     { href: '/configuracoes', label: 'Configurações', icon: Settings },
 ]
 
