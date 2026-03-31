@@ -24,13 +24,16 @@ import toast from 'react-hot-toast'
 
 const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/criar', label: 'Criar Vídeo', icon: Video, highlight: true },
-    { href: '/biblioteca', label: 'Biblioteca', icon: Library },
     { href: '/pipeline', label: 'Pipeline', icon: Kanban },
     { href: '/crm', label: 'CRM', icon: Users },
     { href: '/disparos', label: 'Listas de Disparo', icon: Send },
     { href: '/cnpj', label: 'Busca de Leads', icon: Search },
     { href: '/configuracoes', label: 'Configurações', icon: Settings },
+]
+
+const contentItems = [
+    { href: '/criar', label: 'Criar Vídeo', icon: Video },
+    { href: '/biblioteca', label: 'Biblioteca', icon: Library },
 ]
 
 export function CreatorSidebar() {
@@ -64,10 +67,10 @@ export function CreatorSidebar() {
     const SidebarContent = () => (
         <div className="flex flex-col h-full">
             {/* Logo */}
-            <div className="p-8 border-b border-white/5">
-                <div className="flex items-center gap-3">
-                    <img src="/logo.jpg" alt="InvestMais Finance" className="h-10 w-auto object-contain rounded-xl" />
-                </div>
+            <div className="px-6 pt-6 pb-5 border-b border-white/5">
+                <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
+                    <img src="/logo.jpg" alt="InvestMais Finance" className="h-14 w-auto object-contain rounded-xl hover:opacity-90 transition-opacity" />
+                </Link>
             </div>
 
             {/* Navigation */}
@@ -99,14 +102,19 @@ export function CreatorSidebar() {
 
                 <div className="space-y-1">
                     <p className="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">Gerenciador de Conteúdo</p>
-                    {navItems.filter(i => i.highlight).map((item) => {
+                    {contentItems.map((item) => {
                         const Icon = item.icon
+                        const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
                         return (
                             <Link
                                 key={item.href}
                                 href={item.href}
                                 onClick={() => setMobileOpen(false)}
-                                className="flex items-center gap-3 px-4 py-4 rounded-2xl bg-gradient-accent text-black font-black shadow-accent hover:shadow-accent-lg transition-all duration-300 group uppercase tracking-widest text-[10px]"
+                                className={`flex items-center gap-3 px-4 py-4 rounded-2xl font-black transition-all duration-300 group uppercase tracking-widest text-[10px] ${
+                                    isActive
+                                        ? 'bg-gradient-accent text-black shadow-accent'
+                                        : 'bg-gradient-accent/80 text-black shadow-accent hover:shadow-accent-lg'
+                                }`}
                             >
                                 <Icon className="w-4 h-4 flex-shrink-0" />
                                 <span>{item.label}</span>
