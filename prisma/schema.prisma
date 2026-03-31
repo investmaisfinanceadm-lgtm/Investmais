@@ -28,6 +28,7 @@ model Profile {
   pipeline_boards  PipelineBoard[]
   contatos         Contato[]
   consultas_cnpj   ConsultaCNPJ[]
+  listas_disparo   ListaDisparo[]
 
   @@map("profiles")
 }
@@ -233,4 +234,18 @@ model LeadCNPJ {
   @@index([cnpj])
   @@index([user_id])
   @@map("leads_cnpj")
+}
+
+model ListaDisparo {
+  id         String   @id @default(uuid())
+  user_id    String
+  nome       String
+  telefones  String[]
+  status     String   @default("nova") // nova | em_progresso | concluida
+  total      Int      @default(0)
+  enviados   Int      @default(0)
+  created_at DateTime @default(now())
+  user       Profile  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("listas_disparo")
 }

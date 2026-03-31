@@ -30,8 +30,8 @@ const navItems = [
     { href: '/agenda', label: 'Agenda', icon: Calendar },
     { href: '/pipeline', label: 'Pipeline', icon: Kanban },
     { href: '/crm', label: 'CRM', icon: Users },
-    { href: '/disparos', label: 'Disparos', icon: Send },
-    { href: '/cnpj', label: 'Consulta CNPJ', icon: Building2 },
+    { href: '/disparos', label: 'Listas de Disparo', icon: Send },
+    { href: '/cnpj', label: 'Busca de Leads', icon: Building2 },
     { href: '/configuracoes', label: 'Configurações', icon: Settings },
 ]
 
