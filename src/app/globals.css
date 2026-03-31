@@ -33,57 +33,54 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar styling */
+/* ── Scrollbar ──────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-
 ::-webkit-scrollbar-track {
-  background: var(--color-dark-muted);
+  background: #e2e8f0;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: var(--color-dark-border);
+  background: #cbd5e1;
   border-radius: 3px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-accent);
 }
 
-/* Accent utilities */
+/* ── Component utilities ────────────────────────────────────────── */
 @layer components {
   .btn-primary {
     @apply bg-accent text-white font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-all duration-200 shadow-accent hover:shadow-accent-lg active:scale-95;
   }
 
   .btn-secondary {
-    @apply bg-dark-card border border-dark-border text-white font-medium px-6 py-3 rounded-xl hover:border-accent/40 hover:bg-dark-muted transition-all duration-200;
+    @apply bg-white border border-slate-200 text-slate-700 font-medium px-6 py-3 rounded-xl hover:border-accent/40 hover:bg-slate-50 transition-all duration-200 shadow-sm;
   }
 
   .btn-ghost {
-    @apply text-gray-400 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 transition-all duration-200;
+    @apply text-slate-500 hover:text-slate-800 px-4 py-2 rounded-lg hover:bg-slate-100 transition-all duration-200;
   }
 
   .btn-danger {
-    @apply bg-red-500/10 border border-red-500/20 text-red-400 font-medium px-4 py-2 rounded-lg hover:bg-red-500/20 transition-all duration-200;
+    @apply bg-red-50 border border-red-200 text-red-500 font-medium px-4 py-2 rounded-lg hover:bg-red-100 transition-all duration-200;
   }
 
   .card {
-    @apply bg-dark-card border border-dark-border rounded-2xl p-6 shadow-card;
+    @apply bg-white border border-slate-200 rounded-2xl p-6 shadow-sm;
   }
 
   .card-hover {
-    @apply card hover:border-accent/20 hover:shadow-card-hover transition-all duration-300;
+    @apply bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300;
   }
 
   .input-field {
-    @apply w-full bg-dark-muted border border-dark-border text-white placeholder-gray-500 px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 focus:ring-1 focus:ring-accent/30 transition-all duration-200;
+    @apply w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 focus:ring-1 focus:ring-accent/30 transition-all duration-200 shadow-sm;
   }
 
   .label {
-    @apply block text-sm font-medium text-gray-400 mb-2;
+    @apply block text-sm font-medium text-slate-600 mb-2;
   }
 
   .badge {
@@ -95,17 +92,18 @@ body {
   }
 
   .badge-gold {
-    @apply badge bg-gold/10 text-gold border border-gold/20;
+    @apply badge bg-amber-50 text-amber-600 border border-amber-200;
   }
 
   .badge-green {
-    @apply badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20;
+    @apply badge bg-emerald-50 text-emerald-600 border border-emerald-200;
   }
 
   .badge-red {
-    @apply badge bg-red-500/10 text-red-400 border border-red-500/20;
+    @apply badge bg-red-50 text-red-500 border border-red-200;
   }
 
+  /* ── Sidebar (dark — não altera) ── */
   .sidebar-item {
     @apply flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200 font-medium uppercase tracking-wider text-xs;
   }
@@ -114,48 +112,64 @@ body {
     @apply flex items-center gap-3 px-4 py-3 rounded-xl text-accent bg-accent/10 border border-accent/20 font-semibold uppercase tracking-wider text-xs;
   }
 
+  /* ── Table ── */
+  .table-header {
+    @apply text-xs font-bold text-slate-500 uppercase tracking-wider px-4 py-3 text-left bg-slate-50 border-b border-slate-200;
+  }
+
+  .table-cell {
+    @apply px-4 py-4 text-sm text-slate-700;
+  }
+
+  .table-row {
+    @apply border-b border-slate-100 hover:bg-slate-50 transition-colors;
+  }
+
+  /* ── Section ── */
+  .section-title {
+    @apply text-2xl font-bold text-slate-800 mb-1;
+  }
+
+  .section-subtitle {
+    @apply text-slate-500 text-sm;
+  }
+
   .metric-card {
     @apply card flex flex-col gap-2;
   }
 
-  .section-title {
-    @apply text-2xl font-bold text-white mb-1;
-  }
-
-  .section-subtitle {
-    @apply text-gray-400 text-sm;
-  }
-
   .divider {
-    @apply border-t border-dark-border my-6;
+    @apply border-t border-slate-200 my-6;
   }
 
-  .table-header {
-    @apply text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 py-3 text-left;
+  /* ── Progress ── */
+  .progress-bar {
+    @apply h-2 rounded-full bg-slate-200 overflow-hidden;
   }
 
-  .table-cell {
-    @apply px-4 py-4 text-sm text-gray-300;
-  }
-
-  .table-row {
-    @apply border-b border-dark-border hover:bg-dark-muted/50 transition-colors;
+  .progress-fill {
+    @apply h-full rounded-full bg-gradient-to-r from-accent to-blue-400 transition-all duration-500;
   }
 }
 
-/* Shimmer loading */
+/* ── Shimmer (adapted for light bg) ─────────────────────────────── */
 .shimmer {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.03) 25%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.03) 75%
+    rgba(0, 0, 0, 0.04) 25%,
+    rgba(0, 0, 0, 0.09) 50%,
+    rgba(0, 0, 0, 0.04) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 2s linear infinite;
 }
 
-/* Gold gradient text */
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Gold gradient text ──────────────────────────────────────────── */
 .text-gradient-gold {
   background: linear-gradient(135deg, #C9A84C, #e8c85e, #C9A84C);
   -webkit-background-clip: text;
@@ -163,54 +177,60 @@ body {
   background-clip: text;
 }
 
-/* Focus ring */
+/* ── Focus ring ──────────────────────────────────────────────────── */
 .focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-gold/40 focus:ring-offset-2 focus:ring-offset-primary;
+  @apply focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2;
 }
 
-/* Progress bar */
-.progress-bar {
-  @apply h-2 rounded-full bg-dark-border overflow-hidden;
-}
-
-.progress-fill {
-  @apply h-full rounded-full bg-gradient-to-r from-gold to-yellow-400 transition-all duration-500;
-}
-
-/* Glassmorphism */
+/* ── Glass ───────────────────────────────────────────────────────── */
 .glass {
-  background: rgba(15, 30, 53, 0.8);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.9);
 }
 
-/* Notification dot */
+/* ── Notification dot ────────────────────────────────────────────── */
 .notification-dot {
-  @apply absolute -top-1 -right-1 w-2 h-2 bg-gold rounded-full;
+  @apply absolute -top-1 -right-1 w-2 h-2 bg-amber-400 rounded-full;
 }
 
-/* Custom scrollbar (thin, hidden on non-hover) */
-.custom-scrollbar::-webkit-scrollbar {
-  height: 4px;
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--color-dark-border);
-  border-radius: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--color-accent);
-}
+/* ── Custom scrollbar ────────────────────────────────────────────── */
+.custom-scrollbar::-webkit-scrollbar { height: 4px; width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
 
-/* Hide scrollbar visually but keep scroll functionality */
-.no-view::-webkit-scrollbar {
-  display: none;
-}
-.no-view {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+.no-view::-webkit-scrollbar { display: none; }
+.no-view { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ══════════════════════════════════════════════════════════════════
+   CONTENT AREA — text color adaptation (light background)
+   Adapta text-white/gray para escuro sem tocar na sidebar
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Títulos e textos gerais na área de conteúdo */
+main .text-white          { color: #1e293b; }
+main .text-gray-100       { color: #334155; }
+main .text-gray-200       { color: #334155; }
+main .text-gray-300       { color: #475569; }
+main .text-gray-400       { color: #64748b; }
+main .text-gray-500       { color: #94a3b8; }
+main .text-gray-600       { color: #64748b; }
+main .text-gray-700       { color: #475569; }
+
+/* Preserva texto branco dentro de fundos escuros/coloridos (modais, badges, botões) */
+main .bg-dark-card    .text-white,
+main .bg-dark-muted   .text-white,
+main [class*="bg-dark"] .text-white,
+main .btn-primary     .text-white,
+main [class*="bg-accent"] .text-white { color: white; }
+
+main .bg-dark-card .text-gray-300,
+main .bg-dark-card .text-gray-400,
+main .bg-dark-card .text-gray-500,
+main .bg-dark-card .text-gray-600 { color: #94a3b8; }
+
+main .bg-dark-muted .text-gray-300,
+main .bg-dark-muted .text-gray-400,
+main .bg-dark-muted .text-gray-500 { color: #94a3b8; }
