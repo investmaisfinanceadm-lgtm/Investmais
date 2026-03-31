@@ -188,8 +188,6 @@ export default function CNPJPage() {
   }, [])
 
   const handleConsultar = async () => {
-    const nums = cnpjInput.replace(/\D/g, '')
-
     if (!validarCNPJ(cnpjInput)) {
       setErrorState('invalid')
       setResult(null)
@@ -200,29 +198,30 @@ export default function CNPJPage() {
     setErrorState(null)
     setResult(null)
 
-    // Simulate API call
-    await new Promise(r => setTimeout(r, 1500))
+    try {
+      const res = await fetch(`/api/cnpj/consultar?cnpj=${cnpjInput.replace(/\D/g, '')}`)
+      const json = await res.json()
 
-    setIsLoading(false)
+      if (!res.ok) {
+        setErrorState(json.error === 'notfound' ? 'notfound' : 'apierror')
+        return
+      }
 
-    // Simulate: if CNPJ matches mock, return it; otherwise "not found"
-    // For demo purposes, we always return mock data for any valid CNPJ
-    const mockData: CNPJResult = {
-      ...MOCK_RESULT,
-      cnpj: cnpjInput,
+      setResult(json)
+
+      const newEntry: ConsultaHistorico = {
+        id: String(Date.now()),
+        cnpj: json.cnpj,
+        razaoSocial: json.razaoSocial,
+        situacao: json.situacaoCadastral,
+        consultadoEm: new Date().toISOString(),
+      }
+      setHistorico(prev => [newEntry, ...prev].slice(0, 10))
+    } catch {
+      setErrorState('apierror')
+    } finally {
+      setIsLoading(false)
     }
-
-    setResult(mockData)
-
-    // Add to history
-    const newEntry: ConsultaHistorico = {
-      id: String(Date.now()),
-      cnpj: cnpjInput,
-      razaoSocial: mockData.razaoSocial,
-      situacao: mockData.situacaoCadastral,
-      consultadoEm: new Date().toISOString(),
-    }
-    setHistorico(prev => [newEntry, ...prev].slice(0, 10))
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -235,9 +234,21 @@ export default function CNPJPage() {
     setCnpjInput('')
   }
 
-  const handleImportCRM = () => {
-    setImportFeedback(true)
-    setTimeout(() => setImportFeedback(false), 2500)
+  const handleImportCRM = async () => {
+    if (!result) return
+    try {
+      const res = await fetch('/api/cnpj/importar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(result),
+      })
+      if (res.ok) {
+        setImportFeedback(true)
+        setTimeout(() => setImportFeedback(false), 3000)
+      }
+    } catch {
+      // silently ignore
+    }
   }
 
   const handleHistoricoConsultar = (cnpj: string) => {
