@@ -3,7 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-const N8N_CNPJ_WEBHOOK = 'https://auto.devnetlife.com/webhook/cnpj'
+const RECEITAWS_API_KEY = process.env.RECEITAWS_API_KEY ?? ''
+const RECEITAWS_BASE = 'https://www.receitaws.com.br/v1/cnpj'
 
 // ReceitaWS date format: "DD/MM/YYYY" → "YYYY-MM-DD"
 function parseReceitaDate(d: string): string {
@@ -45,12 +46,18 @@ export async function GET(req: NextRequest) {
   let receitaData: any
 
   try {
-    const res = await fetch(N8N_CNPJ_WEBHOOK, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cnpj: cnpjRaw }),
+    const headers: Record<string, string> = {}
+    if (RECEITAWS_API_KEY) headers['Authorization'] = RECEITAWS_API_KEY
+
+    const res = await fetch(`${RECEITAWS_BASE}/${cnpjRaw}`, {
+      method: 'GET',
+      headers,
       cache: 'no-store',
     })
+
+    if (res.status === 429) {
+      return NextResponse.json({ error: 'ratelimit' }, { status: 429 })
+    }
 
     if (res.status === 404) {
       return NextResponse.json({ error: 'notfound' }, { status: 404 })
@@ -60,9 +67,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'apierror' }, { status: 502 })
     }
 
-    const raw = await res.json()
-    // O n8n pode retornar array ou objeto direto
-    receitaData = Array.isArray(raw) ? raw[0] : raw
+    receitaData = await res.json()
   } catch {
     return NextResponse.json({ error: 'apierror' }, { status: 502 })
   }

@@ -177,7 +177,7 @@ export default function CNPJPage() {
   const [cnpjInput, setCnpjInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<CNPJResult | null>(null)
-  const [errorState, setErrorState] = useState<'invalid' | 'notfound' | 'apierror' | null>(null)
+  const [errorState, setErrorState] = useState<'invalid' | 'notfound' | 'apierror' | 'ratelimit' | null>(null)
   const [historico, setHistorico] = useState<ConsultaHistorico[]>(MOCK_HISTORICO)
   const [importFeedback, setImportFeedback] = useState(false)
 
@@ -203,7 +203,9 @@ export default function CNPJPage() {
       const json = await res.json()
 
       if (!res.ok) {
-        setErrorState(json.error === 'notfound' ? 'notfound' : 'apierror')
+        if (json.error === 'notfound') setErrorState('notfound')
+        else if (json.error === 'ratelimit') setErrorState('ratelimit')
+        else setErrorState('apierror')
         return
       }
 
@@ -376,6 +378,21 @@ export default function CNPJPage() {
               <RefreshCw className="w-4 h-4" />
               Nova Consulta
             </button>
+          </motion.div>
+        )}
+
+        {errorState === 'ratelimit' && !isLoading && (
+          <motion.div
+            key="ratelimit"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="flex items-start gap-4 p-5 rounded-xl bg-orange-500/10 border border-orange-500/20">
+            <AlertTriangle className="w-5 h-5 text-orange-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-orange-400">Limite de consultas atingido</p>
+              <p className="text-xs text-orange-400/70 mt-1">A API da Receita Federal limitou as consultas. Aguarde 1 minuto e tente novamente.</p>
+            </div>
           </motion.div>
         )}
 
