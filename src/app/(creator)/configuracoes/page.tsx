@@ -144,7 +144,7 @@ export default function ConfiguracoesPage() {
                 </div>
                 <h1 className="text-5xl font-black text-white tracking-tighter leading-none">
                     Ajustes de <br />
-                    <span className="text-transparent bg-clip-text bg-gradient-accent">Parâmetros</span>
+                    <span className="text-accent">Parâmetros</span>
                 </h1>
                 <p className="text-gray-500 font-medium uppercase tracking-widest text-[10px]">
                     Gerencie suas credenciais de acesso e protocolos de identidade visual

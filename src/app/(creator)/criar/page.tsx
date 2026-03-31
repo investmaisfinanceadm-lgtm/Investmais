@@ -125,10 +125,11 @@ export default function CriarPage() {
             const errors: Partial<Record<keyof Step1Data, string>> = {}
             if (!step1.nome_produto) errors.nome_produto = 'Nome do produto é obrigatório'
             if (!step1.descricao_produto) errors.descricao_produto = 'Descrição é obrigatória'
-            
+            if (!step1.logo_empresa_file) errors.logo_empresa_file = 'Logo da empresa é obrigatória'
+
             if (Object.keys(errors).length > 0) {
                 setStep1Errors(errors)
-                toast.error('Preencha os campos obrigatórios')
+                toast.error('Preencha os campos obrigatórios, incluindo a logo da empresa')
                 return
             }
             setStep1Errors({})
@@ -216,6 +217,11 @@ export default function CriarPage() {
                     const err = await response.json()
                     errorMsg = err.error || errorMsg
                 } catch {}
+                if (response.status === 403) {
+                    setQuotaError(true)
+                    setIsGenerating(false)
+                    return
+                }
                 throw new Error(errorMsg)
             }
 
@@ -323,8 +329,8 @@ export default function CriarPage() {
                 <div className="space-y-6 max-w-md">
                     <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic leading-tight">Sincronizando Matriz Narrativa...</h2>
                     <p className="text-gray-500 font-medium uppercase tracking-[0.2em] text-[9px] leading-loose">
-                        Nossa IA está processando as camadas audiovisuais para garantir o máximo impacto financeiro. 
-                        Este processo leva cerca de 60 segundos.
+                        Nossa IA está analisando a logo, gerando o roteiro e renderizando o vídeo com Veo3.
+                        Este processo leva entre 3 e 5 minutos.
                     </p>
                 </div>
 
@@ -418,6 +424,8 @@ export default function CriarPage() {
                                     previewUrl={step1.logo_empresa_url}
                                     onChange={(file, preview) => setStep1(p => ({ ...p, logo_empresa_file: file, logo_empresa_url: preview }))}
                                     onClear={() => setStep1(p => ({ ...p, logo_empresa_file: null, logo_empresa_url: null }))}
+                                    required
+                                    error={step1Errors.logo_empresa_file}
                                 />
                             </div>
                         </div>
@@ -745,9 +753,11 @@ interface FileUploadFieldProps {
     previewUrl: string | null
     onChange: (file: File | null, preview: string | null) => void
     onClear: () => void
+    required?: boolean
+    error?: string
 }
 
-function FileUploadField({ label, previewUrl, onChange, onClear }: FileUploadFieldProps) {
+function FileUploadField({ label, previewUrl, onChange, onClear, required, error }: FileUploadFieldProps) {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
@@ -758,7 +768,9 @@ function FileUploadField({ label, previewUrl, onChange, onClear }: FileUploadFie
 
     return (
         <div className="space-y-6 flex-1">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">{label}</label>
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">
+                {label}{required && <span className="text-red-400 ml-1">*</span>}
+            </label>
             <div className="relative group">
                 <input
                     type="file"
@@ -768,7 +780,7 @@ function FileUploadField({ label, previewUrl, onChange, onClear }: FileUploadFie
                 />
                 <div className={cn(
                     "h-48 rounded-[40px] border border-dashed flex flex-col items-center justify-center transition-all bg-white/5 group-hover:bg-white/[0.08] shadow-2xl relative overflow-hidden",
-                    previewUrl ? 'border-accent/40' : 'border-white/10'
+                    error ? 'border-red-500/60' : previewUrl ? 'border-accent/40' : 'border-white/10'
                 )}>
                     {previewUrl ? (
                         <div className="relative w-full h-full p-3 group/preview">
