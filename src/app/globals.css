@@ -206,31 +206,15 @@ body {
 
 /* ══════════════════════════════════════════════════════════════════
    CONTENT AREA — text color adaptation (light background)
-   Adapta text-white/gray para escuro sem tocar na sidebar
+   Usa data-theme para evitar conflito com utilitários do Tailwind
    ══════════════════════════════════════════════════════════════════ */
 
-/* Títulos e textos gerais na área de conteúdo */
-main .text-white          { color: #1e293b; }
-main .text-gray-100       { color: #334155; }
-main .text-gray-200       { color: #334155; }
-main .text-gray-300       { color: #475569; }
-main .text-gray-400       { color: #64748b; }
-main .text-gray-500       { color: #94a3b8; }
-main .text-gray-600       { color: #64748b; }
-main .text-gray-700       { color: #475569; }
+@layer base {
+  /* Área de conteúdo: texto escuro por padrão */
+  [data-theme="light"] { color: #1e293b; }
 
-/* Preserva texto branco dentro de fundos escuros/coloridos (modais, badges, botões) */
-main .bg-dark-card    .text-white,
-main .bg-dark-muted   .text-white,
-main [class*="bg-dark"] .text-white,
-main .btn-primary     .text-white,
-main [class*="bg-accent"] .text-white { color: white; }
-
-main .bg-dark-card .text-gray-300,
-main .bg-dark-card .text-gray-400,
-main .bg-dark-card .text-gray-500,
-main .bg-dark-card .text-gray-600 { color: #94a3b8; }
-
-main .bg-dark-muted .text-gray-300,
-main .bg-dark-muted .text-gray-400,
-main .bg-dark-muted .text-gray-500 { color: #94a3b8; }
+  /* Elementos dentro de fundos escuros preservam texto claro */
+  [data-theme="light"] .dark-surface,
+  [data-theme="light"] [style*="background:#131B2B"],
+  [data-theme="light"] [style*="background:#0F172A"] { color: white; }
+}
