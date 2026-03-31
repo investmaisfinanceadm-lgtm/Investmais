@@ -5,8 +5,9 @@ import {
   Send, Mail, Calendar, Plus, X, ChevronLeft, ChevronRight,
   CheckCircle2, Clock, XCircle, Eye, Users,
   Settings, Trash2,
-  Tag, ToggleLeft, ToggleRight, User
+  Tag, ToggleLeft, ToggleRight, User, Loader2
 } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, isToday, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -202,6 +203,7 @@ function NewDispatchModal({ onClose, onSave }: { onClose: () => void; onSave: (d
     resolver: zodResolver(dispatchSchema),
     defaultValues: { segment: 'todos', scheduleToggle: false },
   })
+  const [isSending, setIsSending] = useState(false)
 
   const scheduleOn = watch('scheduleToggle')
   const subject = watch('subject') || ''
@@ -219,17 +221,54 @@ function NewDispatchModal({ onClose, onSave }: { onClose: () => void; onSave: (d
     manual: 'E-mails manuais',
   }
 
-  const onSubmit = (data: DispatchFormValues) => {
-    const newDispatch: Dispatch = {
-      id: String(Date.now()),
-      subject: data.subject,
-      recipientsCount: data.segment === 'manual' ? (data.manualEmails?.split(',').length || 1) : Math.floor(Math.random() * 200) + 10,
-      status: data.scheduleToggle ? 'agendado' : 'enviado',
-      sentAt: data.scheduleToggle && data.scheduledDate ? `${data.scheduledDate}T${data.scheduledTime || '09:00'}:00` : new Date().toISOString(),
-      openRate: 0,
+  const onSubmit = async (data: DispatchFormValues) => {
+    setIsSending(true)
+    try {
+      const res = await fetch('/api/disparos/enviar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      const json = await res.json()
+
+      if (!res.ok) {
+        const msg = json.error ?? 'Erro ao enviar disparo.'
+        toast.error(msg)
+        const newDispatch: Dispatch = {
+          id: String(Date.now()),
+          subject: data.subject,
+          recipientsCount: 0,
+          status: 'falhou',
+          sentAt: new Date().toISOString(),
+          openRate: 0,
+        }
+        onSave(newDispatch)
+        onClose()
+        return
+      }
+
+      toast.success(
+        data.scheduleToggle
+          ? `Disparo agendado para ${json.sent} destinatário(s).`
+          : `Disparo enviado para ${json.sent} destinatário(s)!`
+      )
+      const newDispatch: Dispatch = {
+        id: String(Date.now()),
+        subject: data.subject,
+        recipientsCount: json.sent,
+        status: data.scheduleToggle ? 'agendado' : 'enviado',
+        sentAt: data.scheduleToggle && data.scheduledDate
+          ? `${data.scheduledDate}T${data.scheduledTime || '09:00'}:00`
+          : new Date().toISOString(),
+        openRate: 0,
+      }
+      onSave(newDispatch)
+      onClose()
+    } catch {
+      toast.error('Erro de conexão ao enviar disparo.')
+    } finally {
+      setIsSending(false)
     }
-    onSave(newDispatch)
-    onClose()
   }
 
   return (
@@ -338,10 +377,13 @@ function NewDispatchModal({ onClose, onSave }: { onClose: () => void; onSave: (d
         )}
 
         <div className="flex gap-3 pt-2">
-          <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancelar</button>
-          <button type="submit" className="btn-primary flex-1 flex items-center justify-center gap-2">
-            <Send className="w-4 h-4" />
-            {scheduleOn ? 'Agendar Disparo' : 'Enviar Agora'}
+          <button type="button" onClick={onClose} disabled={isSending} className="btn-secondary flex-1">Cancelar</button>
+          <button type="submit" disabled={isSending} className="btn-primary flex-1 flex items-center justify-center gap-2">
+            {isSending ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Enviando...</>
+            ) : (
+              <><Send className="w-4 h-4" />{scheduleOn ? 'Agendar Disparo' : 'Enviar Agora'}</>
+            )}
           </button>
         </div>
       </form>
