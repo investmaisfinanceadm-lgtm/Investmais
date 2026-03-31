@@ -51,6 +51,7 @@ export default function ConfiguracoesPage() {
     const [isSavingPw, setIsSavingPw] = useState(false)
     const [logoPreview, setLogoPreview] = useState<string | null>(null)
     const [brandColors, setBrandColors] = useState({ primary: '#0A192F', secondary: '#2563EB' })
+    const [brandFont, setBrandFont] = useState('Inter')
     const logoInputRef = useRef<HTMLInputElement>(null)
     const avatarInputRef = useRef<HTMLInputElement>(null)
 
@@ -358,8 +359,12 @@ export default function ConfiguracoesPage() {
                                 </div>
                             </div>
                             <button
-                                onClick={() => toast.success('DNA visual pronto!')}
-                                className="btn-primary py-5 w-full flex items-center justify-center gap-3 group bg-accent text-black font-black uppercase tracking-widest text-[10px] rounded-xl"
+                                onClick={() => {
+                                    localStorage.setItem('brand_colors', JSON.stringify(brandColors))
+                                    localStorage.setItem('brand_font', brandFont)
+                                    toast.success('DNA visual salvo com sucesso!')
+                                }}
+                                className="btn-primary py-5 w-full flex items-center justify-center gap-3 group bg-accent font-black uppercase tracking-widest text-[10px] rounded-xl"
                             >
                                 <PaletteIcon className="w-4 h-4" />
                                 <span className="uppercase tracking-[0.2em] font-black text-xs italic">Atualizar Matrix DNA</span>
@@ -374,7 +379,10 @@ export default function ConfiguracoesPage() {
                                 <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">Selecione a fonte padrão para os ativos</p>
                             </div>
                             <div className="w-full md:w-80">
-                                <select className="input-field h-16 bg-white/5 border-white/5 rounded-2xl px-8 uppercase text-[10px] font-black tracking-widest outline-none transition-all focus:bg-white/[0.08] cursor-pointer">
+                                <select
+                                    value={brandFont}
+                                    onChange={e => setBrandFont(e.target.value)}
+                                    className="input-field h-16 bg-white/5 border-white/5 rounded-2xl px-8 uppercase text-[10px] font-black tracking-widest outline-none transition-all focus:bg-white/[0.08] cursor-pointer">
                                     {['Inter', 'Outfit', 'Montserrat', 'Open Sans', 'Lato'].map((f) => (
                                         <option key={f} value={f} className="bg-[#0A192F] text-white py-4">{f}</option>
                                     ))}

@@ -37,6 +37,28 @@ export async function GET() {
   }
 }
 
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session || (session.user as any).perfil !== 'admin') {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+    }
+
+    const { id, nome, email, perfil, cota_mensal } = await request.json()
+    if (!id) return NextResponse.json({ error: 'ID obrigatório' }, { status: 400 })
+
+    const user = await prisma.profile.update({
+      where: { id },
+      data: { nome, email, perfil, cota_mensal },
+    })
+
+    return NextResponse.json({ success: true, user_id: user.id })
+  } catch (error) {
+    console.error('Update user error:', error)
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)

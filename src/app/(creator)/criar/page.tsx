@@ -248,7 +248,7 @@ export default function CriarPage() {
                     <button onClick={() => setQuotaError(false)} className="btn-secondary px-8 py-4 uppercase tracking-widest font-black text-[10px]">
                         Voltar
                     </button>
-                    <button className="btn-primary px-8 py-4 uppercase tracking-widest font-black text-[10px]">
+                    <button onClick={() => router.push('/configuracoes')} className="btn-primary px-8 py-4 uppercase tracking-widest font-black text-[10px]">
                         Fazer Upgrade
                     </button>
                 </div>
@@ -293,7 +293,7 @@ export default function CriarPage() {
                                         <CheckCircle className="w-5 h-5" />
                                         Consolidar no Acervo
                                     </button>
-                                    <button onClick={() => window.location.reload()} className="w-full py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors">
+                                    <button onClick={() => router.push('/criar')} className="w-full py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors">
                                         Iniciar Novo Protocolo
                                     </button>
                                 </div>

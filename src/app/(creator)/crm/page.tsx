@@ -934,6 +934,9 @@ export default function CRMPage() {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isAddOpen, setIsAddOpen] = useState(false)
+  const [isCsvOpen, setIsCsvOpen] = useState(false)
+  const [csvText, setCsvText] = useState('')
+  const [csvError, setCsvError] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [activeFilter, setActiveFilter] = useState<FilterTab>('todos')
   const [search, setSearch] = useState('')
@@ -985,6 +988,37 @@ export default function CRMPage() {
     setContacts((prev) => [contact, ...prev])
   }
 
+  function handleImportCSV() {
+    setCsvError('')
+    const lines = csvText.trim().split('\n').filter(Boolean)
+    if (lines.length < 2) { setCsvError('Cole o CSV com cabeçalho e ao menos 1 linha.'); return }
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''))
+    const nomeIdx = headers.findIndex(h => h.includes('nome'))
+    const emailIdx = headers.findIndex(h => h.includes('email'))
+    if (nomeIdx === -1) { setCsvError('Coluna "nome" não encontrada.'); return }
+    const imported: Contact[] = lines.slice(1).map((line, i) => {
+      const cols = line.split(',').map(c => c.trim().replace(/"/g, ''))
+      return {
+        id: `csv-${Date.now()}-${i}`,
+        nome: cols[nomeIdx] || 'Sem nome',
+        email: emailIdx !== -1 ? cols[emailIdx] : '',
+        telefone: '',
+        empresa: '',
+        cargo: '',
+        canal: 'Site' as Canal,
+        status: 'lead' as FunilStatus,
+        tags: [],
+        avatar: '',
+        createdAt: new Date(),
+        activities: [],
+      }
+    })
+    setContacts(prev => [...imported, ...prev])
+    setIsCsvOpen(false)
+    setCsvText('')
+    import('react-hot-toast').then(({ default: toast }) => toast.success(`${imported.length} contato(s) importado(s)!`))
+  }
+
   const filterTabs: { key: FilterTab; label: string; count: number }[] = [
     { key: 'todos', label: 'Todos', count: contacts.length },
     { key: 'leads', label: 'Leads', count: contacts.filter((c) => ['lead', 'qualificado', 'proposta'].includes(c.status)).length },
@@ -1014,7 +1048,7 @@ export default function CRMPage() {
             </p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
-            <button className="btn-secondary flex items-center gap-2 text-sm py-2.5 px-5">
+            <button onClick={() => setIsCsvOpen(true)} className="btn-secondary flex items-center gap-2 text-sm py-2.5 px-5">
               <Upload className="w-4 h-4" />
               Importar CSV
             </button>
@@ -1314,6 +1348,43 @@ export default function CRMPage() {
             onClose={() => setIsAddOpen(false)}
             onAdd={handleAdd}
           />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isCsvOpen && (
+          <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setIsCsvOpen(false)} />
+            <motion.div className="relative w-full max-w-lg bg-dark-card border border-dark-border rounded-2xl shadow-card-hover" initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}>
+              <div className="p-5 border-b border-dark-border flex items-center justify-between">
+                <div>
+                  <h2 className="text-base font-black text-white uppercase tracking-wider">Importar CSV</h2>
+                  <p className="text-xs text-gray-400 mt-0.5">Cole o conteúdo do CSV ou o texto com colunas separadas por vírgula</p>
+                </div>
+                <button onClick={() => setIsCsvOpen(false)} className="p-1.5 rounded-lg hover:bg-white/5 text-gray-400"><X className="w-4 h-4" /></button>
+              </div>
+              <div className="p-5 space-y-4">
+                <div className="p-3 rounded-xl bg-accent/5 border border-accent/20 text-xs text-accent font-medium">
+                  Formato esperado: <code className="font-mono">nome,email,telefone,empresa</code> (cabeçalho na 1ª linha)
+                </div>
+                <textarea
+                  className="input-field resize-none font-mono text-xs"
+                  rows={8}
+                  placeholder={'nome,email,telefone,empresa\nJoão Silva,joao@email.com,(11) 99999-9999,Acme Corp\nMaria Souza,maria@email.com,,Empresa XYZ'}
+                  value={csvText}
+                  onChange={e => { setCsvText(e.target.value); setCsvError('') }}
+                />
+                {csvError && <p className="text-red-400 text-xs">{csvError}</p>}
+                <div className="flex gap-3">
+                  <button onClick={() => setIsCsvOpen(false)} className="btn-secondary flex-1">Cancelar</button>
+                  <button onClick={handleImportCSV} className="btn-primary flex-1 flex items-center justify-center gap-2">
+                    <Upload className="w-4 h-4" />
+                    Importar
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

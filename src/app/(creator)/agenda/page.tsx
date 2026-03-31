@@ -244,7 +244,20 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
                             )
                         })}
                     </div>
-                    <button className="btn-secondary w-full py-4 text-[10px] font-black uppercase tracking-widest border-white/5 hover:border-accent/40 mt-4 rounded-xl">
+                    <button
+                        onClick={() => {
+                            const header = 'Título,Status,Data'
+                            const rows = posts.map(p => `"${p.titulo}","${p.status}","${p.data}"`)
+                            const csv = [header, ...rows].join('\n')
+                            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+                            const url = URL.createObjectURL(blob)
+                            const a = document.createElement('a')
+                            a.href = url
+                            a.download = 'manifesto-conteudo.csv'
+                            a.click()
+                            URL.revokeObjectURL(url)
+                        }}
+                        className="btn-secondary w-full py-4 text-[10px] font-black uppercase tracking-widest border-white/5 hover:border-accent/40 mt-4 rounded-xl">
                         Exportar Lista de Manifesto (CSV)
                     </button>
                 </div>

@@ -212,10 +212,76 @@ function CreateUserModal({
     )
 }
 
+function EditUserModal({ user, onClose, onSuccess }: { user: UserProfile; onClose: () => void; onSuccess: () => void }) {
+    const [isLoading, setIsLoading] = useState(false)
+    const [form, setForm] = useState({ nome: user.nome, email: user.email, perfil: user.perfil, cota_mensal: user.cota_mensal })
+
+    const handleSave = async () => {
+        setIsLoading(true)
+        try {
+            const res = await fetch('/api/admin/usuarios', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: user.id, ...form }),
+            })
+            if (!res.ok) throw new Error((await res.json()).error)
+            toast.success('Usuário atualizado!')
+            onSuccess()
+            onClose()
+        } catch (err: any) {
+            toast.error(err.message || 'Erro ao atualizar')
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative z-10 bg-dark-card border border-dark-border rounded-2xl w-full max-w-lg shadow-card-hover animate-fade-in">
+                <div className="flex items-center justify-between p-6 border-b border-dark-border">
+                    <h2 className="text-lg font-semibold text-white">Editar Usuário</h2>
+                    <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
+                </div>
+                <div className="p-6 space-y-4">
+                    <div>
+                        <label className="label">Nome completo</label>
+                        <input className="input-field" value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} />
+                    </div>
+                    <div>
+                        <label className="label">E-mail</label>
+                        <input className="input-field" type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="label">Perfil</label>
+                            <select className="input-field" value={form.perfil} onChange={e => setForm(p => ({ ...p, perfil: e.target.value as any }))}>
+                                <option value="criador">Criador</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="label">Cota mensal</label>
+                            <input className="input-field" type="number" min={1} max={1000} value={form.cota_mensal} onChange={e => setForm(p => ({ ...p, cota_mensal: Number(e.target.value) }))} />
+                        </div>
+                    </div>
+                    <div className="flex gap-3 pt-2">
+                        <button onClick={onClose} className="btn-secondary flex-1">Cancelar</button>
+                        <button onClick={handleSave} disabled={isLoading} className="btn-primary flex-1 flex items-center justify-center gap-2">
+                            {isLoading ? <><Loader2 className="w-4 h-4 animate-spin" />Salvando...</> : 'Salvar Alterações'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 export default function AdminUsuariosPage() {
     const [users, setUsers] = useState<UserProfile[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [showModal, setShowModal] = useState(false)
+    const [editingUser, setEditingUser] = useState<UserProfile | null>(null)
     const [search, setSearch] = useState('')
     const [filterStatus, setFilterStatus] = useState('todos')
     const [filterPerfil, setFilterPerfil] = useState('todos')
@@ -465,7 +531,7 @@ export default function AdminUsuariosPage() {
                                                         <button
                                                             onClick={() => {
                                                                 setActiveMenu(null)
-                                                                toast('Edição de usuário em breve')
+                                                                setEditingUser(user)
                                                             }}
                                                             className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
                                                         >
@@ -519,6 +585,13 @@ export default function AdminUsuariosPage() {
                 onClose={() => setShowModal(false)}
                 onSuccess={loadUsers}
             />
+            {editingUser && (
+                <EditUserModal
+                    user={editingUser}
+                    onClose={() => setEditingUser(null)}
+                    onSuccess={loadUsers}
+                />
+            )}
         </div>
     )
 }
