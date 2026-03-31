@@ -5,7 +5,7 @@ export default function CreatorLayout({ children }: { children: ReactNode }) {
     return (
         <div className="flex h-screen overflow-hidden">
             <CreatorSidebar />
-            <main className="flex-1 min-w-0 overflow-y-auto">
+            <main className="flex-1 min-w-0 overflow-y-auto bg-[#EEF2F7]">
                 <div className="pt-16 lg:pt-0">{children}</div>
             </main>
         </div>
