@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import {
-  Plus, X, Play, Trash2, CheckCircle2, Clock, AlertCircle,
+  Plus, X, Play, Trash2, CheckCircle2, Clock,
   Phone, Users, Send, TrendingUp, Activity,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -12,6 +12,7 @@ import toast from 'react-hot-toast'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type ListaStatus = 'nova' | 'em_progresso' | 'concluida'
+type DisparoTab = 'mensagem' | 'configuracoes' | 'confirmar'
 
 interface ListaDisparo {
   id: string
@@ -23,25 +24,278 @@ interface ListaDisparo {
   created_at: string
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+interface DisparoConfig {
+  mensagem: string
+  intervalo: number
+  horarioComercial: boolean
+  dias: string[]
+}
+
+const DEFAULT_MENSAGEM = `Olá {nome}, tudo bem?
+
+Vi que você está em {cidade} e gostaria de apresentar uma solução especial para o seu negócio.
+
+Posso te ajudar?`
+
+const DIAS_SEMANA = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
+const DIAS_UTEIS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex']
+
 function parsePhones(raw: string): string[] {
-  return raw
-    .split('\n')
+  return raw.split('\n')
     .map(l => l.replace(/\D/g, '').trim())
     .filter(l => l.length >= 10 && l.length <= 15)
 }
 
+function applyVars(msg: string): string {
+  return msg
+    .replace(/\{nome\}/gi, 'João Silva')
+    .replace(/\{cidade\}/gi, 'São Paulo')
+    .replace(/\{estado\}/gi, 'SP')
+    .replace(/\{nicho\}/gi, 'Contabilidade')
+}
+
+// ─── StatusBadge ─────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: ListaStatus }) {
   const map: Record<ListaStatus, { label: string; cls: string; icon: React.ReactNode }> = {
-    nova:          { label: 'Nova',          cls: 'bg-white/5 border-white/10 text-gray-300',      icon: <Clock className="w-3 h-3" /> },
-    em_progresso:  { label: 'Em Progresso',  cls: 'bg-accent/10 border-accent/20 text-accent',     icon: <Activity className="w-3 h-3" /> },
-    concluida:     { label: 'Concluída',     cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400', icon: <CheckCircle2 className="w-3 h-3" /> },
+    nova:         { label: 'Nova',         cls: 'bg-white/5 border-white/10 text-gray-300',                   icon: <Clock className="w-3 h-3" /> },
+    em_progresso: { label: 'Em Progresso', cls: 'bg-accent/10 border-accent/20 text-accent',                  icon: <Activity className="w-3 h-3" /> },
+    concluida:    { label: 'Concluída',    cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',    icon: <CheckCircle2 className="w-3 h-3" /> },
   }
   const { label, cls, icon } = map[status]
   return (
     <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${cls}`}>
       {icon}{label}
     </span>
+  )
+}
+
+// ─── Modal Iniciar Disparo ────────────────────────────────────────────────────
+function IniciarDisparoModal({
+  lista,
+  onClose,
+  onConfirm,
+}: {
+  lista: ListaDisparo
+  onClose: () => void
+  onConfirm: (id: string) => void
+}) {
+  const [activeTab, setActiveTab] = useState<DisparoTab>('mensagem')
+  const [config, setConfig] = useState<DisparoConfig>({
+    mensagem: DEFAULT_MENSAGEM,
+    intervalo: 5,
+    horarioComercial: false,
+    dias: [...DIAS_UTEIS],
+  })
+  const [starting, setStarting] = useState(false)
+
+  const toggleDia = (dia: string) =>
+    setConfig(prev => ({
+      ...prev,
+      dias: prev.dias.includes(dia) ? prev.dias.filter(d => d !== dia) : [...prev.dias, dia],
+    }))
+
+  const handleConfirm = async () => {
+    setStarting(true)
+    await new Promise(r => setTimeout(r, 600))
+    onConfirm(lista.id)
+    toast.success('Disparo de WhatsApp iniciado!')
+    onClose()
+    setStarting(false)
+  }
+
+  const tabs: { key: DisparoTab; label: string }[] = [
+    { key: 'mensagem', label: 'Mensagem' },
+    { key: 'configuracoes', label: 'Configurações' },
+    { key: 'confirmar', label: 'Confirmar' },
+  ]
+
+  const diasLabel = config.dias
+    .sort((a, b) => DIAS_SEMANA.indexOf(a) - DIAS_SEMANA.indexOf(b))
+    .map(d => d.toUpperCase())
+    .join(', ')
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <motion.div className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={onClose} />
+      <motion.div
+        className="relative w-full max-w-lg bg-dark-card border border-dark-border rounded-2xl overflow-hidden shadow-2xl"
+        initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}>
+
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-dark-border flex items-center justify-between">
+          <h2 className="text-base font-black text-white flex items-center gap-2">
+            <Send className="w-4 h-4 text-accent" />
+            Iniciar Disparo: <span className="text-accent">{lista.nome}</span>
+          </h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b border-dark-border">
+          {tabs.map(t => (
+            <button key={t.key} onClick={() => setActiveTab(t.key)}
+              className={`flex-1 py-3 text-sm font-semibold transition-colors ${
+                activeTab === t.key
+                  ? 'text-white border-b-2 border-accent bg-accent/5'
+                  : 'text-gray-500 hover:text-gray-300'
+              }`}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content */}
+        <div className="p-6">
+          <AnimatePresence mode="wait">
+            {/* ── Mensagem ── */}
+            {activeTab === 'mensagem' && (
+              <motion.div key="msg" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
+                className="space-y-4">
+                {/* Variables */}
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Variáveis Disponíveis</p>
+                  <div className="flex flex-wrap gap-2">
+                    {['{nome}', '{cidade}', '{estado}', '{nicho}'].map(v => (
+                      <button key={v} onClick={() => setConfig(prev => ({ ...prev, mensagem: prev.mensagem + v }))}
+                        className="text-xs px-3 py-1 rounded-lg bg-accent/10 border border-accent/20 text-accent font-mono hover:bg-accent/20 transition-colors">
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Message textarea */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Mensagem</label>
+                    <div className="flex gap-2">
+                      <button onClick={() => setConfig(prev => ({ ...prev, mensagem: DEFAULT_MENSAGEM }))}
+                        className="text-[10px] text-gray-500 hover:text-white transition-colors flex items-center gap-1">
+                        ↺ Carregar Padrão
+                      </button>
+                      <button onClick={() => { localStorage.setItem('disparo_msg_padrao', config.mensagem); toast.success('Padrão salvo!') }}
+                        className="text-[10px] text-accent hover:text-accent/80 transition-colors flex items-center gap-1 font-semibold">
+                        ✦ Salvar como Padrão
+                      </button>
+                    </div>
+                  </div>
+                  <textarea value={config.mensagem}
+                    onChange={e => setConfig(prev => ({ ...prev, mensagem: e.target.value }))}
+                    rows={5} className="input-field text-sm resize-none font-mono" />
+                  <p className="text-[10px] text-gray-600 text-right">{config.mensagem.length} caracteres</p>
+                </div>
+
+                {/* Preview */}
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Preview</p>
+                  <div className="p-4 rounded-xl bg-dark-muted border border-dark-border text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
+                    {applyVars(config.mensagem) || <span className="text-gray-600 italic">Digite uma mensagem acima</span>}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ── Configurações ── */}
+            {activeTab === 'configuracoes' && (
+              <motion.div key="cfg" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
+                className="space-y-6">
+                {/* Intervalo */}
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <Clock className="w-3 h-3" />Intervalo entre Envios
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <input type="number" value={config.intervalo} min={3} max={60}
+                      onChange={e => setConfig(prev => ({ ...prev, intervalo: Math.min(60, Math.max(3, Number(e.target.value))) }))}
+                      className="input-field w-24 text-center font-mono text-sm" />
+                    <span className="text-sm text-gray-400">segundos (min: 3, máx: 60)</span>
+                  </div>
+                </div>
+
+                {/* Horário comercial */}
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div onClick={() => setConfig(prev => ({ ...prev, horarioComercial: !prev.horarioComercial }))}
+                    className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                      config.horarioComercial ? 'bg-accent border-accent' : 'border-dark-border bg-dark-muted group-hover:border-accent/40'
+                    }`}>
+                    {config.horarioComercial && <CheckCircle2 className="w-3 h-3 text-white" />}
+                  </div>
+                  <span className="text-sm text-gray-300 font-medium">Enviar apenas em horário comercial</span>
+                </label>
+
+                {/* Dias da semana */}
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Dias da Semana</p>
+                  <div className="flex flex-wrap gap-2">
+                    {DIAS_SEMANA.map(dia => (
+                      <button key={dia} onClick={() => toggleDia(dia)}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                          config.dias.includes(dia)
+                            ? 'bg-accent text-white shadow-accent'
+                            : 'bg-dark-muted border border-dark-border text-gray-400 hover:border-accent/40'
+                        }`}>
+                        {dia}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ── Confirmar ── */}
+            {activeTab === 'confirmar' && (
+              <motion.div key="confirm" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
+                className="space-y-4">
+                <div className="p-4 rounded-xl bg-accent/5 border border-accent/20 space-y-3">
+                  <p className="text-sm font-black text-accent flex items-center gap-2">
+                    <Send className="w-3.5 h-3.5" />Resumo do Disparo
+                  </p>
+                  <div className="space-y-2 text-sm">
+                    {[
+                      { label: 'Lista',             value: lista.nome,                              cls: 'text-white font-semibold' },
+                      { label: 'Total de Leads',     value: String(lista.total),                    cls: 'text-white font-semibold' },
+                      { label: 'Já enviados',        value: String(lista.enviados),                 cls: 'text-white font-semibold' },
+                      { label: 'Serão enviados',     value: String(lista.total - lista.enviados),   cls: 'text-accent font-bold' },
+                      { label: 'Intervalo',          value: `${config.intervalo} segundos`,         cls: 'text-white' },
+                      { label: 'Horário Comercial',  value: config.horarioComercial ? 'Ativado' : 'Desativado', cls: 'text-white' },
+                      { label: 'Dias',               value: diasLabel,                              cls: 'text-white' },
+                    ].map(row => (
+                      <div key={row.label} className="flex items-center justify-between gap-4">
+                        <span className="text-gray-400">{row.label}:</span>
+                        <span className={row.cls}>{row.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <p className="text-[11px] text-gray-500 bg-dark-muted border border-dark-border rounded-xl px-4 py-3 leading-relaxed">
+                  O disparo será processado via webhook N8N. Você pode acompanhar o progresso na tabela de listas.
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 pb-6 flex gap-3">
+          <button onClick={onClose} className="btn-secondary flex-1 font-semibold">Cancelar</button>
+          {activeTab !== 'confirmar' ? (
+            <button onClick={() => setActiveTab(activeTab === 'mensagem' ? 'configuracoes' : 'confirmar')}
+              className="btn-primary flex-1 font-black text-sm uppercase tracking-wider">
+              Próximo →
+            </button>
+          ) : (
+            <button onClick={handleConfirm} disabled={starting}
+              className="btn-primary flex-1 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-60">
+              {starting ? <Activity className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              Iniciar Disparo de WhatsApp
+            </button>
+          )}
+        </div>
+      </motion.div>
+    </div>
   )
 }
 
@@ -77,13 +331,16 @@ function CriarListaModal({ onClose, onCreate }: { onClose: () => void; onCreate:
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <motion.div className="absolute inset-0 bg-black/70 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={onClose} />
+      <motion.div className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={onClose} />
       <motion.div
         className="relative w-full max-w-md bg-dark-card border border-dark-border rounded-2xl overflow-hidden shadow-2xl"
         initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}>
         <div className="p-6 border-b border-dark-border flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-black text-white flex items-center gap-2"><Plus className="w-5 h-5 text-accent" />Criar Lista Manual</h2>
+            <h2 className="text-lg font-black text-white flex items-center gap-2">
+              <Plus className="w-5 h-5 text-accent" />Criar Lista Manual
+            </h2>
             <p className="text-xs text-gray-500 mt-0.5">Adicione telefones manualmente para criar uma nova lista de disparo.</p>
           </div>
           <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1">
@@ -105,7 +362,9 @@ function CriarListaModal({ onClose, onCreate }: { onClose: () => void; onCreate:
               className="input-field text-sm font-mono resize-none" />
             <p className="text-[10px] text-gray-600">
               Formato: DDI + DDD + Número (ex: 5562994331056)
-              <span className="ml-2 text-accent font-bold">{phones.length} válidos / {rawPhones.split('\n').filter(l => l.trim()).length} total</span>
+              <span className="ml-2 text-accent font-bold">
+                {phones.length} válidos / {rawPhones.split('\n').filter(l => l.trim()).length} total
+              </span>
             </p>
           </div>
         </div>
@@ -113,7 +372,9 @@ function CriarListaModal({ onClose, onCreate }: { onClose: () => void; onCreate:
           <button onClick={onClose} className="btn-secondary flex-1 font-semibold">Cancelar</button>
           <button onClick={handleSubmit} disabled={!canSave || saving}
             className="btn-primary flex-1 font-black text-sm uppercase tracking-wider disabled:opacity-40 flex items-center justify-center gap-2">
-            {saving ? <><Activity className="w-4 h-4 animate-spin" />Criando...</> : `Criar Lista (${phones.length} telefones)`}
+            {saving
+              ? <><Activity className="w-4 h-4 animate-spin" />Criando...</>
+              : `Criar Lista (${phones.length} telefones)`}
           </button>
         </div>
       </motion.div>
@@ -125,7 +386,8 @@ function CriarListaModal({ onClose, onCreate }: { onClose: () => void; onCreate:
 export default function ListasDisparoPage() {
   const [listas, setListas] = useState<ListaDisparo[]>([])
   const [loading, setLoading] = useState(true)
-  const [modalOpen, setModalOpen] = useState(false)
+  const [criarOpen, setCriarOpen] = useState(false)
+  const [iniciarLista, setIniciarLista] = useState<ListaDisparo | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -137,12 +399,10 @@ export default function ListasDisparoPage() {
   }, [])
 
   const stats = useMemo(() => ({
-    ativas: listas.filter(l => l.status === 'nova').length,
-    emProgresso: listas.filter(l => l.status === 'em_progresso').length,
-    taxaSucesso: listas.length > 0
-      ? Math.round(listas.filter(l => l.status === 'concluida').length / listas.length * 100)
-      : 0,
-    pendentes: listas.reduce((acc, l) => acc + (l.total - l.enviados), 0),
+    ativas:       listas.filter(l => l.status === 'nova').length,
+    emProgresso:  listas.filter(l => l.status === 'em_progresso').length,
+    taxaSucesso:  listas.length > 0 ? Math.round(listas.filter(l => l.status === 'concluida').length / listas.length * 100) : 0,
+    pendentes:    listas.reduce((acc, l) => acc + (l.total - l.enviados), 0),
   }), [listas])
 
   const handleDelete = async (id: string) => {
@@ -158,9 +418,8 @@ export default function ListasDisparoPage() {
     }
   }
 
-  const handleIniciar = (id: string) => {
+  const handleConfirmIniciar = (id: string) => {
     setListas(prev => prev.map(l => l.id === id ? { ...l, status: 'em_progresso' } : l))
-    toast.success('Disparo iniciado!')
   }
 
   return (
@@ -173,7 +432,7 @@ export default function ListasDisparoPage() {
             Gerencie suas listas e dispare mensagens WhatsApp para leads
           </p>
         </div>
-        <button onClick={() => setModalOpen(true)}
+        <button onClick={() => setCriarOpen(true)}
           className="btn-primary flex items-center gap-2 font-black text-sm uppercase tracking-wider whitespace-nowrap">
           <Plus className="w-4 h-4" />Criar Lista Manual
         </button>
@@ -182,10 +441,10 @@ export default function ListasDisparoPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Listas Ativas',   value: stats.ativas,       icon: <Send className="w-5 h-5" />,       color: 'text-accent' },
-          { label: 'Em Progresso',    value: stats.emProgresso,  icon: <Activity className="w-5 h-5" />,   color: 'text-blue-400' },
+          { label: 'Listas Ativas',   value: stats.ativas,            icon: <Send className="w-5 h-5" />,       color: 'text-accent' },
+          { label: 'Em Progresso',    value: stats.emProgresso,       icon: <Activity className="w-5 h-5" />,   color: 'text-blue-400' },
           { label: 'Taxa de Sucesso', value: `${stats.taxaSucesso}%`, icon: <TrendingUp className="w-5 h-5" />, color: 'text-emerald-400' },
-          { label: 'Pendentes',       value: stats.pendentes,    icon: <Users className="w-5 h-5" />,      color: 'text-amber-400' },
+          { label: 'Pendentes',       value: stats.pendentes,         icon: <Users className="w-5 h-5" />,      color: 'text-amber-400' },
         ].map(s => (
           <div key={s.label} className="card p-5 rounded-2xl flex items-center gap-4">
             <div className={`${s.color} opacity-60`}>{s.icon}</div>
@@ -214,7 +473,7 @@ export default function ListasDisparoPage() {
             </div>
             <p className="text-gray-400 font-semibold">Nenhuma lista criada ainda</p>
             <p className="text-gray-600 text-sm mt-1">Crie sua primeira lista de disparo para começar</p>
-            <button onClick={() => setModalOpen(true)} className="btn-primary mt-5 inline-flex items-center gap-2 text-sm font-black uppercase tracking-wider">
+            <button onClick={() => setCriarOpen(true)} className="btn-primary mt-5 inline-flex items-center gap-2 text-sm font-black uppercase tracking-wider">
               <Plus className="w-4 h-4" />Criar Lista Manual
             </button>
           </div>
@@ -245,22 +504,19 @@ export default function ListasDisparoPage() {
                         <td className="table-cell min-w-[140px]">
                           <div className="flex items-center gap-2">
                             <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                              <div className="h-full bg-accent rounded-full transition-all duration-500"
-                                style={{ width: `${pct}%` }} />
+                              <div className="h-full bg-accent rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
                             </div>
                             <span className="text-[10px] text-gray-500 w-8 text-right">{pct}%</span>
                           </div>
                         </td>
-                        <td className="table-cell text-center">
-                          <StatusBadge status={lista.status} />
-                        </td>
+                        <td className="table-cell text-center"><StatusBadge status={lista.status} /></td>
                         <td className="table-cell text-gray-400 text-xs">
                           {format(parseISO(lista.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                         </td>
                         <td className="table-cell text-center">
                           <div className="flex items-center justify-center gap-1">
                             {lista.status === 'nova' && (
-                              <button onClick={() => handleIniciar(lista.id)} title="Iniciar disparo"
+                              <button onClick={() => setIniciarLista(lista)} title="Iniciar disparo"
                                 className="p-1.5 rounded-lg bg-accent/10 border border-accent/20 text-accent hover:bg-accent/20 transition-colors">
                                 <Play className="w-3.5 h-3.5" />
                               </button>
@@ -282,12 +538,19 @@ export default function ListasDisparoPage() {
         )}
       </div>
 
-      {/* Modal */}
+      {/* Modals */}
       <AnimatePresence>
-        {modalOpen && (
+        {criarOpen && (
           <CriarListaModal
-            onClose={() => setModalOpen(false)}
+            onClose={() => setCriarOpen(false)}
             onCreate={lista => setListas(prev => [lista, ...prev])}
+          />
+        )}
+        {iniciarLista && (
+          <IniciarDisparoModal
+            lista={iniciarLista}
+            onClose={() => setIniciarLista(null)}
+            onConfirm={handleConfirmIniciar}
           />
         )}
       </AnimatePresence>
