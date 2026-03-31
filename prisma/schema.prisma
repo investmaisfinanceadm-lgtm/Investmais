@@ -213,3 +213,24 @@ model ConsultaCNPJ {
 
   @@map("consultas_cnpj")
 }
+
+// Tabela espelho da leads_cnpj do Supabase (alimentada pelo n8n e pela API de consulta CNPJ)
+model LeadCNPJ {
+  id             String   @id @default(uuid())
+  cnpj           String
+  nome           String?
+  telefone       String?
+  email          String?
+  situacao       String?
+  cidade         String?
+  estado         String?
+  endereco       String?
+  cnae_descricao String?
+  cnae_codigo    String?
+  user_id        String   // UUID do usuário (sem FK — compatível com o n8n que gera UUID avulso)
+  created_at     DateTime @default(now())
+
+  @@index([cnpj])
+  @@index([user_id])
+  @@map("leads_cnpj")
+}

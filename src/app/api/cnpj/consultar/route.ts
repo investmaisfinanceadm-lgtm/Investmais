@@ -94,6 +94,7 @@ export async function GET(req: NextRequest) {
   // Save to DB (fire-and-forget, don't block the response)
   const userId = (session.user as any).id
   if (userId) {
+    // Histórico de consultas (com dados completos)
     prisma.consultaCNPJ.create({
       data: {
         user_id: userId,
@@ -103,7 +104,24 @@ export async function GET(req: NextRequest) {
         situacao: result.situacaoCadastral,
         dados: result as any,
       },
-    }).catch(() => {/* non-critical */})
+    }).catch(() => {})
+
+    // Tabela leads_cnpj — mesma estrutura do Supabase do n8n
+    prisma.leadCNPJ.create({
+      data: {
+        cnpj: result.cnpj,
+        nome: result.razaoSocial,
+        telefone: result.telefone !== 'Não informado' ? result.telefone.split('/')[0].trim() : null,
+        email: result.email !== 'Não informado' ? result.email : null,
+        situacao: result.situacaoCadastral,
+        cidade: result.municipio,
+        estado: result.uf,
+        endereco: `${result.logradouro}, ${result.numero}`.trim().replace(/^,\s*/, ''),
+        cnae_descricao: result.cnaePrincipalDescricao,
+        cnae_codigo: result.cnaePrincipalCodigo,
+        user_id: userId,
+      },
+    }).catch(() => {})
   }
 
   return NextResponse.json(result)
