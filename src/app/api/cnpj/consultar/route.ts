@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+const N8N_CNPJ_WEBHOOK = 'https://auto.devnetlife.com/webhook/cnpj'
+
 // ReceitaWS date format: "DD/MM/YYYY" → "YYYY-MM-DD"
 function parseReceitaDate(d: string): string {
   if (!d || d === '00/00/0000') return new Date().toISOString().slice(0, 10)
@@ -40,12 +42,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'invalid' }, { status: 400 })
   }
 
-  const apiKey = process.env.RECEITAWS_API_KEY
   let receitaData: any
 
   try {
-    const res = await fetch(`https://www.receitaws.com.br/v1/cnpj/${cnpjRaw}`, {
-      headers: { Authorization: apiKey ?? '' },
+    const res = await fetch(N8N_CNPJ_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cnpj: cnpjRaw }),
       cache: 'no-store',
     })
 
@@ -57,12 +60,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'apierror' }, { status: 502 })
     }
 
-    receitaData = await res.json()
+    const raw = await res.json()
+    // O n8n pode retornar array ou objeto direto
+    receitaData = Array.isArray(raw) ? raw[0] : raw
   } catch {
     return NextResponse.json({ error: 'apierror' }, { status: 502 })
   }
 
-  if (receitaData.status === 'ERROR') {
+  if (!receitaData || receitaData.status === 'ERROR') {
     return NextResponse.json({ error: 'notfound' }, { status: 404 })
   }
 
@@ -91,10 +96,9 @@ export async function GET(req: NextRequest) {
     })),
   }
 
-  // Save to DB (fire-and-forget, don't block the response)
+  // Salva no banco (fire-and-forget)
   const userId = (session.user as any).id
   if (userId) {
-    // Histórico de consultas (com dados completos)
     prisma.consultaCNPJ.create({
       data: {
         user_id: userId,
@@ -106,7 +110,6 @@ export async function GET(req: NextRequest) {
       },
     }).catch(() => {})
 
-    // Tabela leads_cnpj — mesma estrutura do Supabase do n8n
     prisma.leadCNPJ.create({
       data: {
         cnpj: result.cnpj,
