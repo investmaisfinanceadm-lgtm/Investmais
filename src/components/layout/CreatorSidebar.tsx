@@ -102,18 +102,23 @@ export function CreatorSidebar() {
 
                 <div className="space-y-1">
                     <p className="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">Gerenciador de Conteúdo</p>
-                    {contentItems.map((item) => {
+                    {contentItems.map((item, idx) => {
                         const Icon = item.icon
                         const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                        const isPrimary = idx === 0
                         return (
                             <Link
                                 key={item.href}
                                 href={item.href}
                                 onClick={() => setMobileOpen(false)}
-                                className={`flex items-center gap-3 px-4 py-4 rounded-2xl font-black transition-all duration-300 group uppercase tracking-widest text-[10px] ${
-                                    isActive
-                                        ? 'bg-gradient-accent text-black shadow-accent'
-                                        : 'bg-gradient-accent/80 text-black shadow-accent hover:shadow-accent-lg'
+                                className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl font-black transition-all duration-300 group uppercase tracking-widest text-[10px] ${
+                                    isPrimary
+                                        ? isActive
+                                            ? 'bg-accent text-white shadow-accent'
+                                            : 'bg-accent text-white shadow-accent hover:bg-accent/90 hover:shadow-accent-lg'
+                                        : isActive
+                                            ? 'bg-white/10 text-white border border-white/20'
+                                            : 'bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20'
                                 }`}
                             >
                                 <Icon className="w-4 h-4 flex-shrink-0" />
