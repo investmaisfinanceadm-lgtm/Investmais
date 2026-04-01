@@ -67,9 +67,9 @@ export function CreatorSidebar() {
     const SidebarContent = () => (
         <div className="flex flex-col h-full">
             {/* Logo */}
-            <div className="px-6 pt-6 pb-5 border-b border-white/5 flex justify-center">
+            <div className="px-4 pt-8 pb-7 border-b border-white/5 flex justify-center items-center">
                 <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
-                    <img src="/logo.png" alt="InvestMais Finance" className="h-14 w-auto object-contain hover:opacity-90 transition-opacity" />
+                    <img src="/logo.png" alt="InvestMais Finance" className="h-20 w-auto object-contain hover:opacity-85 transition-opacity duration-300" />
                 </Link>
             </div>
 
