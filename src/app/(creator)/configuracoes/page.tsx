@@ -5,7 +5,7 @@ import {
   User, Lock, Webhook, Bot, Search, MessageCircle,
   Eye, EyeOff, Loader2, ChevronRight, Camera,
   Plus, Trash2, Edit2, Check, X, Copy, Kanban,
-  Zap, TestTube2, Save, RefreshCw, ExternalLink,
+  Zap, TestTube2, Save, RefreshCw, ExternalLink, ChevronDown, Link2,
 } from 'lucide-react'
 import { cn, getInitials } from '@/lib/utils'
 import toast from 'react-hot-toast'
@@ -86,6 +86,130 @@ async function saveIntegracao(tipo: string, configuracoes: Record<string, any>, 
   if (!res.ok) throw new Error('Falha ao salvar')
 }
 
+// ── Endpoint Modal ─────────────────────────────────────────────────────────
+const SOURCES = [
+  { value: '', label: 'Selecione ou deixe vazio para usar o path' },
+  { value: 'facebook_ads', label: 'Facebook / Meta Ads' },
+  { value: 'google_ads', label: 'Google Ads' },
+  { value: 'instagram', label: 'Instagram' },
+  { value: 'linkedin', label: 'LinkedIn Ads' },
+  { value: 'tiktok', label: 'TikTok Ads' },
+  { value: 'hotmart', label: 'Hotmart' },
+  { value: 'kiwify', label: 'Kiwify' },
+  { value: 'typeform', label: 'Typeform' },
+  { value: 'outro', label: 'Outro' },
+]
+
+function EndpointModal({
+  tipo,
+  onClose,
+  onCreated,
+}: {
+  tipo: string
+  onClose: () => void
+  onCreated: () => void
+}) {
+  const [path, setPath] = useState('')
+  const [source, setSource] = useState('')
+  const [secret, setSecret] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const appUrl = typeof window !== 'undefined'
+    ? window.location.origin.replace('localhost:3001', 'ops.devnetlife.com').replace('http://', 'https://')
+    : 'https://ops.devnetlife.com'
+  const cleanPath = path.replace(/[^a-z0-9-_]/gi, '-').toLowerCase()
+  const fullUrl = cleanPath ? `${appUrl}/api/webhooks/${cleanPath}` : ''
+
+  const handleCreate = async () => {
+    if (!path.trim()) { toast.error('Path é obrigatório'); return }
+    setSaving(true)
+    try {
+      const res = await fetch('/api/creator/integracoes/endpoints', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tipo, path: cleanPath, source, secret }),
+      })
+      const data = await res.json()
+      if (!res.ok) { toast.error(data.error || 'Erro ao criar endpoint'); return }
+      toast.success('Endpoint criado!')
+      onCreated()
+      onClose()
+    } catch { toast.error('Erro ao criar endpoint') }
+    finally { setSaving(false) }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-[#0D1526] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+          <h3 className="text-white font-bold text-sm">Novo Endpoint de Webhook</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-5 space-y-5">
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Path</label>
+            <input
+              value={path}
+              onChange={e => setPath(e.target.value)}
+              placeholder="facebook-leads"
+              className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm"
+            />
+            {fullUrl && (
+              <div className="bg-black/30 border border-white/5 rounded-lg px-3 py-2">
+                <p className="text-[10px] text-gray-500 mb-0.5">URL final:</p>
+                <p className="text-[11px] text-emerald-400 font-mono break-all">{fullUrl}</p>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Sistema de Origem</label>
+            <select
+              value={source}
+              onChange={e => setSource(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm appearance-none"
+            >
+              {SOURCES.map(s => (
+                <option key={s.value} value={s.value} className="bg-[#0D1526]">{s.label}</option>
+              ))}
+            </select>
+            <p className="text-[10px] text-gray-600">Identifica a origem dos leads nos relatórios UTM</p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Secret Token (opcional)</label>
+            <input
+              value={secret}
+              onChange={e => setSecret(e.target.value)}
+              placeholder="Token de autenticação"
+              className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm"
+            />
+            <p className="text-[10px] text-gray-600">Envie no header <code className="text-gray-400">x-webhook-secret</code> ou <code className="text-gray-400">authorization: bearer TOKEN</code></p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/5">
+          <button onClick={onClose} className="px-5 py-2.5 text-xs font-bold text-gray-400 hover:text-white border border-white/10 rounded-xl transition-all">
+            Cancelar
+          </button>
+          <button onClick={handleCreate} disabled={saving}
+            className="px-5 py-2.5 text-xs font-bold bg-accent text-black rounded-xl hover:bg-accent/90 transition-all flex items-center gap-2 uppercase tracking-wider">
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+            Criar Endpoint
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── main component ─────────────────────────────────────────────────────────
 export default function ConfiguracoesPage() {
   const { data: session } = useSession()
@@ -113,6 +237,8 @@ export default function ConfiguracoesPage() {
   const [loadingInteg, setLoadingInteg] = useState(false)
   const [showNewInteg, setShowNewInteg] = useState(false)
   const [newInteg, setNewInteg] = useState({ nome: '', url: '', tipo: 'webhook' })
+  const [endpointModalTipo, setEndpointModalTipo] = useState<string | null>(null)
+  const [expandedInteg, setExpandedInteg] = useState<string | null>(null)
 
   // Agente IA state
   const [agente, setAgente] = useState({
@@ -283,10 +409,18 @@ export default function ConfiguracoesPage() {
   const handleDeleteInteg = async (tipo: string) => {
     if (!confirm('Excluir esta integração?')) return
     try {
-      // We upsert with ativo=false as there's no DELETE endpoint — could extend, for now deactivate
       await saveIntegracao(tipo, {}, false)
       toast.success('Integração removida!'); loadIntegracoes()
     } catch { toast.error('Erro ao remover integração') }
+  }
+
+  const handleDeleteEndpoint = async (tipo: string, endpointId: string) => {
+    if (!confirm('Excluir este endpoint?')) return
+    try {
+      const res = await fetch(`/api/creator/integracoes/endpoints?tipo=${tipo}&endpoint_id=${endpointId}`, { method: 'DELETE' })
+      if (res.ok) { toast.success('Endpoint removido!'); loadIntegracoes() }
+      else toast.error('Erro ao remover endpoint')
+    } catch { toast.error('Erro ao remover endpoint') }
   }
 
   const copyToClipboard = (text: string) => {
@@ -553,7 +687,8 @@ export default function ConfiguracoesPage() {
 
       {/* ── TAB: INTEGRAÇÕES ────────────────────────────────────────────── */}
       {activeTab === 'integracoes' && (
-        <div className="space-y-6">
+        <div className="space-y-5">
+          {/* Header */}
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-white font-bold">Integrações</h2>
@@ -561,61 +696,131 @@ export default function ConfiguracoesPage() {
             </div>
             <button
               onClick={() => setShowNewInteg(true)}
-              className="flex items-center gap-2 bg-accent text-black text-xs font-black uppercase tracking-wider px-4 py-2 rounded-xl hover:bg-accent/90 transition-all"
+              className="flex items-center gap-2 bg-accent text-black text-xs font-black uppercase tracking-wider px-4 py-2.5 rounded-xl hover:bg-accent/90 transition-all"
             >
               <Plus className="w-4 h-4" /> Nova Integração
             </button>
           </div>
 
+          {/* New integration form */}
           {showNewInteg && (
-            <SectionCard title="Nova Integração">
+            <div className="bg-white/[0.02] border border-accent/20 rounded-2xl p-5 space-y-4">
+              <h3 className="text-sm font-bold text-white">Nova Integração</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field label="Nome">
+                <Field label="Nome da Integração">
                   <InputDark value={newInteg.nome} onChange={e => setNewInteg(p => ({ ...p, nome: e.target.value }))} placeholder="Ex: Facebook Leads Ads" />
                 </Field>
-                <Field label="URL do Webhook">
-                  <InputDark value={newInteg.url} onChange={e => setNewInteg(p => ({ ...p, url: e.target.value }))} placeholder="https://..." />
+                <Field label="Tipo (identificador único)">
+                  <InputDark value={newInteg.url} onChange={e => setNewInteg(p => ({ ...p, url: e.target.value }))} placeholder="Ex: facebook_leads" />
                 </Field>
               </div>
-              <div className="flex gap-2 justify-end pt-2">
-                <button onClick={() => setShowNewInteg(false)} className="btn-secondary px-4 py-2 text-xs rounded-xl">Cancelar</button>
-                <button onClick={handleSaveInteg} className="btn-primary px-4 py-2 text-xs rounded-xl bg-accent text-black font-bold">Salvar</button>
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => { setShowNewInteg(false); setNewInteg({ nome: '', url: '', tipo: 'webhook' }) }}
+                  className="px-4 py-2 text-xs font-bold text-gray-400 border border-white/10 rounded-xl hover:text-white transition-all">Cancelar</button>
+                <button onClick={handleSaveInteg}
+                  className="px-4 py-2 text-xs font-bold bg-accent text-black rounded-xl hover:bg-accent/90 transition-all">Salvar</button>
               </div>
-            </SectionCard>
+            </div>
           )}
 
+          {/* List */}
           {loadingInteg ? (
             <div className="flex items-center justify-center h-32"><Loader2 className="w-5 h-5 animate-spin text-accent" /></div>
           ) : integracoes.length === 0 ? (
-            <div className="text-center py-16 text-gray-600 text-sm">Nenhuma integração configurada</div>
+            <div className="text-center py-16 border border-dashed border-white/5 rounded-2xl">
+              <Webhook className="w-8 h-8 text-gray-700 mx-auto mb-3" />
+              <p className="text-gray-600 text-sm">Nenhuma integração configurada</p>
+              <p className="text-gray-700 text-xs mt-1">Clique em "Nova Integração" para começar</p>
+            </div>
           ) : (
-            <div className="space-y-3">
-              {integracoes.map(integ => (
-                <div key={integ.id} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Webhook className="w-4 h-4 text-accent" />
-                      <span className="text-white text-sm font-medium">{integ.configuracoes?.nome || integ.tipo}</span>
+            <div className="space-y-2">
+              {integracoes.map(integ => {
+                const endpoints: any[] = integ.configuracoes?.endpoints || []
+                const isExpanded = expandedInteg === integ.tipo
+                const nome = integ.configuracoes?.nome || integ.tipo
+
+                return (
+                  <div key={integ.tipo} className="bg-[#0D1526] border border-white/[0.06] rounded-2xl overflow-hidden">
+                    {/* Integration row */}
+                    <div className="flex items-center gap-4 px-5 py-4">
+                      <Webhook className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                      <span className="flex-1 text-white text-sm font-semibold">{nome}</span>
+
+                      <div className="flex items-center gap-2">
+                        {/* Toggle */}
+                        <button
+                          onClick={() => handleToggleInteg(integ)}
+                          className={cn('w-11 h-6 rounded-full transition-all relative flex-shrink-0', integ.ativo ? 'bg-accent' : 'bg-white/10')}
+                        >
+                          <span className={cn('absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm transition-all', integ.ativo ? 'left-6' : 'left-1')} />
+                        </button>
+
+                        {/* + Endpoint */}
+                        <button
+                          onClick={() => setEndpointModalTipo(integ.tipo)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-white border border-white/10 rounded-lg hover:border-white/20 hover:bg-white/5 transition-all"
+                        >
+                          <Plus className="w-3 h-3" /> Endpoint
+                        </button>
+
+                        {/* Delete integration */}
+                        <button
+                          onClick={() => handleDeleteInteg(integ.tipo)}
+                          className="p-1.5 text-gray-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+
+                        {/* Expand chevron */}
+                        {endpoints.length > 0 && (
+                          <button
+                            onClick={() => setExpandedInteg(isExpanded ? null : integ.tipo)}
+                            className="p-1.5 text-gray-500 hover:text-white transition-colors"
+                          >
+                            <ChevronDown className={cn('w-4 h-4 transition-transform', isExpanded && 'rotate-180')} />
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleToggleInteg(integ)}
-                        className={cn('w-10 h-5.5 rounded-full transition-colors relative', integ.ativo ? 'bg-accent' : 'bg-white/10')}
-                      >
-                        <span className={cn('absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all', integ.ativo ? 'left-5' : 'left-0.5')} />
-                      </button>
-                      <button onClick={() => copyToClipboard(integ.configuracoes?.url || '')} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-all"><Copy className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => handleDeleteInteg(integ.tipo)} className="p-2 text-gray-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
-                    </div>
+
+                    {/* Endpoints list */}
+                    {(isExpanded || endpoints.length > 0) && endpoints.length > 0 && (
+                      <div className="border-t border-white/[0.04]">
+                        {endpoints.map(ep => (
+                          <div key={ep.id} className="flex items-center gap-3 px-5 py-3 border-b border-white/[0.03] last:border-0 hover:bg-white/[0.02] transition-colors group">
+                            <Link2 className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
+                            <code className="text-[12px] text-gray-400 font-mono">/{ep.path}</code>
+                            <span className="text-[11px] bg-white/5 border border-white/10 text-gray-500 px-2 py-0.5 rounded-md font-mono">{ep.tag}</span>
+                            {ep.source && (
+                              <span className="text-[10px] text-accent bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full">{ep.source}</span>
+                            )}
+                            <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={() => copyToClipboard(ep.full_url)} className="p-1.5 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-all" title="Copiar URL">
+                                <Copy className="w-3 h-3" />
+                              </button>
+                              <button onClick={() => handleDeleteEndpoint(integ.tipo, ep.id)} className="p-1.5 text-gray-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all" title="Excluir endpoint">
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  {integ.configuracoes?.url && (
-                    <p className="text-gray-600 text-[11px] mt-2 font-mono truncate">{integ.configuracoes.url}</p>
-                  )}
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
+      )}
+
+      {/* Endpoint Modal */}
+      {endpointModalTipo && (
+        <EndpointModal
+          tipo={endpointModalTipo}
+          onClose={() => setEndpointModalTipo(null)}
+          onCreated={loadIntegracoes}
+        />
       )}
 
       {/* ── TAB: AGENTE IA ──────────────────────────────────────────────── */}
