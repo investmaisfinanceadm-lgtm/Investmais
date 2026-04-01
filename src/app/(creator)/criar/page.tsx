@@ -52,10 +52,7 @@ interface VideoResult {
 }
 
 const FORMATOS = [
-    { id: 'instagram', label: 'Feed (1:1)', icon: Instagram, desc: 'Ideal para engajamento e autoridade' },
-    { id: 'stories', label: 'Stories (9:16)', icon: Phone, desc: 'Conversão direta em Ads e Reels' },
-    { id: 'youtube', label: 'Video (16:9)', icon: Layout, desc: 'Ideal para apresentações longas' },
-    { id: 'educativo', label: 'Educativo (4:5)', icon: Target, desc: 'Foco em clareza técnica' },
+    { id: 'stories', label: 'Stories / Reels (9:16)', icon: Phone, desc: 'Conversão direta em Ads e Reels' },
 ]
 
 const LINHAS = [
@@ -122,7 +119,7 @@ export default function CriarPage() {
     })
 
     const [step2, setStep2] = useState<Step2Data>({
-        formato: 'instagram',
+        formato: 'stories',
         linha_editorial: 'demonstracao',
         duracao: 15,
         tom: 'persuasivo',
