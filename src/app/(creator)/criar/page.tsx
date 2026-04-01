@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { 
+import { useState, useEffect, useRef } from 'react'
+import {
     ChevronRight,
     Upload,
     Video,
@@ -20,7 +20,9 @@ import {
     Phone,
     Type,
     Wand2,
-    Activity
+    Activity,
+    Maximize,
+    Download,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
@@ -83,6 +85,31 @@ export default function CriarPage() {
     const [pollingVideoId, setPollingVideoId] = useState<string | null>(null)
     const [quotaError, setQuotaError] = useState(false)
     const [isRefining, setIsRefining] = useState(false)
+    const videoRef = useRef<HTMLVideoElement>(null)
+
+    const handleFullscreen = () => {
+        const video = videoRef.current
+        if (!video) return
+        if (video.requestFullscreen) video.requestFullscreen()
+        else if ((video as any).webkitRequestFullscreen) (video as any).webkitRequestFullscreen()
+    }
+
+    const handleDownload = async () => {
+        if (!generatedVideo?.video_url) return
+        try {
+            const res = await fetch(generatedVideo.video_url)
+            const blob = await res.blob()
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `${generatedVideo.id || 'video'}.mp4`
+            a.click()
+            URL.revokeObjectURL(url)
+        } catch {
+            // Fallback: open in new tab (CORS restriction)
+            window.open(generatedVideo.video_url, '_blank')
+        }
+    }
 
     // Form States
     const [step1, setStep1] = useState<Step1Data>({
@@ -276,9 +303,37 @@ export default function CriarPage() {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                        <div className="lg:col-span-2 aspect-video rounded-[48px] bg-black border border-white/5 overflow-hidden shadow-2xl relative shadow-accent/5">
-                            <video src={generatedVideo.video_url} controls autoPlay className="w-full h-full object-contain" />
+                        {/* Video Player */}
+                        <div className="lg:col-span-2 aspect-video rounded-[48px] bg-black border border-white/5 overflow-hidden shadow-2xl relative shadow-accent/5 group">
+                            <video
+                                ref={videoRef}
+                                src={generatedVideo.video_url}
+                                controls
+                                autoPlay
+                                className="w-full h-full object-contain"
+                            />
+                            {/* Overlay actions — visible on hover */}
+                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                                <button
+                                    onClick={handleFullscreen}
+                                    title="Tela cheia"
+                                    className="flex items-center gap-2 bg-black/70 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-2xl border border-white/10 hover:bg-accent hover:border-accent hover:text-black transition-all duration-200"
+                                >
+                                    <Maximize className="w-3.5 h-3.5" />
+                                    <span className="hidden sm:inline">Tela cheia</span>
+                                </button>
+                                <button
+                                    onClick={handleDownload}
+                                    title="Baixar vídeo"
+                                    className="flex items-center gap-2 bg-black/70 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-2xl border border-white/10 hover:bg-accent hover:border-accent hover:text-black transition-all duration-200"
+                                >
+                                    <Download className="w-3.5 h-3.5" />
+                                    <span className="hidden sm:inline">Baixar</span>
+                                </button>
+                            </div>
                         </div>
+
+                        {/* Ficha Técnica */}
                         <div className="space-y-6">
                             <div className="card border-white/5 bg-white/[0.02] p-8 space-y-8 rounded-[40px]">
                                 <div className="space-y-4">
@@ -298,6 +353,13 @@ export default function CriarPage() {
                                     <button onClick={handleSaveToLibrary} className="btn-primary w-full py-5 rounded-2xl bg-accent text-black font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3">
                                         <CheckCircle className="w-5 h-5" />
                                         Consolidar no Acervo
+                                    </button>
+                                    <button
+                                        onClick={handleDownload}
+                                        className="w-full py-4 rounded-2xl border border-white/5 bg-white/[0.02] text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-white hover:border-white/20 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <Download className="w-4 h-4" />
+                                        Baixar Vídeo
                                     </button>
                                     <button onClick={() => router.push('/criar')} className="w-full py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors">
                                         Iniciar Novo Protocolo
