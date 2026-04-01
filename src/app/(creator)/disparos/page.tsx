@@ -96,11 +96,51 @@ function IniciarDisparoModal({
 
   const handleConfirm = async () => {
     setStarting(true)
-    await new Promise(r => setTimeout(r, 600))
-    onConfirm(lista.id)
-    toast.success('Disparo de WhatsApp iniciado!')
-    onClose()
-    setStarting(false)
+    try {
+      // Load webhook URL from integrations config
+      const integRes = await fetch('/api/creator/integracoes')
+      let webhookUrl = ''
+      if (integRes.ok) {
+        const all: any[] = await integRes.json()
+        const disparoInteg = all.find(i => i.tipo === 'disparo_whatsapp')
+        webhookUrl = disparoInteg?.configuracoes?.webhook_disparo || ''
+      }
+
+      if (!webhookUrl) {
+        toast.error('Configure o Webhook de Disparo em Configurações > Disparo')
+        setStarting(false)
+        return
+      }
+
+      const callbackUrl = `${window.location.origin}/api/disparos/callback`
+
+      const payload = {
+        lista_id: lista.id,
+        mensagem: config.mensagem,
+        telefones: lista.telefones.map(t => ({ numero: t, nome: 'Lead', cidade: '' })),
+        intervalo_segundos: config.intervalo,
+        horario_inicio: config.horarioComercial ? '08:00' : '00:00',
+        horario_fim: config.horarioComercial ? '18:00' : '23:59',
+        dias_semana: config.dias.map(d => d.toLowerCase()),
+        callback_url: callbackUrl,
+      }
+
+      const res = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) throw new Error(`Webhook retornou ${res.status}`)
+
+      onConfirm(lista.id)
+      toast.success('Disparo de WhatsApp iniciado!')
+      onClose()
+    } catch (err: any) {
+      toast.error(err?.message || 'Erro ao iniciar disparo')
+    } finally {
+      setStarting(false)
+    }
   }
 
   const tabs: { key: DisparoTab; label: string }[] = [
