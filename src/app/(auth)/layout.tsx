@@ -17,7 +17,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                 <div className="relative">
                     {/* Logo Premium */}
                     <div className="flex items-center gap-4">
-                        <img src="/logo.jpg" alt="InvestMais Finance" className="h-20 w-auto object-contain" />
+                        <img src="/logo.png" alt="InvestMais Finance" className="h-20 w-auto object-contain" />
                     </div>
                 </div>
 
@@ -85,7 +85,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                 <div className="w-full max-w-md">
                     {/* Mobile logo */}
                     <div className="lg:hidden flex flex-col items-center gap-4 mb-16">
-                        <img src="/logo.jpg" alt="InvestMais Finance" className="h-16 w-auto object-contain rounded-2xl" />
+                        <img src="/logo.png" alt="InvestMais Finance" className="h-16 w-auto object-contain" />
                     </div>
 
                     <div className="bg-[#0A192F] border border-white/5 p-12 rounded-[48px] shadow-[0_0_100px_rgba(30,92,214,0.05)] relative overflow-hidden group">

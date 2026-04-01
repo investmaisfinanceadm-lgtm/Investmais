@@ -69,7 +69,7 @@ export function CreatorSidebar() {
             {/* Logo */}
             <div className="px-6 pt-6 pb-5 border-b border-white/5 flex justify-center">
                 <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
-                    <img src="/logo.jpg" alt="InvestMais Finance" className="h-14 w-auto object-contain rounded-xl hover:opacity-90 transition-opacity" />
+                    <img src="/logo.png" alt="InvestMais Finance" className="h-14 w-auto object-contain hover:opacity-90 transition-opacity" />
                 </Link>
             </div>
 
@@ -194,7 +194,7 @@ export function CreatorSidebar() {
             <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-dark-card/80 backdrop-blur-2xl border-b border-white/5">
                 <div className="flex items-center gap-3">
                     <div className="w-9 h-9 flex-shrink-0">
-                        <img src="/logo.jpg" alt="InvestMais Finance" className="h-9 w-auto object-contain rounded-lg" />
+                        <img src="/logo.png" alt="InvestMais Finance" className="h-9 w-auto object-contain" />
                     </div>
                     <span className="text-white font-bold text-xl tracking-tighter">
                         INVEST<span className="text-accent">MAIS</span>
