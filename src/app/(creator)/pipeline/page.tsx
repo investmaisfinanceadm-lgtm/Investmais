@@ -30,6 +30,18 @@ import {
 import { format, parseISO, isPast } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import toast from 'react-hot-toast'
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  useDraggable,
+  useDroppable,
+  type DragStartEvent,
+  type DragEndEvent,
+} from '@dnd-kit/core'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -159,10 +171,14 @@ function Avatar({ initials, color, size = 'sm' }: { initials: string; color: str
   const sizeClass = size === 'sm' ? 'w-6 h-6 text-[9px]' : 'w-8 h-8 text-xs'
   return (
     <span
-      className={`${sizeClass} rounded-full flex items-center justify-center font-black text-white flex-shrink-0`}
-      style={{ backgroundColor: color + '33', border: `1px solid ${color}55` }}
+      className={`${sizeClass} rounded-full flex items-center justify-center font-black shadow-lg flex-shrink-0 transition-transform group-hover:scale-110`}
+      style={{ 
+        backgroundColor: color + '33', 
+        border: `1px solid ${color}55`,
+        boxShadow: `0 4px 12px ${color}20` 
+      }}
     >
-      <span style={{ color }}>{initials}</span>
+      <span style={{ color }} className="drop-shadow-sm">{initials}</span>
     </span>
   )
 }
@@ -172,60 +188,76 @@ function Avatar({ initials, color, size = 'sm' }: { initials: string; color: str
 function KanbanCardItem({
   card,
   onClick,
+  isOverlay = false,
 }: {
   card: KanbanCard
-  onClick: () => void
+  onClick?: () => void
+  isOverlay?: boolean
 }) {
-  const overdue = isOverdue(card.dueDate)
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: card.id,
+    data: card,
+  })
+
+  // Only apply transform if NOT using DragOverlay for the actual card
+  const style = !isOverlay ? {
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    opacity: isDragging ? 0.3 : 1,
+  } : undefined
+
+  const overdue = card.dueDate ? isOverdue(card.dueDate) : false
   const catClass = categoryColorMap[card.categoryColor] || categoryColorMap.blue
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      whileHover={{ y: -2, scale: 1.01 }}
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
       onClick={onClick}
-      className="bg-dark-muted border border-white/5 rounded-xl p-4 cursor-pointer hover:border-white/10 hover:shadow-card transition-all duration-200 group"
+      className={cn(
+        "bg-[#161B22] border border-white/5 rounded-2xl p-4 cursor-grab active:cursor-grabbing hover:border-accent/30 hover:bg-[#1C2128] transition-all duration-300 group select-none relative overflow-hidden",
+        isOverlay && "shadow-[0_20px_50px_rgba(48,203,123,0.15)] border-accent/40 scale-105"
+      )}
     >
+      {/* Visual top accent */}
+      {isOverlay && <div className="absolute top-0 left-0 right-0 h-1 bg-accent/40" />}
+
+      {/* Header: Priority & Date */}
+      <div className="flex items-center justify-between mb-3">
+        <PriorityDot priority={card.priority} />
+        <div className={`flex items-center gap-1 ${overdue ? 'text-red-400' : 'text-gray-500'}`}>
+          <Calendar className="w-3 h-3 flex-shrink-0" />
+          <span className="text-[9px] font-black uppercase tracking-wider">
+            {card.dueDate ? formatDate(card.dueDate) : 'Sem data'}
+          </span>
+        </div>
+      </div>
+
       {/* Title & category */}
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <p className="text-sm font-semibold text-white leading-snug group-hover:text-accent transition-colors line-clamp-2">
+      <div className="space-y-1 mb-4">
+        <h4 className="text-[13px] font-black text-white leading-tight group-hover:text-accent transition-colors">
           {card.title}
-        </p>
-        <span className={`badge ${catClass} whitespace-nowrap flex-shrink-0 text-[10px]`}>
+        </h4>
+        <span className={`badge ${catClass} text-[9px] font-black uppercase tracking-widest px-2 py-0.5`}>
           {card.category}
         </span>
       </div>
 
-      {/* Priority */}
-      <div className="mb-3">
-        <PriorityDot priority={card.priority} />
-      </div>
-
-      {/* Value */}
-      <div className="flex items-center gap-1.5 mb-3">
-        <DollarSign className="w-3 h-3 text-accent flex-shrink-0" />
-        <span className="text-xs font-black text-accent">{formatCurrency(card.value)}</span>
-      </div>
-
-      {/* Footer: responsible + due date */}
-      <div className="flex items-center justify-between pt-2 border-t border-white/5">
-        <div className="flex items-center gap-1.5 min-w-0">
+      {/* Footer: Responsible & Value */}
+      <div className="flex items-center justify-between pt-3 border-t border-white/5 mt-auto">
+        <div className="flex items-center gap-2 min-w-0">
           <Avatar initials={card.responsible.initials} color={card.responsible.color} />
-          <span className="text-[10px] text-gray-500 truncate">{card.responsible.name.split(' ')[0]}</span>
+          <span className="text-[10px] font-bold text-gray-500 truncate uppercase tracking-tighter">
+            {card.responsible.name.split(' ')[0]}
+          </span>
         </div>
-        <div className={`flex items-center gap-1 ${overdue ? 'text-red-400' : 'text-gray-500'}`}>
-          {overdue ? (
-            <AlertCircle className="w-3 h-3 flex-shrink-0" />
-          ) : (
-            <Calendar className="w-3 h-3 flex-shrink-0" />
-          )}
-          <span className="text-[10px] font-medium">{formatDate(card.dueDate)}</span>
+        <div className="flex flex-col items-end">
+          <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-px">Valor</span>
+          <span className="text-[11px] font-black text-accent">{formatCurrency(card.value)}</span>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
@@ -240,58 +272,74 @@ function KanbanColumnComponent({
   onCardClick: (card: KanbanCard) => void
   onAddCard: () => void
 }) {
-  const totalValue = column.cards.reduce((sum, c) => sum + c.value, 0)
+  const { isOver, setNodeRef } = useDroppable({
+    id: column.id,
+  })
+
+  const totalValue = column.cards.reduce((sum, c) => sum + (c.value || 0), 0)
 
   return (
-    <div className="flex-shrink-0 w-72 flex flex-col gap-3">
+    <div 
+      ref={setNodeRef}
+      className={cn(
+        "flex-shrink-0 w-80 flex flex-col gap-4 p-2 rounded-[32px] transition-all duration-300",
+        isOver ? "bg-accent/5 ring-2 ring-accent/20" : "bg-transparent"
+      )}
+    >
       {/* Column header */}
-      <div className="bg-dark-card border border-white/5 rounded-2xl p-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <span
-              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-              style={{ backgroundColor: column.color, boxShadow: `0 0 8px ${column.color}60` }}
+      <div className="bg-[#0D1117] border border-white/5 rounded-[24px] p-5 shadow-xl">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div 
+              className="w-1.5 h-6 rounded-full" 
+              style={{ 
+                backgroundColor: column.color, 
+                boxShadow: `0 0 15px ${column.color}40`,
+                filter: `brightness(1.2)`
+              }} 
             />
-            <span className="text-sm font-black text-white uppercase tracking-wider">{column.name}</span>
+            <span className="text-xs font-black text-white uppercase tracking-[0.2em]">{column.name}</span>
           </div>
-          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/10 text-[10px] font-black text-gray-300">
-            {column.cards.length}
+          <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg bg-white/[0.03] border border-white/5 text-[9px] font-black text-gray-400 uppercase tracking-widest">
+            {column.cards.length} Deals
           </span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <TrendingUp className="w-3 h-3 text-accent" />
-          <span className="text-[11px] font-bold text-accent">{formatCurrency(totalValue)}</span>
+        <div className="flex items-center gap-2 pt-3 border-t border-white/5">
+          <div className="p-1.5 rounded-lg bg-accent/10 border border-accent/20">
+            <TrendingUp className="w-3 h-3 text-accent" />
+          </div>
+          <span className="text-[13px] font-black text-white tracking-tight">{formatCurrency(totalValue)}</span>
         </div>
       </div>
 
       {/* Cards list */}
-      <div className="flex flex-col gap-2.5 min-h-[100px]">
-        <AnimatePresence mode="popLayout">
-          {column.cards.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center py-10 border border-dashed border-white/10 rounded-xl text-gray-600"
-            >
-              <LayoutGrid className="w-8 h-8 mb-2 opacity-30" />
-              <p className="text-xs font-medium">Nenhum card</p>
-            </motion.div>
-          ) : (
-            column.cards.map((card) => (
-              <KanbanCardItem key={card.id} card={card} onClick={() => onCardClick(card)} />
-            ))
-          )}
-        </AnimatePresence>
+      <div className="flex flex-col gap-3 min-h-[300px] custom-scrollbar pb-10">
+        {column.cards.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-white/5 rounded-3xl text-gray-700 opacity-40">
+            <LayoutGrid className="w-10 h-10 mb-3" />
+            <p className="text-[10px] font-black uppercase tracking-widest">Solte cards aqui</p>
+          </div>
+        ) : (
+          column.cards.map((card) => (
+            <KanbanCardItem key={card.id} card={card} onClick={() => onCardClick(card)} />
+          ))
+        )}
+        
+        {/* Quick add */}
+        <button 
+          onClick={onAddCard} 
+          className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border border-dashed border-white/10 text-[10px] font-black text-gray-700 uppercase tracking-widest hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all duration-300 group"
+        >
+          <div className="p-1.5 rounded-lg bg-white/5 border border-white/5 group-hover:bg-accent/10 group-hover:border-accent/20 transition-all">
+            <Plus className="w-3 h-3" />
+          </div>
+          Adicionar Deal
+        </button>
       </div>
-
-      {/* Add card button */}
-      <button onClick={onAddCard} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-white/10 text-gray-600 hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all duration-200 text-xs font-semibold">
-        <Plus className="w-3.5 h-3.5" />
-        Adicionar Card
-      </button>
     </div>
   )
 }
+
 
 // ─── Card Detail Drawer ────────────────────────────────────────────────────────
 
@@ -1268,6 +1316,21 @@ export default function PipelinePage() {
   const [isNewBoardOpen, setIsNewBoardOpen] = useState(false)
   const [activeColumnId, setActiveColumnId] = useState<string>('')
   const [loading, setLoading] = useState(true)
+  const [activeDragCard, setActiveDragCard] = useState<KanbanCard | null>(null)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    })
+  )
 
   // Fetch boards and columns on mount
   useEffect(() => {
@@ -1541,28 +1604,46 @@ export default function PipelinePage() {
       <StatsBar columns={columns} />
 
       {/* ── Kanban Board ── */}
-      <div className="overflow-x-auto pb-4 -mx-6 lg:-mx-10 px-6 lg:px-10">
-        <div className="flex gap-4 w-max min-w-full">
-          {columns.map((col) => (
-            <KanbanColumnComponent
-              key={col.id}
-              column={col}
-              onCardClick={handleCardClick}
-              onAddCard={() => openNewCard(col.id)}
-            />
-          ))}
+      <DndContext 
+        sensors={sensors} 
+        onDragStart={handleDragStart} 
+        onDragEnd={handleDragEnd}
+      >
+        <div className="overflow-x-auto pb-8 -mx-6 lg:-mx-10 px-6 lg:px-10 no-scrollbar">
+          <div className="flex gap-8 w-max min-w-full pb-4">
+            {columns.map((col) => (
+              <KanbanColumnComponent
+                key={col.id}
+                column={col}
+                onCardClick={handleCardClick}
+                onAddCard={() => openNewCard(col.id)}
+              />
+            ))}
 
-          {/* Add column placeholder */}
-          <div className="flex-shrink-0 w-72">
-            <button onClick={() => setIsNewColumnOpen(true)} className="w-full h-full min-h-[180px] flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-white/10 text-gray-600 hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all duration-200 group">
-              <div className="w-10 h-10 rounded-xl border-2 border-dashed border-current flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Plus className="w-5 h-5" />
-              </div>
-              <span className="text-xs font-black uppercase tracking-wider">Nova Coluna</span>
-            </button>
+            {/* Add column placeholder */}
+            <div className="flex-shrink-0 w-80">
+              <button 
+                onClick={() => setIsNewColumnOpen(true)} 
+                className="w-full h-full min-h-[400px] flex flex-col items-center justify-center gap-4 rounded-[40px] border-2 border-dashed border-white/5 text-gray-700 hover:text-accent hover:border-accent/20 hover:bg-accent/5 transition-all duration-500 group"
+              >
+                <div className="w-14 h-14 rounded-2xl border-2 border-dashed border-current flex items-center justify-center group-hover:scale-110 group-hover:rotate-90 transition-all duration-500">
+                  <Plus className="w-6 h-6" />
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-1">Nova Coluna</p>
+                  <p className="text-[8px] font-bold text-gray-800 uppercase tracking-widest">Protocolo de Pipeline</p>
+                </div>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+
+        <DragOverlay>
+          {activeDragCard ? (
+            <KanbanCardItem card={activeDragCard} isOverlay />
+          ) : null}
+        </DragOverlay>
+      </DndContext>
 
       {/* ── Card Detail Modal ── */}
       <AnimatePresence>

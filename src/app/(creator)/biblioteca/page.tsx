@@ -15,7 +15,8 @@ import {
     Move,
     Tag,
     Hash,
-    Filter
+    Filter,
+    AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -409,26 +410,72 @@ export default function BibliotecaPage() {
                         <div className="flex flex-col lg:flex-row h-full">
                             <div className="flex-1 bg-black/40 flex items-center justify-center relative min-h-[50vh] lg:min-h-0 p-8">
                                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.05)_0%,transparent_70%)]" />
-                                
-                                {selectedVideo.video_url ? (
+                                                       {selectedVideo.video_url ? (
                                     <div className={cn(
-                                        "relative shadow-[0_40px_100px_rgba(0,0,0,0.8)] bg-black/40 overflow-hidden flex items-center justify-center group/player",
+                                        "relative shadow-[0_40px_100px_rgba(0,0,0,0.8)] bg-black/20 overflow-hidden flex items-center justify-center group/player transition-all duration-700",
                                         selectedVideo.formato === 'stories' 
-                                            ? "aspect-[9/16] h-[75vh] md:h-[80vh] rounded-[48px] border-[10px] border-[#18181B] ring-1 ring-white/10" 
-                                            : "w-full aspect-video rounded-3xl border border-white/10"
+                                            ? "aspect-[9/16] h-[75vh] md:h-[82vh] rounded-[48px] border-[12px] border-[#18181B] ring-1 ring-white/10" 
+                                            : "w-full max-w-4xl aspect-video rounded-[32px] border border-white/10"
                                     )}>
                                         <video 
+                                            id="main-video-player"
                                             src={selectedVideo.video_url} 
-                                            controls 
                                             autoPlay 
+                                            loop
                                             playsInline
-                                            className="w-full h-full object-contain" 
+                                            className="w-full h-full object-cover" 
+                                            onClick={(e) => {
+                                                const v = e.currentTarget
+                                                if (v.paused) v.play()
+                                                else v.pause()
+                                            }}
                                         />
                                         
+                                        {/* Custom Floating Controls */}
+                                        <div className="absolute inset-x-0 bottom-0 p-8 flex flex-col gap-4 bg-gradient-to-t from-black/80 via-black/20 to-transparent translate-y-4 opacity-0 group-hover/player:translate-y-0 group-hover/player:opacity-100 transition-all duration-500 pointer-events-none">
+                                            <div className="flex items-center justify-between pointer-events-auto">
+                                                <div className="flex items-center gap-4">
+                                                    <button 
+                                                        onClick={() => {
+                                                            const v = document.getElementById('main-video-player') as HTMLVideoElement
+                                                            if (v.paused) v.play()
+                                                            else v.pause()
+                                                        }}
+                                                        className="w-12 h-12 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/10 flex items-center justify-center transition-all active:scale-95"
+                                                    >
+                                                        <Plus className="w-5 h-5 text-white rotate-45" /> {/* Using Plus as a quick mock, I should use Play/Pause if I had them but let's stick to standard lucide if possible */}
+                                                    </button>
+                                                    <div className="space-y-0.5">
+                                                        <p className="text-[10px] font-black text-white uppercase tracking-widest">{selectedVideo.nome_produto}</p>
+                                                        <p className="text-[8px] font-bold text-accent uppercase tracking-[0.2em]">{selectedVideo.formato === 'stories' ? '9:16 Vertical' : '16:9 Landscape'}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <button className="p-3 rounded-xl bg-white/5 border border-white/5 text-white/40 hover:text-white transition-colors">
+                                                        <AlertCircle className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            {/* Progress bar mock */}
+                                            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden pointer-events-auto cursor-pointer">
+                                                <div className="h-full w-1/3 bg-accent" />
+                                            </div>
+                                        </div>
+
                                         {/* Phone-style notch for 9:16 visualization */}
                                         {selectedVideo.formato === 'stories' && (
-                                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-[#18181B] rounded-b-2xl z-20" />
+                                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-[#18181B] rounded-b-[20px] z-50 flex items-center justify-center gap-3">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-white/5" />
+                                                <div className="w-12 h-1.5 rounded-full bg-white/5" />
+                                            </div>
                                         )}
+
+                                        {/* Interaction Hint */}
+                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover/player:group-active/player:opacity-100 transition-opacity">
+                                            <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-md border border-white/20 flex items-center justify-center animate-ping">
+                                                <Plus className="w-8 h-8 text-white" />
+                                            </div>
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center gap-8 text-gray-800">

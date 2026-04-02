@@ -1,0 +1,38 @@
+﻿
+> investmais@0.1.0 db:seed
+> npx ts-node --compiler-options "{\"module\":\"CommonJS\"}" prisma/seed.ts
+
+node.exe : SEED ERROR: PrismaClientInitializationError: 
+No linha:1 caractere:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (SEED ERROR: Pr 
+   i...lizationError: :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Invalid `prisma.profile.upsert()` invocation in
+D:\Proejtos\investemais\Investmais\prisma\seed.ts:9:38
+
+  6 async function main() {
+  7   const password = await bcrypt.hash('admin123', 10)
+  8 
+ÔåÆ 9   const admin = await prisma.profile.upsert(
+Can't reach database server at `easy.devnetlife.com:5432`
+
+Please make sure your database server is running at 
+`easy.devnetlife.com:5432`.
+    at $n.handleRequestError (D:\Proejtos\investemais\Invest
+mais\node_modules\@prisma\client\runtime\library.js:121:7615
+)
+    at $n.handleAndLogRequestError (D:\Proejtos\investemais\
+Investmais\node_modules\@prisma\client\runtime\library.js:12
+1:6623)
+    at $n.request (D:\Proejtos\investemais\Investmais\node_m
+odules\@prisma\client\runtime\library.js:121:6307)
+    at async l (D:\Proejtos\investemais\Investmais\node_modu
+les\@prisma\client\runtime\library.js:130:9633) {
+  clientVersion: '5.22.0',
+  errorCode: undefined
+}
