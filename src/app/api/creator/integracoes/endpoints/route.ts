@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   if (!tipo || !path) return NextResponse.json({ error: 'tipo e path são obrigatórios' }, { status: 400 })
 
   const cleanPath = path.replace(/[^a-z0-9-_]/gi, '-').toLowerCase()
-  const appUrl = process.env.NEXTAUTH_URL?.replace('http://localhost:3001', 'https://ops.devnetlife.com') || 'https://ops.devnetlife.com'
+  const appUrl = process.env.NEXTAUTH_URL?.replace('http://localhost:3001', 'https://app.investmaisfinance.com.br') || 'https://app.investmaisfinance.com.br'
   const fullUrl = `${appUrl}/api/webhooks/${cleanPath}`
 
   const existing = await prisma.integracao.findUnique({

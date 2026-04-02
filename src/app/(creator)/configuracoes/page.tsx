@@ -115,8 +115,8 @@ function EndpointModal({
   const [saving, setSaving] = useState(false)
 
   const appUrl = typeof window !== 'undefined'
-    ? window.location.origin.replace('localhost:3001', 'ops.devnetlife.com').replace('http://', 'https://')
-    : 'https://ops.devnetlife.com'
+    ? window.location.origin.replace('localhost:3001', 'app.investmaisfinance.com.br').replace('http://', 'https://')
+    : 'https://app.investmaisfinance.com.br'
   const cleanPath = path.replace(/[^a-z0-9-_]/gi, '-').toLowerCase()
   const fullUrl = cleanPath ? `${appUrl}/api/webhooks/${cleanPath}` : ''
 
