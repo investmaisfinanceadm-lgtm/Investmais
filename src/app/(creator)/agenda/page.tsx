@@ -41,12 +41,7 @@ export default function AgendaPage() {
     const [concorrenteInput, setConcorrenteInput] = useState('')
     const [isAnalyzing, setIsAnalyzing] = useState(false)
     const [analysisResult, setAnalysisResult] = useState('')
-    const [posts] = useState([
-        { id: '1', titulo: 'Injeção de Capital — Benefícios MEI', status: 'rascunho', data: '2024-12-10' },
-        { id: '2', titulo: 'Operações de Crédito: FAQ Global', status: 'em revisão', data: '2024-12-12' },
-        { id: '3', titulo: 'Liquidez Imobiliária 2025', status: 'aprovado', data: '2024-12-15' },
-        { id: '4', titulo: 'Impacto da SELIC na Carteira de Ativos', status: 'publicado', data: '2024-12-08' },
-    ])
+    const [posts] = useState<{ id: string; titulo: string; status: string; data: string }[]>([])
 
     useEffect(() => {
         async function loadIntegration() {

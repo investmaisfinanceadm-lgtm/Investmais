@@ -930,7 +930,7 @@ function DataRow({ icon, label, value }: { icon: React.ReactNode; label: string;
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function CRMPage() {
-  const [contacts, setContacts] = useState<Contact[]>(MOCK_CONTACTS)
+  const [contacts, setContacts] = useState<Contact[]>([])
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isAddOpen, setIsAddOpen] = useState(false)

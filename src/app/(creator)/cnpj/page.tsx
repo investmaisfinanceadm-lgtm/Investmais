@@ -77,13 +77,7 @@ function DataRow({ icon, label, value }: { icon: React.ReactNode; label: string;
 const NICHOS = ['Beleza e Estética', 'Saúde e Medicina', 'Agronegócio', 'Contabilidade e Finanças', 'Engenharia e Construção', 'Educação', 'Alimentação e Gastronomia', 'Tecnologia', 'Jurídico', 'Imobiliário']
 const ESTADOS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO']
 
-const MOCK_BUSCAS = [
-  { nicho: 'Beleza e Estética', cidade: 'Aparecida de Goiânia', data: '2026-03-26' },
-  { nicho: 'Agronegócio', cidade: 'Primavera do Leste', data: '2026-02-27' },
-  { nicho: 'Contabilidade e Finanças', cidade: 'Maceió', data: '2026-02-27' },
-  { nicho: 'Saúde e Medicina', cidade: 'Anápolis', data: '2026-02-27' },
-  { nicho: 'Arquitetura e Design', cidade: 'Goiânia', data: '2026-02-25' },
-]
+const MOCK_BUSCAS: { nicho: string; cidade: string; data: string }[] = []
 
 function GoogleTab() {
   const [estado, setEstado] = useState('')
