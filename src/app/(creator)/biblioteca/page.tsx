@@ -407,9 +407,29 @@ export default function BibliotecaPage() {
                     <div className="absolute inset-0 bg-primary/98 backdrop-blur-3xl animate-fade-in" onClick={() => setSelectedVideo(null)} />
                     <div className="relative z-50 bg-[#0A192F] border border-white/5 rounded-2xl md:rounded-[64px] w-full max-w-7xl shadow-[0_0_150px_rgba(48,203,123,0.1)] animate-scale-in flex flex-col lg:row overflow-hidden max-h-[95vh]">
                         <div className="flex flex-col lg:flex-row h-full">
-                            <div className="flex-1 bg-black flex items-center justify-center relative min-h-[40vh] lg:min-h-0">
+                            <div className="flex-1 bg-black/40 flex items-center justify-center relative min-h-[50vh] lg:min-h-0 p-8">
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.05)_0%,transparent_70%)]" />
+                                
                                 {selectedVideo.video_url ? (
-                                    <video src={selectedVideo.video_url} controls autoPlay className="w-full h-full object-contain" />
+                                    <div className={cn(
+                                        "relative shadow-[0_0_100px_rgba(0,0,0,0.5)] bg-black overflow-hidden",
+                                        selectedVideo.formato === 'stories' 
+                                            ? "aspect-[9/16] h-full max-h-[85vh] rounded-[32px] border-[6px] border-white/5" 
+                                            : "w-full aspect-video rounded-3xl border border-white/10"
+                                    )}>
+                                        <video 
+                                            src={selectedVideo.video_url} 
+                                            controls 
+                                            autoPlay 
+                                            playsInline
+                                            className="w-full h-full object-contain" 
+                                        />
+                                        
+                                        {/* Phone-style notch for 9:16 */}
+                                        {selectedVideo.formato === 'stories' && (
+                                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-6 bg-black rounded-b-2xl z-10 border-x border-b border-white/5" />
+                                        )}
+                                    </div>
                                 ) : (
                                     <div className="flex flex-col items-center gap-8 text-gray-800">
                                         <div className="relative">
@@ -423,8 +443,8 @@ export default function BibliotecaPage() {
                                 {/* Status overlay in modal */}
                                 <div className="absolute top-10 left-10 flex gap-4">
                                      <div className="px-4 py-2 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center gap-3">
-                                          <div className="w-2 h-2 rounded-full bg-accent shadow-accent" />
-                                          <span className="text-[10px] font-black text-white uppercase tracking-widest italic">{selectedVideo.nome_produto}</span>
+                                          <div className="w-2 h-2 rounded-full bg-accent shadow-accent animate-pulse" />
+                                          <span className="text-[10px] font-black text-white uppercase tracking-widest italic tracking-tighter">{selectedVideo.nome_produto}</span>
                                      </div>
                                 </div>
                             </div>

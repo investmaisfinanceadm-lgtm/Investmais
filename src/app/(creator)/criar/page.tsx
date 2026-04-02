@@ -296,14 +296,28 @@ export default function CriarPage() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-12">
                         {/* Video Player */}
-                        <div className="lg:col-span-2 aspect-video rounded-2xl md:rounded-[48px] bg-black border border-white/5 overflow-hidden shadow-2xl relative shadow-accent/5 group">
-                            <video
-                                ref={videoRef}
-                                src={generatedVideo.video_url}
-                                controls
-                                autoPlay
-                                className="w-full h-full object-contain"
-                            />
+                        <div className={cn(
+                            "lg:col-span-2 rounded-2xl md:rounded-[48px] overflow-hidden shadow-2xl relative shadow-accent/5 group flex items-center justify-center p-4 md:p-8",
+                            step2.formato === 'stories' ? "bg-black/40 min-h-[70vh]" : "bg-black aspect-video border border-white/5"
+                        )}>
+                            <div className={cn(
+                                "relative shadow-[0_0_100px_rgba(0,0,0,0.5)] bg-black overflow-hidden transition-all duration-500",
+                                step2.formato === 'stories' 
+                                    ? "aspect-[9/16] h-full max-h-[75vh] rounded-[32px] border-[6px] border-white/5" 
+                                    : "w-full aspect-video rounded-3xl border border-white/10"
+                            )}>
+                                <video
+                                    ref={videoRef}
+                                    src={generatedVideo.video_url}
+                                    controls
+                                    autoPlay
+                                    playsInline
+                                    className="w-full h-full object-contain"
+                                />
+                                {step2.formato === 'stories' && (
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-5 bg-black rounded-b-2xl z-10 border-x border-b border-white/5" />
+                                )}
+                            </div>
                             {/* Overlay actions — always visible on mobile, hover on desktop */}
                             <div className="absolute top-3 right-3 flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 z-10">
                                 <button
