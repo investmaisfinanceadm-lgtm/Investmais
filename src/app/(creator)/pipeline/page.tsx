@@ -42,6 +42,7 @@ import {
   type DragStartEvent,
   type DragEndEvent,
 } from '@dnd-kit/core'
+import { cn } from '@/lib/utils'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
