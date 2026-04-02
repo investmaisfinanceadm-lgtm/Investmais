@@ -77,14 +77,25 @@ function DataRow({ icon, label, value }: { icon: React.ReactNode; label: string;
 const NICHOS = ['Beleza e Estética', 'Saúde e Medicina', 'Agronegócio', 'Contabilidade e Finanças', 'Engenharia e Construção', 'Educação', 'Alimentação e Gastronomia', 'Tecnologia', 'Jurídico', 'Imobiliário']
 const ESTADOS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO']
 
-const MOCK_BUSCAS: { nicho: string; cidade: string; data: string }[] = []
-
 function GoogleTab() {
   const [estado, setEstado] = useState('')
   const [cidade, setCidade] = useState('')
   const [nicho, setNicho] = useState('')
   const [loading, setLoading] = useState(false)
   const [buscaStatus, setBuscaStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [googleLeads, setGoogleLeads] = useState<any[]>([])
+
+  useEffect(() => {
+    fetch('/api/creator/crm')
+      .then(r => r.json())
+      .then((d: any[]) => {
+        if (Array.isArray(d)) {
+          const leadsGoogle = d.filter(c => c.canal_origem?.toLowerCase() === 'google' || c.canal?.toLowerCase() === 'google')
+          setGoogleLeads(leadsGoogle)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   const handleBuscar = async () => {
     if (!estado || !cidade || !nicho) return
@@ -163,10 +174,10 @@ function GoogleTab() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Leads', value: '180', color: 'text-accent' },
-          { label: 'Leads Hoje', value: '0', color: 'text-white' },
-          { label: 'Conversões', value: '0', color: 'text-white' },
-          { label: 'Na Semana', value: '10', color: 'text-white' },
+          { label: 'Total Google', value: googleLeads.length.toString(), color: 'text-accent' },
+          { label: 'Leads Hoje', value: googleLeads.filter(l => new Date(l.created_at).toDateString() === new Date().toDateString()).length.toString(), color: 'text-white' },
+          { label: 'Conversões', value: googleLeads.filter(l => l.status_funil === 'cliente').length.toString(), color: 'text-white' },
+          { label: 'Na Semana', value: googleLeads.filter(l => (new Date().getTime() - new Date(l.created_at).getTime()) / (1000 * 3600 * 24) < 7).length.toString(), color: 'text-white' },
         ].map(s => (
           <div key={s.label} className="card p-5 rounded-2xl text-center">
             <p className={`text-3xl font-black ${s.color}`}>{s.value}</p>
@@ -177,21 +188,31 @@ function GoogleTab() {
 
       {/* Últimas Buscas */}
       <div className="card rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-dark-border flex items-center gap-2">
-          <Clock className="w-4 h-4 text-gray-500" />
-          <h3 className="text-sm font-black text-white uppercase tracking-wider">Últimas Buscas</h3>
+        <div className="px-6 py-4 border-b border-dark-border flex items-center justify-between">
+            <div className="flex items-center gap-2">
+               <Clock className="w-4 h-4 text-gray-500" />
+               <h3 className="text-sm font-black text-white uppercase tracking-wider">Últimos Leads Extraídos</h3>
+            </div>
+            <button onClick={() => window.location.reload()} className="text-[10px] text-gray-500 flex items-center gap-1 hover:text-white uppercase font-black"><RefreshCw className="w-3 h-3"/> Atualizar</button>
         </div>
         <div className="divide-y divide-dark-border">
-          {MOCK_BUSCAS.map((b, i) => (
-            <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors">
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-semibold text-white">{b.nicho}</span>
-                <span className="text-gray-600">•</span>
-                <span className="text-sm text-accent">{b.cidade}</span>
+          {googleLeads.length === 0 ? (
+             <p className="text-sm text-gray-500 text-center py-6">Nenhum lead extraído do Google Maps até o momento.</p>
+          ) : (
+            googleLeads.slice(0, 8).map((b, i) => (
+              <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors">
+                <div className="flex items-start md:items-center flex-col md:flex-row gap-1 md:gap-3">
+                  <span className="text-sm font-semibold text-white truncate max-w-[200px] md:max-w-[300px]">{b.nome}</span>
+                  <span className="text-gray-600 hidden md:block">•</span>
+                  <span className="text-sm text-accent">{b.telefone || 'Sem número'}</span>
+                </div>
+                <div className="flex flex-col items-end">
+                   <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">{b.status_funil}</span>
+                   <span className="text-[10px] text-gray-600">{format(new Date(b.created_at || new Date()), "dd/MM/yy 'às' HH:mm")}</span>
+                </div>
               </div>
-              <span className="text-xs text-gray-500">{format(parseISO(b.data), 'dd/MM/yy')}</span>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>
