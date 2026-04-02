@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     }
 
     // Call the N8N webhook
-    const n8nResponse = await fetch('https://auto.devnetlife.com/webhook/buscar-google', {
+    const n8nResponse = await fetch('https://auto.devnetlife.com/webhook/investmais', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
