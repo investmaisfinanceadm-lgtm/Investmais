@@ -76,8 +76,8 @@ const initialColumns: KanbanColumn[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatCurrency(value: number) {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+function formatCurrency(value: number | null | undefined) {
+  return (value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
 function formatDate(dateStr: string) {
@@ -929,13 +929,13 @@ export default function PipelinePage() {
       id: card.id,
       title: card.titulo,
       description: card.descricao,
-      value: card.valor,
+      value: card.valor || 0,
       dueDate: card.vencimento ? String(card.vencimento).split('T')[0] : '',
-      priority: card.prioridade,
+      priority: (card.prioridade as Priority) || 'media',
       columnId: card.coluna_id,
       category: card.categoria || 'Lead',
       categoryColor: 'blue',
-      responsible: { name: card.responsavel || 'Sem responsável', initials: 'US', color: '#30CB7B' }
+      responsible: { name: card.responsavel || 'Sem responsável', initials: (card.responsavel || 'US').slice(0, 2).toUpperCase(), color: '#30CB7B' }
     }))
   })) || []
 
