@@ -97,21 +97,6 @@ function IniciarDisparoModal({
   const handleConfirm = async () => {
     setStarting(true)
     try {
-      // Load webhook URL from integrations config
-      const integRes = await fetch('/api/creator/integracoes')
-      let webhookUrl = ''
-      if (integRes.ok) {
-        const all: any[] = await integRes.json()
-        const disparoInteg = all.find(i => i.tipo === 'disparo_whatsapp')
-        webhookUrl = disparoInteg?.configuracoes?.webhook_disparo || ''
-      }
-
-      if (!webhookUrl) {
-        toast.error('Configure o Webhook de Disparo em Configurações > Disparo')
-        setStarting(false)
-        return
-      }
-
       // Map phone numbers to lead objects expected by n8n automation
       const leads = lista.telefones.map((telefone, i) => ({
         id: `lead-${lista.id}-${i}`,
@@ -139,13 +124,24 @@ function IniciarDisparoModal({
         }),
       }
 
-      const res = await fetch(webhookUrl, {
+      // Call server-side proxy to avoid CORS issues when calling n8n externally
+      const res = await fetch('/api/proxy/disparo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
 
-      if (!res.ok) throw new Error(`Webhook retornou ${res.status}`)
+      const data = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        if (res.status === 400 && data?.error?.includes('não configurado')) {
+          toast.error('Configure o Webhook de Disparo em Configurações > Disparo')
+        } else {
+          throw new Error(data?.error || `Erro ${res.status}`)
+        }
+        setStarting(false)
+        return
+      }
 
       onConfirm(lista.id)
       toast.success('Disparo de WhatsApp iniciado!')
