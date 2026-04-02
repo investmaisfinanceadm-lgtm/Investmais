@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { format, parseISO, isPast } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import toast from 'react-hot-toast'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -973,14 +974,19 @@ export default function PipelinePage() {
       })
       if (res.ok) {
         const newCol = await res.json()
-        setBoardsData(prev => prev.map(b => 
-          b.id === selectedBoardId 
-            ? { ...b, colunas: [...(b.colunas || []), newCol] } 
+        setBoardsData(prev => prev.map(b =>
+          b.id === selectedBoardId
+            ? { ...b, colunas: [...(b.colunas || []), newCol] }
             : b
         ))
+        toast.success('Coluna adicionada!')
+      } else {
+        const err = await res.json().catch(() => ({}))
+        toast.error(err?.error || 'Erro ao criar coluna')
       }
     } catch (err) {
       console.error('Error adding column:', err)
+      toast.error('Erro de conexão ao criar coluna')
     }
   }
 
@@ -995,7 +1001,7 @@ export default function PipelinePage() {
           valor: cardData.value,
           vencimento: cardData.dueDate,
           prioridade: cardData.priority,
-          responsavel: cardData.responsible.name,
+          responsavel: cardData.responsible?.name || '',
           coluna_id: cardData.columnId,
           categoria: cardData.category
         })
@@ -1004,15 +1010,20 @@ export default function PipelinePage() {
         const newCard = await res.json()
         setBoardsData(prev => prev.map(b => ({
           ...b,
-          colunas: b.colunas.map((col: any) => 
-            col.id === newCard.coluna_id 
-              ? { ...col, cards: [...(col.cards || []), newCard] } 
+          colunas: b.colunas.map((col: any) =>
+            col.id === newCard.coluna_id
+              ? { ...col, cards: [...(col.cards || []), newCard] }
               : col
           )
         })))
+        toast.success('Card adicionado!')
+      } else {
+        const err = await res.json().catch(() => ({}))
+        toast.error(err?.error || 'Erro ao salvar card')
       }
     } catch (err) {
       console.error('Error adding card:', err)
+      toast.error('Erro de conexão ao salvar card')
     }
   }
 

@@ -39,6 +39,7 @@ import {
   ArrowRight,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import toast from 'react-hot-toast'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1047,11 +1048,13 @@ export default function CRMPage() {
         setContacts((prev) => prev.filter((c) => c.id !== id))
         setIsDetailOpen(false)
         setSelectedContact(null)
-        const { default: toast } = await import('react-hot-toast')
         toast.success('Contato excluído')
+      } else {
+        toast.error('Erro ao excluir contato')
       }
     } catch (err) {
       console.error('Failed to delete contact:', err)
+      toast.error('Erro de conexão ao excluir contato')
     }
   }
 
@@ -1082,11 +1085,14 @@ export default function CRMPage() {
           activities: []
         }
         setContacts((prev) => [formatted, ...prev])
-        const { default: toast } = await import('react-hot-toast')
         toast.success('Contato adicionado!')
+      } else {
+        const err = await res.json().catch(() => ({}))
+        toast.error(err?.error || 'Erro ao salvar contato')
       }
     } catch (err) {
       console.error('Failed to add contact:', err)
+      toast.error('Erro de conexão ao salvar contato')
     }
   }
 
