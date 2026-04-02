@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format, parseISO } from 'date-fns'
+import toast from 'react-hot-toast'
 import { ptBR } from 'date-fns/locale'
 
 // ─── CNPJ helpers ────────────────────────────────────────────────────────────
@@ -89,12 +90,45 @@ function GoogleTab() {
   const [cidade, setCidade] = useState('')
   const [nicho, setNicho] = useState('')
   const [loading, setLoading] = useState(false)
+  const [webhookUrl, setWebhookUrl] = useState('')
+  const [buscaStatus, setBuscaStatus] = useState<'idle' | 'success' | 'error'>('idle')
+
+  useEffect(() => {
+    fetch('/api/creator/integracoes')
+      .then(r => r.json())
+      .then((data: any[]) => {
+        const g = data.find((i: any) => i.tipo === 'busca_google_maps')
+        if (g?.configuracoes?.url) setWebhookUrl(g.configuracoes.url)
+      })
+      .catch(() => {})
+  }, [])
 
   const handleBuscar = async () => {
     if (!estado || !cidade || !nicho) return
+    if (!webhookUrl) {
+      toast.error('Configure o webhook de Busca Google em Configurações → Busca de Leads')
+      return
+    }
     setLoading(true)
-    await new Promise(r => setTimeout(r, 1500))
-    setLoading(false)
+    setBuscaStatus('idle')
+    try {
+      const res = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado, cidade, nicho }),
+      })
+      setBuscaStatus(res.ok ? 'success' : 'error')
+      if (res.ok) {
+        toast.success('Busca iniciada! Os leads serão adicionados em breve.')
+      } else {
+        toast.error(`Erro ao iniciar busca (${res.status})`)
+      }
+    } catch {
+      setBuscaStatus('error')
+      toast.error('Não foi possível conectar ao webhook')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -139,6 +173,18 @@ function GoogleTab() {
           className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-sm font-black uppercase tracking-wider disabled:opacity-40">
           {loading ? <><RefreshCw className="w-4 h-4 animate-spin" />Buscando...</> : <><Search className="w-4 h-4" />Buscar Leads no Google</>}
         </button>
+        {!webhookUrl && (
+          <p className="flex items-center gap-2 text-yellow-400/80 text-[11px] mt-2">
+            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+            Webhook não configurado. Acesse <strong>Configurações → Busca de Leads</strong> para configurar.
+          </p>
+        )}
+        {buscaStatus === 'success' && (
+          <p className="flex items-center gap-2 text-accent text-[11px] mt-2">
+            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+            Busca enviada com sucesso! Os leads serão adicionados ao CRM em instantes.
+          </p>
+        )}
       </div>
 
       {/* Stats */}
@@ -436,10 +482,10 @@ export default function BuscaLeadsPage() {
   const [activeTab, setActiveTab] = useState<'google' | 'cnpj'>('google')
 
   return (
-    <div className="p-8 lg:p-12 space-y-8 max-w-7xl mx-auto animate-fade-in pb-20">
+    <div className="p-4 md:p-8 lg:p-12 space-y-6 md:space-y-8 max-w-7xl mx-auto animate-fade-in pb-20">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-4xl font-black text-white tracking-tighter">Busca de Leads</h1>
+        <h1 className="text-3xl md:text-4xl font-black text-white tracking-tighter">Busca de Leads</h1>
         <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">
           Encontre leads para alavancar seu negócio
         </p>

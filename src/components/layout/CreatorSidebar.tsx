@@ -225,7 +225,7 @@ export function CreatorSidebar() {
             {/* Mobile Sidebar */}
             <aside
                 className={cn(
-                    'lg:hidden fixed top-0 left-0 h-full w-80 bg-dark-card border-r border-white/5 z-[70] transition-transform duration-500 ease-in-out',
+                    'lg:hidden fixed top-0 left-0 h-full w-[80vw] max-w-[320px] bg-dark-card border-r border-white/5 z-[70] transition-transform duration-500 ease-in-out',
                     mobileOpen ? 'translate-x-0' : '-translate-x-full'
                 )}
             >

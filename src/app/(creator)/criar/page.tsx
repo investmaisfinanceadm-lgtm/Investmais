@@ -288,20 +288,20 @@ export default function CriarPage() {
 
     if (generatedVideo) {
         return (
-            <div className="min-h-screen p-8 lg:p-20 bg-primary animate-fade-in overflow-y-auto">
-                <div className="max-w-5xl mx-auto space-y-12 pb-20">
-                    <div className="text-center md:text-left space-y-4">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 mb-4">
+            <div className="min-h-screen p-4 md:p-8 lg:p-20 bg-primary animate-fade-in overflow-y-auto">
+                <div className="max-w-5xl mx-auto space-y-8 md:space-y-12 pb-20">
+                    <div className="text-center md:text-left space-y-3 md:space-y-4">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 mb-2 md:mb-4">
                             <Sparkles className="w-3 h-3 text-accent" />
                             <span className="text-[10px] font-black text-accent uppercase tracking-widest">Protocolo Concluído</span>
                         </div>
-                        <h2 className="text-6xl font-black text-white tracking-tighter uppercase italic">Otimização Realizada.</h2>
+                        <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase italic">Otimização Realizada.</h2>
                         <p className="text-gray-500 font-medium uppercase tracking-[0.2em] text-xs">Seu ativo digital foi gerado com sucesso pelo núcleo AI.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-12">
                         {/* Video Player */}
-                        <div className="lg:col-span-2 aspect-video rounded-[48px] bg-black border border-white/5 overflow-hidden shadow-2xl relative shadow-accent/5 group">
+                        <div className="lg:col-span-2 aspect-video rounded-2xl md:rounded-[48px] bg-black border border-white/5 overflow-hidden shadow-2xl relative shadow-accent/5 group">
                             <video
                                 ref={videoRef}
                                 src={generatedVideo.video_url}
@@ -309,8 +309,8 @@ export default function CriarPage() {
                                 autoPlay
                                 className="w-full h-full object-contain"
                             />
-                            {/* Overlay actions — visible on hover */}
-                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                            {/* Overlay actions — always visible on mobile, hover on desktop */}
+                            <div className="absolute top-3 right-3 flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 z-10">
                                 <button
                                     onClick={handleFullscreen}
                                     title="Tela cheia"
@@ -332,7 +332,7 @@ export default function CriarPage() {
 
                         {/* Ficha Técnica */}
                         <div className="space-y-6">
-                            <div className="card border-white/5 bg-white/[0.02] p-8 space-y-8 rounded-[40px]">
+                            <div className="card border-white/5 bg-white/[0.02] p-5 md:p-8 space-y-6 md:space-y-8 rounded-2xl md:rounded-[40px]">
                                 <div className="space-y-4">
                                     <h3 className="text-xs font-black text-white uppercase tracking-widest">Ficha Técnica</h3>
                                     <div className="space-y-4">
@@ -401,9 +401,9 @@ export default function CriarPage() {
     }
 
     return (
-        <div className="p-8 lg:p-20 max-w-7xl mx-auto">
+        <div className="p-4 md:p-8 lg:p-16 max-w-7xl mx-auto">
             {/* Step Header */}
-            <div className="flex items-center gap-4 mb-20">
+            <div className="flex items-center gap-3 md:gap-4 mb-8 md:mb-16">
                 {[0, 1, 2].map((s) => (
                     <div key={s} className="flex items-center gap-4 group">
                         <div className={cn(
@@ -423,14 +423,14 @@ export default function CriarPage() {
 
             {/* Step 1 — Input de Ativos */}
             {currentStep === 0 && (
-                <div className="space-y-12 animate-fade-in pb-20">
-                    <div className="space-y-4">
-                        <h2 className="text-6xl font-black text-white tracking-tighter uppercase italic leading-none">Insumos da Campanha</h2>
+                <div className="space-y-8 md:space-y-12 animate-fade-in pb-20">
+                    <div className="space-y-3 md:space-y-4">
+                        <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase italic leading-none">Insumos da Campanha</h2>
                         <p className="text-gray-500 font-medium uppercase tracking-[0.2em] text-xs">Defina o DNA e os ativos base para o processamento de imagem.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-16">
-                        <div className="lg:col-span-3 space-y-10">
+                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 md:gap-16">
+                        <div className="lg:col-span-3 space-y-6 md:space-y-10">
                             <div className="space-y-6">
                                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Nomenclatura do Produto *</label>
                                 <input
@@ -439,7 +439,7 @@ export default function CriarPage() {
                                     value={step1.nome_produto}
                                     onChange={(e) => setStep1((p) => ({ ...p, nome_produto: e.target.value }))}
                                     className={cn(
-                                        "w-full bg-white/5 border rounded-[32px] px-8 py-6 text-white font-black uppercase tracking-widest focus:ring-0 transition-all text-sm outline-none",
+                                        "w-full bg-white/5 border rounded-2xl md:rounded-[32px] px-5 py-4 md:px-8 md:py-6 text-white font-black uppercase tracking-widest focus:ring-0 transition-all text-sm outline-none",
                                         step1Errors.nome_produto ? 'border-red-500' : 'border-white/5 focus:border-accent/40'
                                     )}
                                 />
@@ -463,7 +463,7 @@ export default function CriarPage() {
                                     value={step1.descricao_produto}
                                     onChange={(e) => setStep1((p) => ({ ...p, descricao_produto: e.target.value }))}
                                     className={cn(
-                                        "w-full bg-white/5 border rounded-[32px] px-8 py-6 text-white font-medium focus:ring-0 transition-all text-sm leading-relaxed outline-none resize-none",
+                                        "w-full bg-white/5 border rounded-2xl md:rounded-[32px] px-5 py-4 md:px-8 md:py-6 text-white font-medium focus:ring-0 transition-all text-sm leading-relaxed outline-none resize-none",
                                         step1Errors.descricao_produto ? 'border-red-500' : 'border-white/5 focus:border-accent/40'
                                     )}
                                 />
@@ -513,8 +513,8 @@ export default function CriarPage() {
                         </div>
                     </div>
 
-                    <div className="flex justify-end pt-12 border-t border-white/5">
-                        <button onClick={handleNext} className="btn-primary flex items-center gap-4 px-12 py-6 group bg-accent text-black font-black uppercase tracking-widest text-sm rounded-[24px]">
+                    <div className="flex justify-end pt-6 md:pt-12 border-t border-white/5">
+                        <button onClick={handleNext} className="btn-primary flex items-center gap-3 md:gap-4 px-8 py-4 md:px-12 md:py-6 group bg-accent text-black font-black uppercase tracking-widest text-sm rounded-2xl md:rounded-[24px]">
                             <span>Validar Ativos</span>
                             <ChevronRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
                         </button>
@@ -524,14 +524,14 @@ export default function CriarPage() {
 
             {/* Step 2 — Configuração Modular */}
             {currentStep === 1 && (
-                <div className="space-y-12 animate-fade-in pb-20">
-                    <div className="space-y-4">
-                        <h2 className="text-6xl font-black text-white tracking-tighter uppercase italic leading-none">Matriz de Formatação</h2>
+                <div className="space-y-8 md:space-y-12 animate-fade-in pb-20">
+                    <div className="space-y-3 md:space-y-4">
+                        <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase italic leading-none">Matriz de Formatação</h2>
                         <p className="text-gray-500 font-medium uppercase tracking-[0.2em] text-xs">Ajuste os parâmetros de saída e a frequência narrativa do conteúdo.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-16">
-                        <div className="lg:col-span-3 space-y-12">
+                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 md:gap-16">
+                        <div className="lg:col-span-3 space-y-8 md:space-y-12">
                             {/* Formato */}
                             <div className="space-y-8">
                                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Arquitetura de Saída (Formato) *</label>
@@ -566,7 +566,7 @@ export default function CriarPage() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 pt-2 md:pt-4">
                                 {/* Duração */}
                                 <div className="space-y-8">
                                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Matriz Temporal (Duração)</label>

@@ -51,18 +51,18 @@ export default function DashboardPage() {
     }
 
     return (
-        <div className="p-8 lg:p-12 space-y-12 max-w-7xl mx-auto animate-fade-in pb-20">
+        <div className="p-4 md:p-8 lg:p-12 space-y-8 md:space-y-12 max-w-7xl mx-auto animate-fade-in pb-20">
             {/* Welcome Header */}
-            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-8 pb-8 border-b border-white/5">
-                <div className="space-y-4">
+            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-5 md:gap-8 pb-6 md:pb-8 border-b border-white/5">
+                <div className="space-y-3 md:space-y-4">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 transition-all hover:bg-accent/20">
                         <Activity className="w-3 h-3 text-accent" />
                         <span className="text-[10px] font-black text-accent uppercase tracking-widest">Painel Operacional Ativo</span>
                     </div>
                     {isLoading ? (
-                        <div className="shimmer h-12 w-80 rounded-2xl" />
+                        <div className="shimmer h-10 w-64 rounded-2xl" />
                     ) : (
-                        <h1 className="text-5xl font-black text-white tracking-tighter leading-none">
+                        <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter leading-none">
                             {greeting()}, <br />
                             <span className="text-transparent bg-clip-text bg-gradient-accent">
                                 {stats?.nome?.split(' ')[0] || 'Investidor'}
@@ -73,21 +73,21 @@ export default function DashboardPage() {
                         ESTÚDIO DE CONTEÚDO AI • STATUS OPERACIONAL: ONLINE
                     </p>
                 </div>
-                <Link href="/criar" className="btn-primary group flex items-center gap-4 px-10 py-5 shadow-accent/20 hover:shadow-accent-lg active:scale-95 transition-all bg-accent text-black font-black uppercase tracking-widest text-xs rounded-2xl">
+                <Link href="/criar" className="btn-primary group flex items-center gap-3 px-6 py-3.5 md:px-10 md:py-5 shadow-accent/20 hover:shadow-accent-lg active:scale-95 transition-all bg-accent text-black font-black uppercase tracking-widest text-xs rounded-2xl self-start md:self-auto">
                     <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
                     <span>Iniciar Nova Produção</span>
                 </Link>
             </div>
 
             {/* Metric Cards - High Performance Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="card-hover group border-white/5 bg-white/[0.02] p-8 rounded-[40px] relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform">
-                        <Video className="w-24 h-24" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+                <div className="card-hover group border-white/5 bg-white/[0.02] p-5 md:p-8 rounded-[32px] md:rounded-[40px] relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-6 md:p-8 opacity-5 group-hover:scale-110 transition-transform">
+                        <Video className="w-20 md:w-24 h-20 md:h-24" />
                     </div>
-                    <div className="flex items-center justify-between mb-10">
-                        <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center border border-accent/20 group-hover:scale-110 transition-transform shadow-accent/10 shadow-lg">
-                            <Video className="w-7 h-7 text-accent" />
+                    <div className="flex items-center justify-between mb-6 md:mb-10">
+                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-accent/10 flex items-center justify-center border border-accent/20 group-hover:scale-110 transition-transform shadow-accent/10 shadow-lg">
+                            <Video className="w-6 h-6 md:w-7 md:h-7 text-accent" />
                         </div>
                         <div className="text-right">
                             <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">Cota Utilizada</p>
@@ -105,13 +105,13 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                <div className="card-hover group border-white/5 bg-white/[0.02] p-8 rounded-[40px] relative overflow-hidden" style={{ animationDelay: '0.1s' }}>
-                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform">
-                        <Zap className="w-24 h-24" />
+                <div className="card-hover group border-white/5 bg-white/[0.02] p-5 md:p-8 rounded-[32px] md:rounded-[40px] relative overflow-hidden" style={{ animationDelay: '0.1s' }}>
+                    <div className="absolute top-0 right-0 p-6 md:p-8 opacity-5 group-hover:scale-110 transition-transform">
+                        <Zap className="w-20 md:w-24 h-20 md:h-24" />
                     </div>
-                    <div className="flex items-center justify-between mb-10">
-                        <div className="w-14 h-14 rounded-2xl bg-amber-400/10 flex items-center justify-center border border-amber-400/20 group-hover:scale-110 transition-transform shadow-amber-400/10 shadow-lg">
-                            <Zap className="w-7 h-7 text-amber-400" />
+                    <div className="flex items-center justify-between mb-6 md:mb-10">
+                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-amber-400/10 flex items-center justify-center border border-amber-400/20 group-hover:scale-110 transition-transform shadow-amber-400/10 shadow-lg">
+                            <Zap className="w-6 h-6 md:w-7 md:h-7 text-amber-400" />
                         </div>
                         <div className="text-right">
                             <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">Créditos AI</p>
@@ -128,13 +128,13 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                <div className="card-hover group border-white/5 bg-white/[0.02] p-8 rounded-[40px] relative overflow-hidden" style={{ animationDelay: '0.2s' }}>
-                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform">
-                        <Library className="w-24 h-24" />
+                <div className="card-hover group border-white/5 bg-white/[0.02] p-5 md:p-8 rounded-[32px] md:rounded-[40px] relative overflow-hidden" style={{ animationDelay: '0.2s' }}>
+                    <div className="absolute top-0 right-0 p-6 md:p-8 opacity-5 group-hover:scale-110 transition-transform">
+                        <Library className="w-20 md:w-24 h-20 md:h-24" />
                     </div>
-                    <div className="flex items-center justify-between mb-10">
-                        <div className="w-14 h-14 rounded-2xl bg-blue-400/10 flex items-center justify-center border border-blue-400/20 group-hover:scale-110 transition-transform shadow-blue-400/10 shadow-lg">
-                            <Library className="w-7 h-7 text-blue-400" />
+                    <div className="flex items-center justify-between mb-6 md:mb-10">
+                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-blue-400/10 flex items-center justify-center border border-blue-400/20 group-hover:scale-110 transition-transform shadow-blue-400/10 shadow-lg">
+                            <Library className="w-6 h-6 md:w-7 md:h-7 text-blue-400" />
                         </div>
                         <div className="text-right">
                             <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">Acervo Ativo</p>
@@ -148,8 +148,8 @@ export default function DashboardPage() {
             </div>
 
             {/* Performance Analytics Section - NEW RECOMMENDATION */}
-            <div className="card border-white/5 bg-white/[0.02] p-10 rounded-[48px] shadow-2xl relative overflow-hidden">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
+            <div className="card border-white/5 bg-white/[0.02] p-5 md:p-10 rounded-[32px] md:rounded-[48px] shadow-2xl relative overflow-hidden">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-5 md:gap-8 mb-8 md:mb-12">
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
@@ -188,7 +188,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Main Content Area */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 pt-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12 pt-4 md:pt-8">
                 {/* Recent Activities */}
                 <div className="lg:col-span-2 space-y-8">
                     <div className="flex items-center justify-between px-2">
@@ -225,15 +225,15 @@ export default function DashboardPage() {
                     ) : (
                         <div className="space-y-4">
                             {recentVideos.map((video) => (
-                                <div key={video.id} className="card-hover group flex items-center gap-6 border-white/5 bg-white/[0.02] hover:bg-white/[0.05] p-6 rounded-[32px] transition-all">
-                                    <div className="w-16 h-16 rounded-2xl bg-primary border border-white/5 flex items-center justify-center flex-shrink-0 group-hover:border-accent/30 transition-all shadow-xl group-hover:shadow-accent/5">
-                                        <Video className="w-7 h-7 text-gray-700 group-hover:text-accent transition-all duration-500" />
+                                <div key={video.id} className="card-hover group flex items-center gap-4 md:gap-6 border-white/5 bg-white/[0.02] hover:bg-white/[0.05] p-4 md:p-6 rounded-[24px] md:rounded-[32px] transition-all">
+                                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-primary border border-white/5 flex items-center justify-center flex-shrink-0 group-hover:border-accent/30 transition-all shadow-xl group-hover:shadow-accent/5">
+                                        <Video className="w-6 h-6 md:w-7 md:h-7 text-gray-700 group-hover:text-accent transition-all duration-500" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-white font-black text-sm uppercase tracking-tight truncate group-hover:text-accent transition-colors duration-500">
+                                        <p className="text-white font-black text-xs md:text-sm uppercase tracking-tight truncate group-hover:text-accent transition-colors duration-500">
                                             {video.nome_produto}
                                         </p>
-                                        <div className="flex items-center gap-6 mt-3">
+                                        <div className="flex flex-wrap items-center gap-3 md:gap-6 mt-2 md:mt-3">
                                             <div className="flex items-center gap-2">
                                                 <Clock className="w-3 h-3 text-gray-700" />
                                                 <span className="text-[9px] font-black text-gray-700 uppercase tracking-widest">
@@ -248,9 +248,9 @@ export default function DashboardPage() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-4">
+                                    <div className="hidden sm:flex items-center gap-4">
                                         <span className={cn(
-                                            "inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border shadow-2xl transition-all",
+                                            "inline-flex items-center gap-2 px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border shadow-2xl transition-all",
                                             video.status === 'concluido' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
                                             video.status === 'processando' ? 'bg-amber-400/10 text-amber-400 border-amber-400/20 animate-pulse' : 
                                             'bg-red-500/10 text-red-500 border-red-500/20'
@@ -274,7 +274,7 @@ export default function DashboardPage() {
                         <h2 className="text-xs font-black text-white uppercase tracking-[0.3em] px-2">Comandos Operais</h2>
                         <div className="space-y-4">
                             <Link href="/criar" className="block group">
-                                <div className="card-hover border-white/5 bg-accent p-8 flex flex-col gap-6 shadow-accent/20 rounded-[40px] group-hover:scale-[1.02] transition-all">
+                                <div className="card-hover border-white/5 bg-accent p-5 md:p-8 flex flex-col gap-4 md:gap-6 shadow-accent/20 rounded-[32px] md:rounded-[40px] group-hover:scale-[1.02] transition-all">
                                     <div className="w-12 h-12 rounded-2xl bg-black/10 flex items-center justify-center">
                                         <Zap className="w-6 h-6 text-black" />
                                     </div>
@@ -286,7 +286,7 @@ export default function DashboardPage() {
                             </Link>
 
                             <Link href="/biblioteca" className="block group">
-                                <div className="card-hover border-white/5 bg-white/[0.02] p-8 flex flex-col gap-6 hover:border-blue-500/30 rounded-[40px] group-hover:scale-[1.02] transition-all">
+                                <div className="card-hover border-white/5 bg-white/[0.02] p-5 md:p-8 flex flex-col gap-4 md:gap-6 hover:border-blue-500/30 rounded-[32px] md:rounded-[40px] group-hover:scale-[1.02] transition-all">
                                     <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                                         <Library className="w-6 h-6 text-blue-400" />
                                     </div>
@@ -300,7 +300,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Pro Tip Card - ENHANCED */}
-                    <div className="bg-gradient-to-br from-[#0D2447] to-transparent p-10 rounded-[48px] border border-white/5 space-y-6 shadow-2xl relative overflow-hidden group">
+                    <div className="bg-gradient-to-br from-[#0D2447] to-transparent p-6 md:p-10 rounded-[32px] md:rounded-[48px] border border-white/5 space-y-4 md:space-y-6 shadow-2xl relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:rotate-12 group-hover:scale-125 transition-all duration-700">
                             <TrendingUp className="w-24 h-24" />
                         </div>

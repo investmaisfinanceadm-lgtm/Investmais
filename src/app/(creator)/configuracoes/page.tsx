@@ -499,15 +499,15 @@ export default function ConfiguracoesPage() {
   }
 
   return (
-    <div className="p-6 lg:p-10 max-w-5xl mx-auto space-y-8 pb-20">
+    <div className="p-4 md:p-6 lg:p-10 max-w-5xl mx-auto space-y-6 md:space-y-8 pb-20">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-black text-white tracking-tighter">Configurações</h1>
+        <h1 className="text-2xl md:text-3xl font-black text-white tracking-tighter">Configurações</h1>
         <p className="text-gray-500 text-sm mt-1">Gerencie suas preferências</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-1 border-b border-white/5 pb-0">
+      <div className="flex overflow-x-auto gap-1 border-b border-white/5 pb-0 no-view -mx-4 md:mx-0 px-4 md:px-0">
         {TABS.map(tab => {
           const Icon = tab.icon
           return (
@@ -515,7 +515,7 @@ export default function ConfiguracoesPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                'flex items-center gap-2 px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b-2 transition-all -mb-px',
+                'flex items-center gap-2 px-3 md:px-4 py-3 text-[10px] md:text-[11px] font-bold uppercase tracking-wider border-b-2 transition-all -mb-px whitespace-nowrap flex-shrink-0',
                 activeTab === tab.id
                   ? 'border-accent text-accent'
                   : 'border-transparent text-gray-500 hover:text-white'
@@ -574,7 +574,7 @@ export default function ConfiguracoesPage() {
 
           <SectionCard title="Segurança" subtitle="Altere sua senha de acesso">
             <form onSubmit={handleSubmit(handleChangePassword)} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Field label="Senha Atual">
                   <div className="relative">
                     <InputDark type={showOldPw ? 'text' : 'password'} {...register('senhaAtual')} placeholder="••••••••" />

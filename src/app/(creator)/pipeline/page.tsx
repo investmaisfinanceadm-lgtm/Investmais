@@ -1081,16 +1081,16 @@ export default function PipelinePage() {
   }
 
   return (
-    <div className="p-6 lg:p-10 space-y-8 max-w-full animate-fade-in pb-20">
+    <div className="p-4 md:p-6 lg:p-10 space-y-6 md:space-y-8 max-w-full animate-fade-in pb-20">
 
       {/* ── Header ── */}
-      <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 pb-6 border-b border-white/5">
-        <div className="space-y-3">
+      <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4 md:gap-6 pb-5 md:pb-6 border-b border-white/5">
+        <div className="space-y-2 md:space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20">
             <Kanban className="w-3 h-3 text-accent" />
             <span className="text-[10px] font-black text-accent uppercase tracking-widest">Pipeline Comercial</span>
           </div>
-          <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tighter leading-none">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tighter leading-none">
             Pipeline
           </h1>
           <p className="text-gray-500 font-medium tracking-wide uppercase text-[10px]">

@@ -151,8 +151,8 @@ export default function BibliotecaPage() {
         <div className="flex h-screen bg-primary overflow-hidden">
             <div className="flex-1 flex flex-col min-w-0 bg-[#0A192F]">
                 {/* Header Actions */}
-                <div className="h-24 border-b border-white/5 flex items-center justify-between px-10 backdrop-blur-md sticky top-0 z-20">
-                    <div className="flex items-center gap-10 flex-1 max-w-4xl">
+                <div className="min-h-[60px] md:h-24 border-b border-white/5 flex flex-wrap items-center justify-between gap-3 px-4 md:px-10 py-3 md:py-0 backdrop-blur-md sticky top-0 z-20">
+                    <div className="flex items-center gap-4 md:gap-10 flex-1 max-w-4xl min-w-0">
                         <div className="flex items-center gap-4">
                              <div className="w-10 h-10 rounded-2xl bg-accent/20 flex items-center justify-center border border-accent/20">
                                 <LayoutGrid className="w-5 h-5 text-accent" />
@@ -175,16 +175,17 @@ export default function BibliotecaPage() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <Link href="/criar" className="btn-primary flex items-center gap-3 px-8 py-3 bg-accent text-black font-black uppercase tracking-widest text-[10px] rounded-2xl hover:scale-105 transition-all shadow-accent/20">
+                    <div className="flex items-center gap-3">
+                        <Link href="/criar" className="btn-primary flex items-center gap-2 md:gap-3 px-4 md:px-8 py-2.5 md:py-3 bg-accent text-black font-black uppercase tracking-widest text-[10px] rounded-2xl hover:scale-105 transition-all shadow-accent/20 whitespace-nowrap">
                             <Plus className="w-4 h-4" />
-                            Configurar Novo Protocolo
+                            <span className="hidden sm:inline">Configurar Novo Protocolo</span>
+                            <span className="sm:hidden">Novo</span>
                         </Link>
                     </div>
                 </div>
 
                 {/* Advanced Filter Bar (Folders & Tags) - NEW RECOMMENDATION */}
-                <div className="px-10 py-6 border-b border-white/5 flex flex-col gap-6 bg-white/[0.01]">
+                <div className="px-4 md:px-10 py-4 md:py-6 border-b border-white/5 flex flex-col gap-4 md:gap-6 bg-white/[0.01]">
                     {/* Folders */}
                     <div className="flex items-center gap-4 overflow-x-auto custom-scrollbar no-view">
                         <div className="flex items-center gap-2 mr-4 border-r border-white/5 pr-4">
@@ -246,9 +247,9 @@ export default function BibliotecaPage() {
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar">
                     {isLoading ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-10">
                             {Array.from({ length: 8 }).map((_, i) => (
                                 <div key={i} className="aspect-[3/4] rounded-[48px] shimmer opacity-10 border border-white/5 bg-white/[0.02]" />
                             ))}
@@ -264,7 +265,7 @@ export default function BibliotecaPage() {
                             </div>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 pb-20">
+                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-10 pb-20">
                             {filteredVideos.map((video) => (
                                 <div
                                     key={video.id}
@@ -402,9 +403,9 @@ export default function BibliotecaPage() {
 
             {/* Preview Modal - Premium Fullscreen Experience */}
             {selectedVideo && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-8 lg:p-20 overflow-hidden">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-8 lg:p-20 overflow-hidden">
                     <div className="absolute inset-0 bg-primary/98 backdrop-blur-3xl animate-fade-in" onClick={() => setSelectedVideo(null)} />
-                    <div className="relative z-50 bg-[#0A192F] border border-white/5 rounded-[64px] w-full max-w-7xl shadow-[0_0_150px_rgba(48,203,123,0.1)] animate-scale-in flex flex-col lg:row overflow-hidden max-h-[90vh]">
+                    <div className="relative z-50 bg-[#0A192F] border border-white/5 rounded-2xl md:rounded-[64px] w-full max-w-7xl shadow-[0_0_150px_rgba(48,203,123,0.1)] animate-scale-in flex flex-col lg:row overflow-hidden max-h-[95vh]">
                         <div className="flex flex-col lg:flex-row h-full">
                             <div className="flex-1 bg-black flex items-center justify-center relative min-h-[40vh] lg:min-h-0">
                                 {selectedVideo.video_url ? (

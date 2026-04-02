@@ -1027,12 +1027,12 @@ export default function CRMPage() {
   ]
 
   return (
-    <div className="p-6 lg:p-10 space-y-10 max-w-7xl mx-auto animate-fade-in pb-20">
+    <div className="p-4 md:p-6 lg:p-10 space-y-6 md:space-y-10 max-w-7xl mx-auto animate-fade-in pb-20">
 
       {/* ── Header ── */}
-      <div className="flex flex-col gap-6 pb-8 border-b border-white/5">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-3">
+      <div className="flex flex-col gap-4 md:gap-6 pb-6 md:pb-8 border-b border-white/5">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
+          <div className="space-y-2 md:space-y-3">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20">
               <Activity className="w-3 h-3 text-accent" />
               <span className="text-[10px] font-black text-accent uppercase tracking-widest">Gestão de Relacionamentos</span>
@@ -1041,7 +1041,7 @@ export default function CRMPage() {
               <div className="w-10 h-10 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center">
                 <Users className="w-5 h-5 text-accent" />
               </div>
-              <h1 className="text-4xl font-black text-white tracking-tighter">CRM</h1>
+              <h1 className="text-3xl md:text-4xl font-black text-white tracking-tighter">CRM</h1>
             </div>
             <p className="text-gray-500 font-medium tracking-wide uppercase text-[10px]">
               Central de Relacionamentos · {contacts.length} Contatos Ativos

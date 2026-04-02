@@ -138,7 +138,7 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
 
     if (connectState !== 'connected') {
         return (
-            <div className="p-8 lg:p-12 max-w-2xl mx-auto space-y-12 bg-primary min-h-[80vh] flex flex-col justify-center">
+            <div className="p-4 md:p-8 lg:p-12 max-w-2xl mx-auto space-y-8 md:space-y-12 bg-primary min-h-[80vh] flex flex-col justify-center">
                 <div className="space-y-4 text-center border-b border-white/5 pb-12">
                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 mb-4 transition-all hover:bg-accent/20">
                         <Calendar className="w-3 h-3 text-accent" />
@@ -198,14 +198,14 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
     }
 
     return (
-        <div className="p-8 lg:p-12 space-y-12 max-w-7xl mx-auto bg-primary pb-20 animate-fade-in">
-            <div className="flex flex-col md:flex-row items-end justify-between gap-6 border-b border-white/5 pb-12">
-                <div className="space-y-4">
+        <div className="p-4 md:p-8 lg:p-12 space-y-8 md:space-y-12 max-w-7xl mx-auto bg-primary pb-20 animate-fade-in">
+            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4 md:gap-6 border-b border-white/5 pb-6 md:pb-12">
+                <div className="space-y-3 md:space-y-4">
                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 transition-all hover:bg-accent/20">
                         <Activity className="w-3 h-3 text-accent" />
                         <span className="text-[10px] font-black text-accent uppercase tracking-widest">Hub de Operações Ativo</span>
                     </div>
-                    <h1 className="text-5xl font-black text-white tracking-tighter leading-none uppercase italic">Inteligência de <br /><span className="text-transparent bg-clip-text bg-gradient-accent">Conteúdo</span></h1>
+                    <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter leading-none uppercase italic">Inteligência de <br /><span className="text-transparent bg-clip-text bg-gradient-accent">Conteúdo</span></h1>
                 </div>
                 <div className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />

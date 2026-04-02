@@ -159,16 +159,16 @@ function IniciarDisparoModal({
       <motion.div className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={onClose} />
       <motion.div
-        className="relative w-full max-w-lg bg-dark-card border border-dark-border rounded-2xl overflow-hidden shadow-2xl"
+        className="relative w-full max-w-lg max-h-[90vh] flex flex-col bg-dark-card border border-dark-border rounded-2xl overflow-hidden shadow-2xl"
         initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}>
 
         {/* Header */}
-        <div className="px-6 py-4 border-b border-dark-border flex items-center justify-between">
-          <h2 className="text-base font-black text-white flex items-center gap-2">
-            <Send className="w-4 h-4 text-accent" />
-            Iniciar Disparo: <span className="text-accent">{lista.nome}</span>
+        <div className="px-6 py-4 border-b border-dark-border flex items-center justify-between flex-shrink-0">
+          <h2 className="text-sm md:text-base font-black text-white flex items-center gap-2 min-w-0">
+            <Send className="w-4 h-4 text-accent flex-shrink-0" />
+            <span className="truncate">Iniciar: <span className="text-accent">{lista.nome}</span></span>
           </h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1">
+          <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-2 flex-shrink-0 min-w-[36px] min-h-[36px] flex items-center justify-center">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -188,7 +188,7 @@ function IniciarDisparoModal({
         </div>
 
         {/* Tab Content */}
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto flex-1">
           <AnimatePresence mode="wait">
             {/* ── Mensagem ── */}
             {activeTab === 'mensagem' && (
@@ -463,18 +463,18 @@ export default function ListasDisparoPage() {
   }
 
   return (
-    <div className="p-8 lg:p-12 space-y-8 max-w-7xl mx-auto animate-fade-in pb-20">
+    <div className="p-4 md:p-8 lg:p-12 space-y-6 md:space-y-8 max-w-7xl mx-auto animate-fade-in pb-20">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-black text-white tracking-tighter">Listas de Disparo</h1>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="space-y-1 md:space-y-2">
+          <h1 className="text-3xl md:text-4xl font-black text-white tracking-tighter">Listas de Disparo</h1>
           <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">
             Gerencie suas listas e dispare mensagens WhatsApp para leads
           </p>
         </div>
         <button onClick={() => setCriarOpen(true)}
-          className="btn-primary flex items-center gap-2 font-black text-sm uppercase tracking-wider whitespace-nowrap">
-          <Plus className="w-4 h-4" />Criar Lista Manual
+          className="btn-primary flex items-center gap-2 font-black text-xs md:text-sm uppercase tracking-wider whitespace-nowrap self-start sm:self-auto">
+          <Plus className="w-4 h-4" />Criar Lista
         </button>
       </div>
 
