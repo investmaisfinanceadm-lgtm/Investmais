@@ -22,7 +22,18 @@ import {
   TrendingUp,
   AlertTriangle,
   Trash2,
+  Pencil,
+  Check,
+  Building,
+  Phone,
+  ArrowUpRight,
+  ListTodo,
+  Layers,
+  ShoppingBag,
+  CreditCard,
+  Briefcase
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { format, parseISO, isPast } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import toast from 'react-hot-toast'
@@ -43,6 +54,13 @@ interface KanbanCard {
   value: number
   description: string
   columnId: string
+  product?: string
+  companyBranch?: string
+  monthlyRevenue?: number
+  origin?: string
+  createdAt?: string
+  updatedAt?: string
+  linkedContact?: { name: string; phone: string }
 }
 
 interface KanbanColumn {
@@ -291,36 +309,154 @@ function KanbanColumnComponent({
 
 // ─── Modal / Detail Drawer ────────────────────────────────────────────────────
 
+type DrawerTab = 'dados' | 'atividades' | 'historico' | 'comentarios'
+
 function CardDetailModal({
   card,
   columns,
   onClose,
   onMove,
   onDelete,
+  onUpdate,
 }: {
   card: KanbanCard
   columns: KanbanColumn[]
   onClose: () => void
   onMove: (cardId: string, targetColumnId: string) => void
   onDelete: (cardId: string) => void
+  onUpdate: (updatedCard: KanbanCard) => void
 }) {
+  const [activeTab, setActiveTab] = useState<DrawerTab>('dados')
+  const [isEditingGlobal, setIsEditingGlobal] = useState(false)
+  const [editingField, setEditingField] = useState<string | null>(null)
+  const [editedCard, setEditedCard] = useState<KanbanCard>(card)
   const [comment, setComment] = useState('')
   const [comments, setComments] = useState<{ id: string; text: string; user: string; date: string }[]>([
-    { id: '1', text: 'Cliente muito receptivo na última ligação. Próximo passo: enviar case de sucesso.', user: 'Ana Paula', date: '2026-03-19T10:20:00' },
+    { id: '1', text: 'Cliente muito receptivo na última ligação. Próximo passo: agendar demo.', user: 'Ana Paula', date: new Date().toISOString() },
   ])
-  const [moveTo, setMoveTo] = useState(card.columnId)
+
+  // Reset local state if card prop changes remotely
+  useEffect(() => { setEditedCard(card) }, [card])
+
   const overdue = isOverdue(card.dueDate)
   const catClass = categoryColorMap[card.categoryColor] || categoryColorMap.blue
-  const priCfg = priorityConfig[card.priority]
+
+  // Activities logic
+  const MOCK_ACTIVITIES = [
+    { title: 'Enviar Proposta Comercial', date: new Date(Date.now() + 86400000).toISOString(), status: 'pending' },
+    { title: 'Primeiro Contato', date: new Date(Date.now() - 86400000).toISOString(), status: 'done' },
+  ]
+  const pendingActivities = MOCK_ACTIVITIES.filter(a => a.status === 'pending').length
+
+  // Calculate days in stage (mocking created at)
+  const createdAtDate = card.createdAt ? parseISO(card.createdAt) : parseISO(card.dueDate || new Date().toISOString())
+  const daysInStage = Math.max(0, Math.floor((Date.now() - createdAtDate.getTime()) / (1000 * 60 * 60 * 24)))
+
+  function handleSaveGlobal() {
+    onUpdate(editedCard)
+    setIsEditingGlobal(false)
+    setEditingField(null)
+  }
+
+  function handleSaveField(field: keyof KanbanCard, value: any) {
+    const updated = { ...editedCard, [field]: value }
+    setEditedCard(updated)
+    onUpdate(updated)
+    setEditingField(null)
+  }
 
   async function handleSendComment() {
     if (!comment.trim()) return
-    // Persist comment as history for now or just local
     setComments((prev) => [
       ...prev,
       { id: String(Date.now()), text: comment.trim(), user: 'Você', date: new Date().toISOString() },
     ])
     setComment('')
+  }
+
+  // Helper renderer for a single editable field
+  function EditableField({ 
+    field, 
+    label, 
+    value, 
+    type = 'text', 
+    options = [],
+    prefix = ''
+  }: { 
+    field: keyof KanbanCard | string, 
+    label: string, 
+    value: string | number | undefined, 
+    type?: 'text' | 'number' | 'date' | 'select'
+    options?: string[]
+    prefix?: string
+  }) {
+    const isEditMode = isEditingGlobal || editingField === field
+    const [localVal, setLocalVal] = useState(String(value ?? ''))
+
+    useEffect(() => { setLocalVal(String(value ?? '')) }, [value])
+
+    function onSaveInline() {
+      const parsedVal = type === 'number' ? Number(localVal) : localVal
+      if (typeof field === 'string' && !(field in card)) {
+        // Mock handling extended fields by dumping them into category or description temporarily if we really want to
+        // But for UI purpose, we just update the local editedCard
+        handleSaveField(field as keyof KanbanCard, parsedVal)
+      } else {
+        handleSaveField(field as keyof KanbanCard, parsedVal)
+      }
+    }
+
+    return (
+      <div className="flex flex-col gap-1.5 group">
+        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+          {label}
+          {!isEditingGlobal && editingField !== field && (
+            <button 
+              onClick={() => setEditingField(field)}
+              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-gray-600 hover:text-white"
+            >
+              <Pencil className="w-3 h-3" />
+            </button>
+          )}
+        </label>
+        
+        {isEditMode ? (
+          <div className="flex items-center gap-2">
+            {type === 'select' ? (
+              <select 
+                value={localVal} 
+                onChange={e => setLocalVal(e.target.value)} 
+                className="input-field bg-[#161B22] border-white/10 text-sm py-1.5 h-9"
+              >
+                {options.map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+            ) : (
+               <div className="relative flex-1">
+                 {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">{prefix}</span>}
+                 <input 
+                   type={type} 
+                   value={localVal}
+                   onChange={e => setLocalVal(e.target.value)}
+                   className={cn("input-field bg-[#161B22] border-white/10 text-sm py-1.5 h-9", prefix && "pl-8")}
+                   autoFocus={editingField === field && !isEditingGlobal}
+                 />
+               </div>
+            )}
+            
+            {!isEditingGlobal && (
+              <div className="flex items-center gap-1">
+                <button onClick={onSaveInline} className="p-1.5 rounded-lg bg-accent/20 text-accent hover:bg-accent/30"><Check className="w-4 h-4" /></button>
+                <button onClick={() => { setEditingField(null); setLocalVal(String(value ?? '')) }} className="p-1.5 rounded-lg bg-white/5 text-gray-500 hover:text-white"><X className="w-4 h-4" /></button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-200 font-medium tracking-tight">
+             {prefix} {value || <span className="text-gray-600 italic">Não informado</span>}
+          </p>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -340,180 +476,291 @@ function CardDetailModal({
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: '100%', opacity: 0 }}
         transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-        className="fixed top-0 right-0 h-full w-full max-w-lg bg-dark-card border-l border-white/5 z-50 flex flex-col shadow-2xl"
+        className="fixed top-0 right-0 h-full w-full max-w-[600px] bg-[#0f1117] border-l border-white/5 z-50 flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.8)]"
       >
-        {/* Drawer header */}
-        <div className="flex items-start justify-between gap-4 p-6 border-b border-white/5 flex-shrink-0">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <span className={`badge ${catClass} text-[10px]`}>{card.category}</span>
-              <PriorityDot priority={card.priority} />
-              {overdue && (
-                <span className="badge bg-red-500/10 border-red-500/20 text-red-400 text-[10px]">
-                  Vencido
-                </span>
-              )}
+        {/* ── Header ── */}
+        <div className="p-6 border-b border-white/5 flex-shrink-0 bg-gradient-to-b from-white/[0.02] to-transparent relative group">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div className="flex gap-2 items-center flex-wrap">
+              <span className={`badge ${catClass}`}>{editedCard.category}</span>
+              <PriorityDot priority={editedCard.priority} />
             </div>
-            <h2 className="text-xl font-black text-white leading-tight">{card.title}</h2>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-                onClick={() => { if(confirm('Excluir este card?')) onDelete(card.id) }}
-                className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/10 text-gray-500 hover:text-red-400 hover:border-red-400/20 transition-all flex-shrink-0"
-                title="Excluir card"
-            >
-                <Trash2 className="w-4 h-4" />
-            </button>
-            <button
-                onClick={onClose}
-                className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/10 text-gray-500 hover:text-white hover:border-white/20 transition-all flex-shrink-0"
-            >
-                <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Drawer body (scrollable) */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-
-          {/* Key info grid */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-dark-muted rounded-xl p-3 border border-white/5">
-              <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Valor Estimado</p>
-              <p className="text-base font-black text-accent">{formatCurrency(card.value)}</p>
-            </div>
-            <div className={`bg-dark-muted rounded-xl p-3 border ${overdue ? 'border-red-500/20' : 'border-white/5'}`}>
-              <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Vencimento</p>
-              <p className={`text-base font-black ${overdue ? 'text-red-400' : 'text-white'}`}>{formatDate(card.dueDate)}</p>
-            </div>
-            <div className="bg-dark-muted rounded-xl p-3 border border-white/5 col-span-2">
-              <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2">Responsável</p>
-              <div className="flex items-center gap-2">
-                <Avatar initials={card.responsible.initials} color={card.responsible.color} size="md" />
-                <span className="text-sm font-semibold text-white">{card.responsible.name}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div>
-            <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2">Descrição</p>
-            <p className="text-sm text-gray-300 leading-relaxed bg-dark-muted rounded-xl p-3 border border-white/5">
-              {card.description}
-            </p>
-          </div>
-
-          {/* Move to column */}
-          <div>
-            <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2">Mover para</p>
-            <div className="relative">
-              <select
-                value={moveTo}
-                onChange={(e) => setMoveTo(e.target.value)}
-                className="input-field appearance-none pr-10 text-sm"
+            
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setIsEditingGlobal(!isEditingGlobal)} 
+                className={cn("px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5", isEditingGlobal ? "bg-accent/10 border-accent/20 text-accent" : "border-white/10 text-gray-400 hover:text-white hover:border-white/20")}
               >
-                {columns.map((col) => (
-                  <option key={col.id} value={col.id}>
-                    {col.name}
-                  </option>
-                ))}
-              </select>
-              <MoveRight className="w-4 h-4 text-gray-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
-            {moveTo !== card.columnId && (
-              <button
-                onClick={() => onMove(card.id, moveTo)}
-                className="mt-2 w-full btn-primary text-sm py-2.5 flex items-center justify-center gap-2"
-              >
-                <MoveRight className="w-4 h-4" />
-                Confirmar Movimentação
+                <Pencil className="w-3 h-3" />
+                {isEditingGlobal ? 'Editando' : 'Editar'}
               </button>
+              <button onClick={onClose} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Title Area */}
+          <div className="flex items-center gap-3">
+            {isEditingGlobal || editingField === 'title' ? (
+              <div className="flex items-center gap-2 w-full">
+                <input 
+                   autoFocus
+                   type="text" 
+                   value={editedCard.title} 
+                   onChange={e => setEditedCard({...editedCard, title: e.target.value})}
+                   className="flex-1 bg-[#161B22] border border-white/10 rounded-xl px-4 py-2 text-xl font-black text-white"
+                />
+                {!isEditingGlobal && (
+                   <div className="flex shrink-0 gap-1">
+                      <button onClick={() => { onUpdate(editedCard); setEditingField(null) }} className="p-2 rounded-xl bg-accent text-black"><Check className="w-4 h-4" /></button>
+                      <button onClick={() => { setEditedCard(card); setEditingField(null) }} className="p-2 rounded-xl bg-white/5 text-gray-400"><X className="w-4 h-4" /></button>
+                   </div>
+                )}
+              </div>
+            ) : (
+              <h2 className="text-2xl font-black text-white tracking-tighter leading-tight flex items-center gap-3">
+                {editedCard.title}
+                {!isEditingGlobal && (
+                  <button onClick={() => setEditingField('title')} className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 w-fit">
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </h2>
             )}
           </div>
+        </div>
 
-          {/* Timeline / History */}
-          <div>
-            <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <Clock className="w-3 h-3" />
-              Histórico
-            </p>
-            <div className="space-y-3">
-              {MOCK_HISTORY.map((entry, idx) => (
-                <div key={entry.id} className="flex gap-3">
-                  <div className="flex flex-col items-center flex-shrink-0">
-                    <div className="w-6 h-6 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center">
-                      {idx === MOCK_HISTORY.length - 1 ? (
-                        <CheckCircle2 className="w-3 h-3 text-accent" />
-                      ) : (
-                        <Circle className="w-3 h-3 text-gray-600" />
-                      )}
-                    </div>
-                    {idx < MOCK_HISTORY.length - 1 && (
-                      <div className="w-px flex-1 bg-white/5 my-1" />
+        {/* ── Featured Metrics Grid ── */}
+        <div className="px-6 pt-6 pb-2 grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
+          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 flex flex-col gap-1 relative group/metric">
+            <EditableField field="value" label="Valor Estimado" value={editedCard.value} type="number" prefix="R$" />
+          </div>
+          <div className={cn("bg-white/[0.02] border border-white/5 rounded-2xl p-4 flex flex-col gap-1 relative group/metric", overdue && !isEditingGlobal && "border-red-500/20 bg-red-500/5")}>
+             <EditableField field="dueDate" label="Vencimento" value={editedCard.dueDate} type="date" />
+          </div>
+          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
+            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2"><Clock className="w-3 h-3" /> No Estágio</span>
+            <span className="text-lg font-black text-white">{daysInStage} dias</span>
+          </div>
+          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
+            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2"><ListTodo className="w-3 h-3" /> Pendentes</span>
+            <span className="text-lg font-black text-accent">{pendingActivities} ativ.</span>
+          </div>
+        </div>
+
+        {/* ── Tab Navigation ── */}
+        <div className="px-6 flex items-center gap-6 border-b border-white/5 shrink-0 overflow-x-auto no-scrollbar">
+          {(['dados', 'atividades', 'historico', 'comentarios'] as DrawerTab[]).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={cn(
+                "py-4 text-[11px] font-black uppercase tracking-[0.2em] relative transition-colors whitespace-nowrap",
+                activeTab === tab ? "text-accent" : "text-gray-500 hover:text-white"
+              )}
+            >
+              {tab}
+              {activeTab === tab && (
+                <motion.div layoutId="drawer-tab" className="absolute bottom-0 left-0 w-full h-0.5 bg-accent" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Drawer Body (Scrollable) ── */}
+        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+          
+          {/* TAB: DADOS */}
+          {activeTab === 'dados' && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 animate-fade-in">
+              
+              {/* Descrição */}
+              <div className="space-y-3">
+                 <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2"><Layers className="w-4 h-4 text-gray-500" /> Sobre a Oportunidade</span>
+                 </div>
+                 {isEditingGlobal ? (
+                   <textarea 
+                     rows={3} 
+                     value={editedCard.description} 
+                     onChange={e => setEditedCard({...editedCard, description: e.target.value})}
+                     className="input-field bg-[#161B22] border-white/5 w-full text-sm resize-none"
+                   />
+                 ) : (
+                   <div className="p-4 bg-white/[0.01] border border-white/5 rounded-xl text-sm text-gray-400 leading-relaxed font-medium">
+                     {editedCard.description || 'Nenhuma descrição adicionada.'}
+                   </div>
+                 )}
+              </div>
+
+              {/* Grid 2 Column Data */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
+                 <EditableField field="product" label="Produto de Interesse" value={editedCard.product} options={['Consultoria PRO', 'Plataforma SaaS', 'Gestão de Tráfego', 'Mentoria']} type="select" />
+                 <EditableField field="origin" label="Origem do Lead" value={editedCard.origin} options={['Site', 'Indicação', 'Instagram', 'LinkedIn', 'Outbound']} type="select" />
+                 <EditableField field="companyBranch" label="Ramo da Empresa" value={editedCard.companyBranch} options={['Tecnologia', 'Saúde', 'Comércio', 'Imobiliário', 'Serviços']} type="select" />
+                 <EditableField field="monthlyRevenue" label="Faturamento Mensal" value={editedCard.monthlyRevenue} prefix="R$" type="number" />
+              </div>
+
+              <div className="w-full h-px bg-white/5 my-2" />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
+                 <EditableField field="responsible" label="Vendedor / Owner" value={editedCard.responsible.name} options={['InvestMais Admin', 'Ana Paula', 'Carlos Eduardo', 'Rafael Silva']} type="select" />
+                 <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Contato Vinculado</label>
+                    {editedCard.linkedContact ? (
+                      <div className="flex items-center justify-between p-3 bg-[#161B22] border border-white/5 rounded-xl cursor-pointer hover:border-accent/30 group transition-all">
+                        <div className="flex items-center gap-3">
+                           <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-black text-xs border border-blue-500/30">
+                             {editedCard.linkedContact.name.substring(0,2).toUpperCase()}
+                           </div>
+                           <div>
+                             <p className="text-xs font-bold text-white">{editedCard.linkedContact.name}</p>
+                             <p className="text-[10px] text-gray-500">{editedCard.linkedContact.phone}</p>
+                           </div>
+                        </div>
+                        <ArrowUpRight className="w-4 h-4 text-gray-600 group-hover:text-accent transition-colors" />
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 font-medium py-1.5">Nenhum contato vinculado</p>
                     )}
-                  </div>
-                  <div className="pb-3 min-w-0">
-                    <p className="text-xs text-gray-300">
-                      <span className="font-semibold text-white">{entry.user}</span>{' '}
-                      {entry.action}
-                      {entry.to && (
-                        <>
-                          {' '}
-                          <span className="text-accent font-semibold">{entry.to}</span>
-                        </>
-                      )}
-                      {entry.from && entry.to && (
-                        <span className="text-gray-500"> (de {entry.from})</span>
-                      )}
-                    </p>
-                    <p className="text-[10px] text-gray-600 mt-0.5">{formatDateTime(entry.date)}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+                 </div>
+              </div>
 
-          {/* Comments */}
-          <div>
-            <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <MessageSquare className="w-3 h-3" />
-              Comentários ({comments.length})
-            </p>
-            <div className="space-y-3 mb-3">
-              {comments.map((c) => (
-                <div key={c.id} className="bg-dark-muted border border-white/5 rounded-xl p-3">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-semibold text-white">{c.user}</span>
-                    <span className="text-[10px] text-gray-600">{formatDateTime(c.date)}</span>
-                  </div>
-                  <p className="text-xs text-gray-300 leading-relaxed">{c.text}</p>
-                </div>
+              {/* Move To Field */}
+              <div className="pt-6 border-t border-white/5 space-y-4">
+                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Estágio Atual (Mover pipeline)</label>
+                 <div className="relative">
+                   <select
+                     value={moveTo}
+                     onChange={(e) => setMoveTo(e.target.value)}
+                     className="input-field appearance-none pr-10 text-sm font-semibold h-12 bg-white/[0.03] border-white/10"
+                   >
+                     {columns.map((col) => (
+                       <option key={col.id} value={col.id}>
+                         {col.name}
+                       </option>
+                     ))}
+                   </select>
+                   <MoveRight className="w-4 h-4 text-gray-500 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                 </div>
+                 {moveTo !== card.columnId && (
+                   <button
+                     onClick={() => onMove(card.id, moveTo)}
+                     className="w-full btn-primary py-3 flex items-center justify-center gap-2"
+                   >
+                     <CheckCircle2 className="w-4 h-4" />
+                     Confirmar Mudança de Estágio
+                   </button>
+                 )}
+              </div>
+
+            </motion.div>
+          )}
+
+          {/* TAB: ATIVIDADES */}
+          {activeTab === 'atividades' && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 animate-fade-in">
+              {MOCK_ACTIVITIES.map((act, i) => (
+                 <div key={i} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+                    <div className="flex items-center gap-3">
+                       <button className={cn("w-5 h-5 rounded border flex items-center justify-center transition-colors", act.status === 'done' ? "bg-accent border-accent text-black" : "border-gray-600 text-transparent hover:border-gray-400")}>
+                         <Check className="w-3 h-3" />
+                       </button>
+                       <span className={cn("text-sm font-medium", act.status === 'done' ? "text-gray-500 line-through" : "text-white")}>{act.title}</span>
+                    </div>
+                    <span className="text-[10px] font-black text-gray-500 tracking-widest">{formatDate(act.date)}</span>
+                 </div>
               ))}
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendComment()}
-                placeholder="Escreva um comentário..."
-                className="input-field py-2.5 text-sm flex-1"
-              />
-              <button
-                onClick={handleSendComment}
-                disabled={!comment.trim()}
-                className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-accent text-black hover:opacity-90 disabled:opacity-30 transition-all active:scale-95"
-              >
-                <Send className="w-4 h-4" />
+              <button className="w-full py-4 border-2 border-dashed border-white/5 rounded-2xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-gray-500 hover:text-accent hover:border-accent/30 transition-colors">
+                <Plus className="w-4 h-4" /> Nova Atividade
               </button>
-            </div>
-          </div>
+            </motion.div>
+          )}
+
+          {/* TAB: HISTÓRICO */}
+          {activeTab === 'historico' && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="animate-fade-in pl-2 space-y-6 relative before:absolute before:inset-y-0 before:left-[17px] before:w-px before:bg-white/5">
+              {MOCK_HISTORY.length === 0 ? (
+                 <p className="text-gray-500 text-sm font-medium text-center py-10 w-full">Nenhum histórico registrado.</p>
+              ) : (
+                MOCK_HISTORY.map((entry, idx) => (
+                  <div key={entry.id} className="relative pl-10 flex flex-col gap-1">
+                    <div className="absolute left-[-5px] top-0 w-11 h-11 bg-[#0f1117] flex items-start justify-center">
+                       <div className="w-6 h-6 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
+                         {idx === MOCK_HISTORY.length - 1 ? <CheckCircle2 className="w-3 h-3 text-accent" /> : <Circle className="w-3 h-3 text-gray-600" />}
+                       </div>
+                    </div>
+                    <p className="text-sm text-gray-300 leading-snug">
+                      <span className="font-semibold text-white">{entry.user}</span> {entry.action}
+                      {entry.to && <span className="text-accent font-semibold ml-1">{entry.to}</span>}
+                    </p>
+                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">{formatDateTime(entry.date)}</p>
+                  </div>
+                ))
+              )}
+            </motion.div>
+          )}
+
+          {/* TAB: COMENTÁRIOS */}
+          {activeTab === 'comentarios' && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 animate-fade-in flex flex-col h-full">
+              <div className="flex-1 space-y-4">
+                {comments.map((c) => (
+                  <div key={c.id} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4">
+                    <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center font-black text-[9px]">{c.user.substring(0,2).toUpperCase()}</div>
+                        <span className="text-xs font-black text-white">{c.user}</span>
+                      </div>
+                      <span className="text-[10px] text-gray-600 uppercase tracking-widest">{formatDateTime(c.date)}</span>
+                    </div>
+                    <p className="text-sm text-gray-300 leading-relaxed font-medium">{c.text}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-white/5 flex gap-3">
+                <input
+                  type="text"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSendComment()}
+                  placeholder="Escreva um comentário (pressione Enter para enviar)..."
+                  className="input-field bg-[#161B22] border-white/10 text-sm flex-1"
+                />
+                <button
+                  onClick={handleSendComment}
+                  disabled={!comment.trim()}
+                  className="w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-xl bg-accent text-black hover:opacity-90 disabled:opacity-30 transition-all active:scale-95"
+                >
+                  <Send className="w-5 h-5 ml-0.5" />
+                </button>
+              </div>
+            </motion.div>
+          )}
 
         </div>
+
+        {/* ── Footer Actions ── */}
+        <div className="p-6 border-t border-white/5 bg-gradient-to-t from-black/40 to-transparent flex shrink-0 gap-3">
+           {isEditingGlobal ? (
+              <>
+                 <button onClick={() => { setEditedCard(card); setIsEditingGlobal(false); setEditingField(null); }} className="flex-1 py-3.5 rounded-xl border border-white/10 text-sm font-black text-gray-400 hover:text-white uppercase tracking-wider transition-colors">Cancelar Modificações</button>
+                 <button onClick={handleSaveGlobal} className="flex-1 py-3.5 rounded-xl bg-accent text-black text-sm font-black uppercase tracking-wider hover:opacity-90 transition-opacity">Salvar Alterações</button>
+              </>
+           ) : (
+              <>
+                 <button onClick={() => { if(confirm('Marcar como perdido e excluir do pipeline?')) onDelete(card.id) }} className="flex-1 py-3.5 rounded-xl border border-red-500/30 text-red-400 bg-red-500/5 hover:bg-red-500/10 text-sm font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2"><Trash2 className="w-4 h-4" /> Perdido / Excluir</button>
+                 <button className="flex-1 py-3.5 rounded-xl bg-emerald-500 text-black text-sm font-black uppercase tracking-widest hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2"><CheckCircle2 className="w-4 h-4" /> Ganho Garantido</button>
+              </>
+           )}
+        </div>
+
       </motion.div>
     </>
   )
 }
+
 
 // ─── Stats Bar ─────────────────────────────────────────────────────────────────
 
@@ -1071,6 +1318,40 @@ export default function PipelinePage() {
     }
   }
 
+  async function handleUpdateCard(updatedCard: KanbanCard) {
+    try {
+      const res = await fetch(`/api/creator/pipeline/cards/${updatedCard.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          titulo: updatedCard.title,
+          descricao: updatedCard.description,
+          valor: updatedCard.value,
+          vencimento: updatedCard.dueDate,
+          prioridade: updatedCard.priority,
+          responsavel: updatedCard.responsible.name,
+          categoria: updatedCard.category
+        })
+      })
+      if (res.ok) {
+        setBoardsData(prev => prev.map(b => ({
+          ...b,
+          colunas: (b.colunas || []).map((col: any) => ({
+            ...col,
+            cards: (col.cards || []).map((c: any) => c.id === updatedCard.id ? updatedCard : c)
+          }))
+        })))
+        setSelectedCard(updatedCard)
+        toast.success('Card atualizado!')
+      } else {
+        toast.error('Erro ao atualizar o card')
+      }
+    } catch (err) {
+      console.error('Error updating card:', err)
+      toast.error('Erro de conexão ao atualizar card')
+    }
+  }
+
   function openNewCard(columnId: string) {
     setActiveColumnId(columnId)
     setIsNewCardOpen(true)
@@ -1158,6 +1439,7 @@ export default function PipelinePage() {
             onClose={handleCloseModal}
             onMove={handleMoveCard}
             onDelete={handleDeleteCard}
+            onUpdate={handleUpdateCard}
           />
         )}
       </AnimatePresence>
