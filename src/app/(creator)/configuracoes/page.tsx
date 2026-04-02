@@ -986,7 +986,7 @@ Content-Type: application/json
           <SectionCard title="💬  Disparo de Mensagem" subtitle="Configure os webhooks para disparar mensagens de WhatsApp via N8N.">
             <div className="space-y-4">
               <Field label="Webhook de Disparo">
-                <InputDark value={disparo.webhook_disparo} onChange={e => setDisparo(d => ({ ...d, webhook_disparo: e.target.value }))} placeholder="https://auto.devnetlife.com/webhook/disparo-whatsapp" />
+                <InputDark value={disparo.webhook_disparo} onChange={e => setDisparo(d => ({ ...d, webhook_disparo: e.target.value }))} placeholder="https://auto.devnetlife.com/webhook/zap" />
               </Field>
               <Field label="Webhook de Status">
                 <InputDark value={disparo.webhook_status} onChange={e => setDisparo(d => ({ ...d, webhook_status: e.target.value }))} placeholder="https://auto.devnetlife.com/webhook/status-disparo" />
@@ -1009,21 +1009,20 @@ Content-Type: application/json
 
             <div>
               <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-2">Formato esperado do payload (Disparo)</p>
-              <CodeBlock code={`POST ${disparo.webhook_disparo || 'https://auto.devnetlife.com/webhook/disparo-whatsapp'}
+              <CodeBlock code={`POST ${disparo.webhook_disparo || 'https://auto.devnetlife.com/webhook/zap'}
 Content-Type: application/json
 
 {
   "lista_id": "uuid-da-lista",
-  "user_id": "uuid-do-usuario",
-  "mensagem": "Olá {nome}, tudo bem?\\n\\nVi que você está em {cidade}...",
-  "telefones": [
-    { "numero": "5511999999999", "nome": "João", "cidade": "São Paulo" }
+  "mensagem": "Olá {nome}, tudo bem? Vi que você está em {cidade}...",
+  "leads": [
+    { "id": "lead-uuid-0", "nome": "João Silva", "telefone": "5562999999999", "cidade": "Goiânia", "estado": "GO", "nicho": "" }
   ],
-  "intervalo_segundos": 30,
-  "horario_inicio": "08:00",
-  "horario_fim": "18:00",
-  "dias_semana": ["seg", "ter", "qua", "qui", "sex"],
-  "callback_url": "${callbackUrl}"
+  "intervalo_segundos": 15,
+  "horario_comercial": false,
+  "hora_inicio": "08:00",
+  "hora_fim": "18:00",
+  "dias_semana": ["seg", "ter", "qua", "qui", "sex"]
 }`} />
             </div>
           </SectionCard>

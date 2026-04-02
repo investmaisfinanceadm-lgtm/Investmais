@@ -112,17 +112,31 @@ function IniciarDisparoModal({
         return
       }
 
-      const callbackUrl = `${window.location.origin}/api/disparos/callback`
+      // Map phone numbers to lead objects expected by n8n automation
+      const leads = lista.telefones.map((telefone, i) => ({
+        id: `lead-${lista.id}-${i}`,
+        nome: 'Lead',
+        telefone,
+        cidade: '',
+        estado: '',
+        nicho: '',
+      }))
 
       const payload = {
         lista_id: lista.id,
         mensagem: config.mensagem,
-        telefones: lista.telefones.map(t => ({ numero: t, nome: 'Lead', cidade: '' })),
+        leads,
         intervalo_segundos: config.intervalo,
-        horario_inicio: config.horarioComercial ? '08:00' : '00:00',
-        horario_fim: config.horarioComercial ? '18:00' : '23:59',
-        dias_semana: config.dias.map(d => d.toLowerCase()),
-        callback_url: callbackUrl,
+        horario_comercial: config.horarioComercial,
+        hora_inicio: '08:00',
+        hora_fim: '18:00',
+        dias_semana: config.dias.map(d => {
+          const map: Record<string, string> = {
+            'Seg': 'seg', 'Ter': 'ter', 'Qua': 'qua',
+            'Qui': 'qui', 'Sex': 'sex', 'Sáb': 'sab', 'Dom': 'dom',
+          }
+          return map[d] || d.toLowerCase()
+        }),
       }
 
       const res = await fetch(webhookUrl, {
