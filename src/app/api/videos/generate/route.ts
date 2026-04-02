@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
       video_id: video.id,
       service_name: nome_produto,
       service_description: descricao_produto,
+      video_duration: duracao,
       imageBuffer,
       imageType,
       imageName,

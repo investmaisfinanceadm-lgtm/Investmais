@@ -4,6 +4,7 @@ export function triggerVideoN8N(params: {
   video_id: string
   service_name: string
   service_description: string
+  video_duration?: number
   imageBuffer?: Buffer
   imageType?: string
   imageName?: string
@@ -12,6 +13,9 @@ export function triggerVideoN8N(params: {
   formData.append('video_id', params.video_id)
   formData.append('service_name', params.service_name)
   formData.append('service_description', params.service_description)
+  if (params.video_duration !== undefined) {
+    formData.append('video_duration', params.video_duration.toString())
+  }
 
   if (params.imageBuffer) {
     const blob = new Blob([params.imageBuffer], { type: params.imageType || 'image/png' })
