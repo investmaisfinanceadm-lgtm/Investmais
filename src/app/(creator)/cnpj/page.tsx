@@ -84,29 +84,14 @@ function GoogleTab() {
   const [cidade, setCidade] = useState('')
   const [nicho, setNicho] = useState('')
   const [loading, setLoading] = useState(false)
-  const [webhookUrl, setWebhookUrl] = useState('')
   const [buscaStatus, setBuscaStatus] = useState<'idle' | 'success' | 'error'>('idle')
-
-  useEffect(() => {
-    fetch('/api/creator/integracoes')
-      .then(r => r.json())
-      .then((data: any[]) => {
-        const g = data.find((i: any) => i.tipo === 'busca_google_maps')
-        if (g?.configuracoes?.url) setWebhookUrl(g.configuracoes.url)
-      })
-      .catch(() => {})
-  }, [])
 
   const handleBuscar = async () => {
     if (!estado || !cidade || !nicho) return
-    if (!webhookUrl) {
-      toast.error('Configure o webhook de Busca Google em Configurações → Busca de Leads')
-      return
-    }
     setLoading(true)
     setBuscaStatus('idle')
     try {
-      const res = await fetch(webhookUrl, {
+      const res = await fetch('/api/creator/crm/scrape', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ estado, cidade, nicho }),
@@ -167,12 +152,6 @@ function GoogleTab() {
           className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-sm font-black uppercase tracking-wider disabled:opacity-40">
           {loading ? <><RefreshCw className="w-4 h-4 animate-spin" />Buscando...</> : <><Search className="w-4 h-4" />Buscar Leads no Google</>}
         </button>
-        {!webhookUrl && (
-          <p className="flex items-center gap-2 text-yellow-400/80 text-[11px] mt-2">
-            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-            Webhook não configurado. Acesse <strong>Configurações → Busca de Leads</strong> para configurar.
-          </p>
-        )}
         {buscaStatus === 'success' && (
           <p className="flex items-center gap-2 text-accent text-[11px] mt-2">
             <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
