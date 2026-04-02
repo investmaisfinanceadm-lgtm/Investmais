@@ -10,10 +10,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     const userId = (session.user as any).id
 
     const data = await req.json()
-    const { coluna_id, ordem, titulo, descricao, valor, vencimento, prioridade } = data
+    const { coluna_id, ordem, titulo, descricao, valor, vencimento, prioridade, categoria, responsavel } = data
 
     const card = await prisma.pipelineCard.update({
-      where: { 
+      where: {
         id: params.id,
         coluna: {
           board: {
@@ -25,10 +25,12 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         coluna_id: coluna_id || undefined,
         ordem: typeof ordem === 'number' ? ordem : undefined,
         titulo: titulo || undefined,
-        descricao: descricao || undefined,
+        descricao: descricao !== undefined ? (descricao || null) : undefined,
         valor: typeof valor === 'number' ? valor : undefined,
-        vencimento: vencimento ? new Date(vencimento) : undefined,
+        vencimento: vencimento === null ? null : vencimento ? new Date(vencimento) : undefined,
         prioridade: prioridade || undefined,
+        categoria: categoria !== undefined ? (categoria || null) : undefined,
+        responsavel: responsavel !== undefined ? (responsavel || null) : undefined,
       },
     })
 

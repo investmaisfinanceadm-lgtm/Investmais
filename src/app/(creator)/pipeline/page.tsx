@@ -22,6 +22,10 @@ import {
   TrendingUp,
   AlertTriangle,
   Trash2,
+  Pencil,
+  Check,
+  ChevronRight,
+  XCircle,
 } from 'lucide-react'
 import { format, parseISO, isPast } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -289,7 +293,9 @@ function KanbanColumnComponent({
   )
 }
 
-// ─── Modal / Detail Drawer ────────────────────────────────────────────────────
+// ─── Card Detail Drawer ────────────────────────────────────────────────────────
+
+type DrawerTab = 'dados' | 'historico' | 'comentarios'
 
 function CardDetailModal({
   card,
@@ -297,31 +303,121 @@ function CardDetailModal({
   onClose,
   onMove,
   onDelete,
+  onUpdate,
 }: {
   card: KanbanCard
   columns: KanbanColumn[]
   onClose: () => void
   onMove: (cardId: string, targetColumnId: string) => void
   onDelete: (cardId: string) => void
+  onUpdate: (cardId: string, data: Record<string, unknown>) => Promise<void>
 }) {
-  const [comment, setComment] = useState('')
-  const [comments, setComments] = useState<{ id: string; text: string; user: string; date: string }[]>([
-    { id: '1', text: 'Cliente muito receptivo na última ligação. Próximo passo: enviar case de sucesso.', user: 'Ana Paula', date: '2026-03-19T10:20:00' },
-  ])
-  const [moveTo, setMoveTo] = useState(card.columnId)
-  const overdue = isOverdue(card.dueDate)
-  const catClass = categoryColorMap[card.categoryColor] || categoryColorMap.blue
-  const priCfg = priorityConfig[card.priority]
+  const [activeTab, setActiveTab] = useState<DrawerTab>('dados')
+  const [editMode, setEditMode] = useState(false)
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [saving, setSaving] = useState(false)
 
-  async function handleSendComment() {
+  // Editable mirrors — synced from card prop
+  const [editTitle, setEditTitle] = useState(card.title)
+  const [editValue, setEditValue] = useState(String(card.value || 0))
+  const [editDueDate, setEditDueDate] = useState(card.dueDate || '')
+  const [editPriority, setEditPriority] = useState<Priority>(card.priority)
+  const [editResponsible, setEditResponsible] = useState(card.responsible.name)
+  const [editDescription, setEditDescription] = useState(card.description || '')
+  const [editCategory, setEditCategory] = useState(card.category || '')
+
+  // Comments (local only)
+  const [comment, setComment] = useState('')
+  const [comments, setComments] = useState<{ id: string; text: string; user: string; date: string }[]>([])
+
+  // Sync edit state when card prop updates (e.g. after save)
+  useEffect(() => {
+    setEditTitle(card.title)
+    setEditValue(String(card.value || 0))
+    setEditDueDate(card.dueDate || '')
+    setEditPriority(card.priority)
+    setEditResponsible(card.responsible.name)
+    setEditDescription(card.description || '')
+    setEditCategory(card.category || '')
+  }, [card])
+
+  const overdue = card.dueDate ? isOverdue(card.dueDate) : false
+  const catClass = categoryColorMap[card.categoryColor] || categoryColorMap.blue
+  const currentColIdx = columns.findIndex((c) => c.id === card.columnId)
+  const nextCol = columns[currentColIdx + 1]
+
+  function handleCancelEdit() {
+    setEditTitle(card.title)
+    setEditValue(String(card.value || 0))
+    setEditDueDate(card.dueDate || '')
+    setEditPriority(card.priority)
+    setEditResponsible(card.responsible.name)
+    setEditDescription(card.description || '')
+    setEditCategory(card.category || '')
+    setEditMode(false)
+    setEditingTitle(false)
+  }
+
+  async function handleSave() {
+    if (!editTitle.trim()) return
+    setSaving(true)
+    try {
+      await onUpdate(card.id, {
+        titulo: editTitle.trim(),
+        valor: parseFloat(editValue.replace(',', '.')) || 0,
+        vencimento: editDueDate || null,
+        prioridade: editPriority,
+        responsavel: editResponsible,
+        descricao: editDescription,
+        categoria: editCategory,
+      })
+      setEditMode(false)
+      setEditingTitle(false)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleTitleSave() {
+    if (!editTitle.trim()) { setEditTitle(card.title); setEditingTitle(false); return }
+    if (editTitle === card.title) { setEditingTitle(false); return }
+    setSaving(true)
+    try {
+      await onUpdate(card.id, { titulo: editTitle.trim() })
+    } finally {
+      setSaving(false)
+      setEditingTitle(false)
+    }
+  }
+
+  function handleSendComment() {
     if (!comment.trim()) return
-    // Persist comment as history for now or just local
     setComments((prev) => [
       ...prev,
       { id: String(Date.now()), text: comment.trim(), user: 'Você', date: new Date().toISOString() },
     ])
     setComment('')
   }
+
+  async function handleGanho() {
+    const lastCol = columns[columns.length - 1]
+    if (lastCol && lastCol.id !== card.columnId) {
+      await onMove(card.id, lastCol.id)
+    }
+    onClose()
+  }
+
+  function handlePerdido() {
+    if (confirm('Marcar como perdido e excluir este card?')) {
+      onDelete(card.id)
+    }
+  }
+
+  const tabs: { key: DrawerTab; label: string }[] = [
+    { key: 'dados', label: 'Dados' },
+    { key: 'historico', label: 'Histórico' },
+    { key: 'comentarios', label: comments.length > 0 ? `Comentários (${comments.length})` : 'Comentários' },
+  ]
 
   return (
     <>
@@ -330,166 +426,401 @@ function CardDetailModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={onClose}
+        onClick={editMode ? undefined : onClose}
         className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
       />
 
       {/* Drawer */}
       <motion.div
-        initial={{ x: '100%', opacity: 0.5 }}
-        animate={{ x: 0, opacity: 1 }}
-        exit={{ x: '100%', opacity: 0 }}
-        transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-        className="fixed top-0 right-0 h-full w-full max-w-lg bg-dark-card border-l border-white/5 z-50 flex flex-col shadow-2xl"
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+        className="fixed top-0 right-0 h-full w-full max-w-xl bg-[#0D1117] border-l border-white/5 z-50 flex flex-col shadow-2xl"
       >
-        {/* Drawer header */}
-        <div className="flex items-start justify-between gap-4 p-6 border-b border-white/5 flex-shrink-0">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <span className={`badge ${catClass} text-[10px]`}>{card.category}</span>
-              <PriorityDot priority={card.priority} />
-              {overdue && (
-                <span className="badge bg-red-500/10 border-red-500/20 text-red-400 text-[10px]">
-                  Vencido
-                </span>
+
+        {/* ── HEADER ── */}
+        <div className="flex-shrink-0 px-5 pt-5 pb-4 border-b border-white/5">
+          {/* Top row: badges + actions */}
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <span className={`badge ${catClass} text-[10px]`}>{card.category}</span>
+            <PriorityDot priority={editMode ? editPriority : card.priority} />
+            {overdue && !editMode && (
+              <span className="badge bg-red-500/10 border-red-500/20 text-red-400 text-[10px]">Vencido</span>
+            )}
+            <div className="ml-auto flex items-center gap-1.5">
+              {!editMode ? (
+                <button
+                  onClick={() => setEditMode(true)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-white/10 text-gray-400 hover:text-white hover:border-white/20 text-[11px] font-bold transition-all"
+                >
+                  <Pencil className="w-3 h-3" />
+                  Editar
+                </button>
+              ) : (
+                <span className="text-[11px] font-bold text-accent px-2">Modo edição</span>
               )}
+              <button
+                onClick={() => { if (confirm('Excluir este card?')) onDelete(card.id) }}
+                className="w-7 h-7 flex items-center justify-center rounded-lg border border-white/10 text-gray-500 hover:text-red-400 hover:border-red-400/20 transition-all"
+                title="Excluir"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={editMode ? handleCancelEdit : onClose}
+                className="w-7 h-7 flex items-center justify-center rounded-lg border border-white/10 text-gray-500 hover:text-white hover:border-white/20 transition-all"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
-            <h2 className="text-xl font-black text-white leading-tight">{card.title}</h2>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-                onClick={() => { if(confirm('Excluir este card?')) onDelete(card.id) }}
-                className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/10 text-gray-500 hover:text-red-400 hover:border-red-400/20 transition-all flex-shrink-0"
-                title="Excluir card"
-            >
-                <Trash2 className="w-4 h-4" />
-            </button>
-            <button
-                onClick={onClose}
-                className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/10 text-gray-500 hover:text-white hover:border-white/20 transition-all flex-shrink-0"
-            >
-                <X className="w-4 h-4" />
-            </button>
+
+          {/* Title with inline edit */}
+          {editingTitle ? (
+            <div className="flex items-center gap-2">
+              <input
+                autoFocus
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleTitleSave()
+                  if (e.key === 'Escape') { setEditTitle(card.title); setEditingTitle(false) }
+                }}
+                className="flex-1 text-lg font-black text-white bg-white/5 border border-accent/40 rounded-lg px-3 py-1.5 focus:outline-none focus:border-accent"
+              />
+              <button
+                onClick={handleTitleSave}
+                disabled={saving}
+                className="w-7 h-7 flex items-center justify-center rounded-lg bg-accent text-black hover:opacity-90 transition-all flex-shrink-0"
+              >
+                <Check className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => { setEditTitle(card.title); setEditingTitle(false) }}
+                className="w-7 h-7 flex items-center justify-center rounded-lg border border-white/10 text-gray-500 hover:text-white transition-all flex-shrink-0"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-start gap-2 group">
+              <h2 className="text-xl font-black text-white leading-tight flex-1">{editTitle}</h2>
+              <button
+                onClick={() => setEditingTitle(true)}
+                className="w-6 h-6 flex items-center justify-center rounded text-gray-700 hover:text-accent opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 mt-0.5"
+              >
+                <Pencil className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* ── METRICS ROW ── */}
+        <div className="flex-shrink-0 grid grid-cols-3 gap-2 px-5 py-3 border-b border-white/5">
+          <div className="bg-white/[0.03] rounded-xl p-3 border border-white/5">
+            <p className="text-[9px] font-black text-gray-600 uppercase tracking-wider mb-1">Valor</p>
+            <p className="text-sm font-black text-accent truncate">{formatCurrency(card.value)}</p>
+          </div>
+          <div className={`bg-white/[0.03] rounded-xl p-3 border ${overdue ? 'border-red-500/20' : 'border-white/5'}`}>
+            <p className="text-[9px] font-black text-gray-600 uppercase tracking-wider mb-1">Vencimento</p>
+            <p className={`text-sm font-black truncate ${overdue ? 'text-red-400' : 'text-white'}`}>
+              {card.dueDate ? formatDate(card.dueDate) : '—'}
+            </p>
+          </div>
+          <div className="bg-white/[0.03] rounded-xl p-3 border border-white/5">
+            <p className="text-[9px] font-black text-gray-600 uppercase tracking-wider mb-1">Prioridade</p>
+            <PriorityDot priority={card.priority} />
           </div>
         </div>
 
-        {/* Drawer body (scrollable) */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-
-          {/* Key info grid */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-dark-muted rounded-xl p-3 border border-white/5">
-              <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Valor Estimado</p>
-              <p className="text-base font-black text-accent">{formatCurrency(card.value)}</p>
-            </div>
-            <div className={`bg-dark-muted rounded-xl p-3 border ${overdue ? 'border-red-500/20' : 'border-white/5'}`}>
-              <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Vencimento</p>
-              <p className={`text-base font-black ${overdue ? 'text-red-400' : 'text-white'}`}>{formatDate(card.dueDate)}</p>
-            </div>
-            <div className="bg-dark-muted rounded-xl p-3 border border-white/5 col-span-2">
-              <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2">Responsável</p>
-              <div className="flex items-center gap-2">
-                <Avatar initials={card.responsible.initials} color={card.responsible.color} size="md" />
-                <span className="text-sm font-semibold text-white">{card.responsible.name}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div>
-            <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2">Descrição</p>
-            <p className="text-sm text-gray-300 leading-relaxed bg-dark-muted rounded-xl p-3 border border-white/5">
-              {card.description}
-            </p>
-          </div>
-
-          {/* Move to column */}
-          <div>
-            <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2">Mover para</p>
-            <div className="relative">
-              <select
-                value={moveTo}
-                onChange={(e) => setMoveTo(e.target.value)}
-                className="input-field appearance-none pr-10 text-sm"
-              >
-                {columns.map((col) => (
-                  <option key={col.id} value={col.id}>
+        {/* ── PIPELINE STAGES ── */}
+        <div className="flex-shrink-0 px-5 py-3 border-b border-white/5">
+          <p className="text-[9px] font-black text-gray-600 uppercase tracking-wider mb-2">Estágio atual</p>
+          <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar">
+            {columns.map((col, idx) => {
+              const isCurrent = col.id === card.columnId
+              const isPast = idx < currentColIdx
+              return (
+                <div key={col.id} className="flex items-center gap-1 flex-shrink-0">
+                  <button
+                    onClick={() => { if (!isCurrent) onMove(card.id, col.id) }}
+                    disabled={isCurrent}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${
+                      isCurrent
+                        ? 'bg-accent/15 text-accent border-accent/30 cursor-default'
+                        : isPast
+                        ? 'bg-accent/5 text-accent/40 border-accent/10 hover:bg-accent/10'
+                        : 'bg-white/3 text-gray-600 border-white/5 hover:border-white/15 hover:text-gray-300'
+                    }`}
+                  >
+                    {isCurrent && (
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent mr-1 mb-px align-middle" />
+                    )}
                     {col.name}
-                  </option>
-                ))}
-              </select>
-              <MoveRight className="w-4 h-4 text-gray-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
-            {moveTo !== card.columnId && (
-              <button
-                onClick={() => onMove(card.id, moveTo)}
-                className="mt-2 w-full btn-primary text-sm py-2.5 flex items-center justify-center gap-2"
-              >
-                <MoveRight className="w-4 h-4" />
-                Confirmar Movimentação
-              </button>
-            )}
+                  </button>
+                  {idx < columns.length - 1 && (
+                    <ChevronRight className={`w-3 h-3 flex-shrink-0 ${isPast || isCurrent ? 'text-accent/25' : 'text-gray-700'}`} />
+                  )}
+                </div>
+              )
+            })}
           </div>
+          {nextCol && !editMode && (
+            <button
+              onClick={() => onMove(card.id, nextCol.id)}
+              className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg border border-dashed border-white/8 text-[10px] font-bold text-gray-600 hover:text-accent hover:border-accent/25 transition-all"
+            >
+              <MoveRight className="w-3 h-3" />
+              Avançar para {nextCol.name}
+            </button>
+          )}
+        </div>
 
-          {/* Timeline / History */}
-          <div>
-            <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <Clock className="w-3 h-3" />
-              Histórico
-            </p>
-            <div className="space-y-3">
-              {MOCK_HISTORY.map((entry, idx) => (
-                <div key={entry.id} className="flex gap-3">
-                  <div className="flex flex-col items-center flex-shrink-0">
-                    <div className="w-6 h-6 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center">
-                      {idx === MOCK_HISTORY.length - 1 ? (
-                        <CheckCircle2 className="w-3 h-3 text-accent" />
-                      ) : (
-                        <Circle className="w-3 h-3 text-gray-600" />
-                      )}
-                    </div>
-                    {idx < MOCK_HISTORY.length - 1 && (
-                      <div className="w-px flex-1 bg-white/5 my-1" />
+        {/* ── TABS ── */}
+        <div className="flex-shrink-0 flex border-b border-white/5">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex-1 py-2.5 text-[11px] font-black uppercase tracking-wider transition-all border-b-2 ${
+                activeTab === tab.key
+                  ? 'border-accent text-accent'
+                  : 'border-transparent text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── BODY (scrollable) ── */}
+        <div className="flex-1 overflow-y-auto">
+          <AnimatePresence mode="wait">
+
+            {/* TAB: DADOS */}
+            {activeTab === 'dados' && (
+              <motion.div
+                key="dados"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.12 }}
+                className="p-5 space-y-5"
+              >
+                {/* Responsável + Categoria */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                      <User className="w-3 h-3" /> Responsável
+                    </p>
+                    {editMode ? (
+                      <input
+                        value={editResponsible}
+                        onChange={(e) => setEditResponsible(e.target.value)}
+                        className="input-field py-2 text-sm"
+                        placeholder="Nome do responsável"
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Avatar initials={card.responsible.initials} color={card.responsible.color} size="sm" />
+                        <span className="text-sm text-white font-semibold truncate">{card.responsible.name}</span>
+                      </div>
                     )}
                   </div>
-                  <div className="pb-3 min-w-0">
-                    <p className="text-xs text-gray-300">
-                      <span className="font-semibold text-white">{entry.user}</span>{' '}
-                      {entry.action}
-                      {entry.to && (
-                        <>
-                          {' '}
-                          <span className="text-accent font-semibold">{entry.to}</span>
-                        </>
-                      )}
-                      {entry.from && entry.to && (
-                        <span className="text-gray-500"> (de {entry.from})</span>
-                      )}
+                  <div>
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                      <Tag className="w-3 h-3" /> Categoria
                     </p>
-                    <p className="text-[10px] text-gray-600 mt-0.5">{formatDateTime(entry.date)}</p>
+                    {editMode ? (
+                      <input
+                        value={editCategory}
+                        onChange={(e) => setEditCategory(e.target.value)}
+                        className="input-field py-2 text-sm"
+                        placeholder="Ex: Lead, Produto..."
+                      />
+                    ) : (
+                      <span className={`badge ${catClass} text-[10px]`}>{card.category}</span>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Comments */}
-          <div>
-            <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <MessageSquare className="w-3 h-3" />
-              Comentários ({comments.length})
-            </p>
-            <div className="space-y-3 mb-3">
-              {comments.map((c) => (
-                <div key={c.id} className="bg-dark-muted border border-white/5 rounded-xl p-3">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-semibold text-white">{c.user}</span>
-                    <span className="text-[10px] text-gray-600">{formatDateTime(c.date)}</span>
+                {/* Prioridade (edit mode only — view mode já está nos metrics) */}
+                {editMode && (
+                  <div>
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2">Prioridade</p>
+                    <select
+                      value={editPriority}
+                      onChange={(e) => setEditPriority(e.target.value as Priority)}
+                      className="input-field text-sm"
+                    >
+                      <option value="alta">Alta</option>
+                      <option value="media">Média</option>
+                      <option value="baixa">Baixa</option>
+                    </select>
                   </div>
-                  <p className="text-xs text-gray-300 leading-relaxed">{c.text}</p>
+                )}
+
+                {/* Valor + Vencimento (edit mode) */}
+                {editMode && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                        <DollarSign className="w-3 h-3" /> Valor (R$)
+                      </p>
+                      <input
+                        type="text"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="input-field py-2 text-sm"
+                        placeholder="0,00"
+                      />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                        <Calendar className="w-3 h-3" /> Vencimento
+                      </p>
+                      <input
+                        type="date"
+                        value={editDueDate}
+                        onChange={(e) => setEditDueDate(e.target.value)}
+                        className="input-field py-2 text-sm"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Descrição */}
+                <div>
+                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                    <MessageSquare className="w-3 h-3" /> Descrição
+                  </p>
+                  {editMode ? (
+                    <textarea
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      rows={5}
+                      className="input-field text-sm resize-none"
+                      placeholder="Descreva a oportunidade em detalhes..."
+                    />
+                  ) : (
+                    <div className="text-sm text-gray-300 leading-relaxed bg-white/[0.02] rounded-xl p-4 border border-white/5 min-h-[80px]">
+                      {card.description
+                        ? card.description
+                        : <span className="text-gray-600 italic">Sem descrição</span>
+                      }
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
+
+                {/* Responsible card full (view mode) */}
+                {!editMode && (
+                  <div className="bg-white/[0.02] rounded-xl p-4 border border-white/5">
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-3">Responsável pelo deal</p>
+                    <div className="flex items-center gap-3">
+                      <Avatar initials={card.responsible.initials} color={card.responsible.color} size="md" />
+                      <div>
+                        <p className="text-sm font-bold text-white">{card.responsible.name}</p>
+                        <p className="text-[10px] text-gray-500">Vendedor</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {/* TAB: HISTÓRICO */}
+            {activeTab === 'historico' && (
+              <motion.div
+                key="historico"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.12 }}
+                className="p-5"
+              >
+                {MOCK_HISTORY.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center mb-4">
+                      <Clock className="w-6 h-6 text-gray-700" />
+                    </div>
+                    <p className="text-sm font-bold text-gray-500">Nenhuma movimentação</p>
+                    <p className="text-xs text-gray-700 mt-1 max-w-[200px]">
+                      O histórico aparecerá conforme o card avançar no pipeline
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {MOCK_HISTORY.map((entry, idx) => (
+                      <div key={entry.id} className="flex gap-3">
+                        <div className="flex flex-col items-center flex-shrink-0">
+                          <div className="w-6 h-6 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center">
+                            {idx === MOCK_HISTORY.length - 1
+                              ? <CheckCircle2 className="w-3 h-3 text-accent" />
+                              : <Circle className="w-3 h-3 text-gray-600" />
+                            }
+                          </div>
+                          {idx < MOCK_HISTORY.length - 1 && (
+                            <div className="w-px flex-1 bg-white/5 my-1" />
+                          )}
+                        </div>
+                        <div className="pb-3 min-w-0">
+                          <p className="text-xs text-gray-300">
+                            <span className="font-semibold text-white">{entry.user}</span>{' '}
+                            {entry.action}
+                            {entry.to && <span className="text-accent font-semibold"> {entry.to}</span>}
+                            {entry.from && entry.to && (
+                              <span className="text-gray-500"> (de {entry.from})</span>
+                            )}
+                          </p>
+                          <p className="text-[10px] text-gray-600 mt-0.5">{formatDateTime(entry.date)}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {/* TAB: COMENTÁRIOS */}
+            {activeTab === 'comentarios' && (
+              <motion.div
+                key="comentarios"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.12 }}
+                className="p-5 space-y-3"
+              >
+                {comments.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center mb-3">
+                      <MessageSquare className="w-5 h-5 text-gray-700" />
+                    </div>
+                    <p className="text-sm font-bold text-gray-500">Nenhum comentário</p>
+                    <p className="text-xs text-gray-700 mt-1">Use o campo abaixo para adicionar</p>
+                  </div>
+                ) : (
+                  comments.map((c) => (
+                    <div key={c.id} className="bg-white/[0.02] border border-white/5 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold text-white">{c.user}</span>
+                        <span className="text-[10px] text-gray-600">{formatDateTime(c.date)}</span>
+                      </div>
+                      <p className="text-xs text-gray-300 leading-relaxed">{c.text}</p>
+                    </div>
+                  ))
+                )}
+              </motion.div>
+            )}
+
+          </AnimatePresence>
+        </div>
+
+        {/* ── FOOTER (fixed) ── */}
+        <div className="flex-shrink-0 p-4 border-t border-white/5">
+          {activeTab === 'comentarios' ? (
+            /* Comment input */
             <div className="flex gap-2">
               <input
                 type="text"
@@ -502,14 +833,53 @@ function CardDetailModal({
               <button
                 onClick={handleSendComment}
                 disabled={!comment.trim()}
-                className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-accent text-black hover:opacity-90 disabled:opacity-30 transition-all active:scale-95"
+                className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-accent text-black hover:opacity-90 disabled:opacity-30 transition-all"
               >
                 <Send className="w-4 h-4" />
               </button>
             </div>
-          </div>
-
+          ) : editMode ? (
+            /* Edit mode actions */
+            <div className="flex gap-2">
+              <button
+                onClick={handleCancelEdit}
+                className="flex-1 btn-secondary py-2.5 text-sm"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving || !editTitle.trim()}
+                className="flex-1 btn-primary py-2.5 text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {saving
+                  ? <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                  : <Check className="w-4 h-4" />
+                }
+                Salvar alterações
+              </button>
+            </div>
+          ) : (
+            /* Deal actions */
+            <div className="flex gap-2">
+              <button
+                onClick={handlePerdido}
+                className="flex-1 py-2.5 rounded-xl border border-red-500/25 text-red-400 text-sm font-bold hover:bg-red-500/10 transition-all flex items-center justify-center gap-2"
+              >
+                <XCircle className="w-4 h-4" />
+                Perdido
+              </button>
+              <button
+                onClick={handleGanho}
+                className="flex-1 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-sm font-bold hover:bg-emerald-500/20 transition-all flex items-center justify-center gap-2"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                Ganho
+              </button>
+            </div>
+          )}
         </div>
+
       </motion.div>
     </>
   )
@@ -991,6 +1361,51 @@ export default function PipelinePage() {
     }
   }
 
+  async function handleUpdateCard(cardId: string, data: Record<string, unknown>) {
+    try {
+      const res = await fetch(`/api/creator/pipeline/cards/${cardId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        const mappedCard: KanbanCard = {
+          id: updated.id,
+          title: updated.titulo || '',
+          description: updated.descricao || '',
+          value: updated.valor || 0,
+          dueDate: updated.vencimento ? String(updated.vencimento).split('T')[0] : '',
+          priority: ((updated.prioridade || 'media') as Priority),
+          columnId: updated.coluna_id,
+          category: updated.categoria || 'Lead',
+          categoryColor: 'blue',
+          responsible: {
+            name: updated.responsavel || 'Sem responsável',
+            initials: (updated.responsavel || 'SR').slice(0, 2).toUpperCase(),
+            color: '#30CB7B',
+          },
+        }
+        setBoardsData(prev => prev.map(b => ({
+          ...b,
+          colunas: (b.colunas || []).map((col: any) => ({
+            ...col,
+            cards: (col.cards || []).map((c: any) => c.id === cardId ? updated : c),
+          })),
+        })))
+        setSelectedCard(mappedCard)
+        toast.success('Card atualizado!')
+      } else {
+        const err = await res.json().catch(() => ({}))
+        toast.error(err?.error || 'Erro ao atualizar card')
+        throw new Error(err?.error || 'Erro')
+      }
+    } catch (err) {
+      console.error('Error updating card:', err)
+      throw err
+    }
+  }
+
   async function handleAddCard(cardData: any) {
     try {
       const res = await fetch('/api/creator/pipeline/cards', {
@@ -1158,6 +1573,7 @@ export default function PipelinePage() {
             onClose={handleCloseModal}
             onMove={handleMoveCard}
             onDelete={handleDeleteCard}
+            onUpdate={handleUpdateCard}
           />
         )}
       </AnimatePresence>
