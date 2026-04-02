@@ -296,7 +296,7 @@ function getAvatarColor(id: string): string {
   return AVATAR_COLORS[index] ?? AVATAR_COLORS[0]
 }
 
-function getStatusConfig(status: FunilStatus) {
+function getStatusConfig(status: FunilStatus | undefined | null) {
   switch (status) {
     case 'lead':
       return { label: 'Lead', classes: 'bg-gray-500/10 text-gray-400 border border-gray-500/20' }
@@ -308,6 +308,8 @@ function getStatusConfig(status: FunilStatus) {
       return { label: 'Cliente', classes: 'bg-accent/10 text-accent border border-accent/20' }
     case 'inativo':
       return { label: 'Inativo', classes: 'bg-red-500/10 text-red-400 border border-red-500/20' }
+    default:
+      return { label: 'Lead', classes: 'bg-gray-500/10 text-gray-400 border border-gray-500/20' }
   }
 }
 
@@ -964,7 +966,7 @@ export default function CRMPage() {
       activeFilter === 'inativos' ? c.status === 'inativo' : true
 
     const q = search.toLowerCase()
-    const matchSearch = !q || [c.nome, c.empresa, c.email, c.telefone, c.canal].some((v) => v.toLowerCase().includes(q))
+    const matchSearch = !q || [c.nome, c.empresa, c.email, c.telefone, c.canal].some((v) => (v || '').toLowerCase().includes(q))
 
     return matchFilter && matchSearch
   })
@@ -979,7 +981,14 @@ export default function CRMPage() {
           // Ensure dates are actual Date objects
           const formatted = data.map((c: any) => ({
             ...c,
-            canal: c.canal_origem || 'Site',
+            status: (c.status_funil || 'lead') as FunilStatus,
+            canal: (c.canal_origem || 'Site') as Canal,
+            tags: c.tags || [],
+            notas: c.notas || '',
+            empresa: c.empresa || '',
+            email: c.email || '',
+            telefone: c.telefone || '',
+            cargo: c.cargo || '',
             createdAt: new Date(c.created_at),
             lastActivity: new Date(c.updated_at || c.created_at),
             activities: (c.atividades || []).map((a: any) => ({
@@ -1025,7 +1034,14 @@ export default function CRMPage() {
         const data = await res.json()
         const formatted = {
           ...data,
-          canal: data.canal_origem || 'Site',
+          status: (data.status_funil || 'lead') as FunilStatus,
+          canal: (data.canal_origem || 'Site') as Canal,
+          tags: data.tags || [],
+          notas: data.notas || '',
+          empresa: data.empresa || '',
+          email: data.email || '',
+          telefone: data.telefone || '',
+          cargo: data.cargo || '',
           createdAt: new Date(data.created_at),
           lastActivity: new Date(data.updated_at || data.created_at),
           activities: (data.atividades || []).map((a: any) => ({
@@ -1079,7 +1095,14 @@ export default function CRMPage() {
         const data = await res.json()
         const formatted = {
           ...data,
-          canal: data.canal_origem || 'Site',
+          status: (data.status_funil || 'lead') as FunilStatus,
+          canal: (data.canal_origem || 'Site') as Canal,
+          tags: data.tags || [],
+          notas: data.notas || '',
+          empresa: data.empresa || '',
+          email: data.email || '',
+          telefone: data.telefone || '',
+          cargo: data.cargo || '',
           createdAt: new Date(data.created_at),
           lastActivity: new Date(data.created_at),
           activities: []
