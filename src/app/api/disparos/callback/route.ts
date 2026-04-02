@@ -3,8 +3,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-// Called by n8n after each WhatsApp message is sent / on list completion
-export async function POST(req: NextRequest) {
+async function handleCallback(req: NextRequest) {
   try {
     const body = await req.json()
     const { event, lista_id } = body
@@ -19,13 +18,13 @@ export async function POST(req: NextRequest) {
         data: { enviados: { increment: 1 }, status: 'em_progresso' },
       })
     } else if (event === 'lista_finalizada') {
-      const { enviados, total } = body
+      // n8n STATUS FINAL only sends event + lista_id, so use the stored total
+      const lista = await prisma.listaDisparo.findUnique({ where: { id: lista_id } })
       await prisma.listaDisparo.update({
         where: { id: lista_id },
         data: {
           status: 'concluida',
-          enviados: parseInt(enviados) || 0,
-          total: parseInt(total) || 0,
+          enviados: lista?.total ?? 0,
         },
       })
     }
@@ -36,4 +35,14 @@ export async function POST(req: NextRequest) {
     console.error('Disparo callback error:', error)
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
+}
+
+// Called by n8n after each WhatsApp message is sent / on list completion
+// Accepts both POST and PATCH (STATUS FINAL node uses PATCH)
+export async function POST(req: NextRequest) {
+  return handleCallback(req)
+}
+
+export async function PATCH(req: NextRequest) {
+  return handleCallback(req)
 }
