@@ -2,8 +2,29 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Video, Clock, Library, Plus, ArrowRight, TrendingUp, BarChart3, Activity, Zap } from 'lucide-react'
+import { Video, Clock, Library, Plus, ArrowRight, TrendingUp, BarChart3, Activity, Zap, ChevronDown } from 'lucide-react'
 import { cn, formatDateTime, getStatusColor, getStatusLabel } from '@/lib/utils'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+
+const MOCK_DATA_7 = [
+  { day: "Day 01", email: 42, whatsapp: 87, instagram: 31 },
+  { day: "Day 02", email: 55, whatsapp: 93, instagram: 44 },
+  { day: "Day 03", email: 38, whatsapp: 76, instagram: 52 },
+  { day: "Day 04", email: 61, whatsapp: 110, instagram: 38 },
+  { day: "Day 05", email: 49, whatsapp: 98, instagram: 61 },
+  { day: "Day 06", email: 70, whatsapp: 125, instagram: 55 },
+  { day: "Day 07", email: 58, whatsapp: 103, instagram: 47 }
+]
+
+const generateData = (days: number) => {
+  if (days === 7) return MOCK_DATA_7;
+  return Array.from({ length: days }).map((_, i) => ({
+    day: `D${String(i + 1).padStart(2, '0')}`,
+    email: 40 + Math.sin(i) * 15 + (i % 3) * 5,
+    whatsapp: 80 + Math.cos(i) * 20 + (i % 2) * 10,
+    instagram: 30 + Math.sin(i / 2) * 10 + (i % 4) * 5,
+  }))
+}
 
 interface DashboardVideo {
     id: string
@@ -23,6 +44,7 @@ interface UserStats {
 export default function DashboardPage() {
     const [stats, setStats] = useState<UserStats | null>(null)
     const [recentVideos, setRecentVideos] = useState<DashboardVideo[]>([])
+    const [chartScale, setChartScale] = useState<7 | 30 | 90>(7)
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
@@ -160,30 +182,53 @@ export default function DashboardPage() {
                         <p className="text-[11px] text-gray-600 font-bold uppercase tracking-widest">Fluxo de engajamento nos canais ativos</p>
                     </div>
                     <div className="flex gap-4">
-                         <div className="px-6 py-3 rounded-2xl bg-white/5 border border-white/5 text-[9px] font-black text-white uppercase tracking-widest">Escala: Últimos 7 Dias</div>
+                         <div className="relative">
+                            <select 
+                                value={chartScale}
+                                onChange={(e) => setChartScale(Number(e.target.value) as 7 | 30 | 90)}
+                                className="appearance-none bg-white/5 border border-white/5 hover:border-white/10 px-6 py-3 pl-4 pr-10 rounded-2xl text-[9px] font-black text-white uppercase tracking-widest cursor-pointer outline-none transition-colors"
+                            >
+                                <option className="bg-[#0A192F] text-white" value={7}>Escala: Últimos 7 Dias</option>
+                                <option className="bg-[#0A192F] text-white" value={30}>Escala: Últimos 30 Dias</option>
+                                <option className="bg-[#0A192F] text-white" value={90}>Escala: Últimos 90 Dias</option>
+                            </select>
+                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+                         </div>
                     </div>
                 </div>
 
-                <div className="h-64 flex items-end justify-between gap-4 px-4 relative">
-                    {/* Grid Lines */}
-                    <div className="absolute inset-0 flex flex-col justify-between opacity-5 pointer-events-none">
-                        {[1, 2, 3, 4, 5].map(i => <div key={i} className="w-full h-px bg-white" />)}
-                    </div>
-                    
-                    {/* Simulated Bars */}
-                    {[40, 65, 85, 45, 90, 75, 100].map((val, i) => (
-                        <div key={i} className="flex-1 flex flex-col items-center group relative">
-                            <div 
-                                className="w-full max-w-[60px] bg-gradient-to-t from-accent/10 to-accent rounded-2xl transition-all duration-1000 ease-out cursor-pointer hover:shadow-accent/40 shadow-lg relative"
-                                style={{ height: `${val}%`, transitionDelay: `${i * 100}ms` }}
-                            >
-                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#0A192F] border border-accent/20 px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-all text-accent text-[9px] font-black">
-                                    {val}%
-                                </div>
-                            </div>
-                            <span className="text-[8px] font-black text-gray-700 uppercase tracking-widest mt-4">Day 0{i + 1}</span>
-                        </div>
-                    ))}
+                <div className="h-[300px] w-full mt-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={generateData(chartScale)} margin={{ top: 10, right: 30, left: 0, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                            <XAxis 
+                                dataKey="day" 
+                                axisLine={false} 
+                                tickLine={false} 
+                                tick={{ fill: '#6b7280', fontSize: 10, fontWeight: 700, textTransform: 'uppercase' }} 
+                                dy={10}
+                                minTickGap={20}
+                            />
+                            <YAxis 
+                                axisLine={false} 
+                                tickLine={false} 
+                                tick={{ fill: '#6b7280', fontSize: 10, fontWeight: 700 }} 
+                                dx={-10}
+                            />
+                            <Tooltip 
+                                contentStyle={{ backgroundColor: '#0f1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff', fontSize: '11px', fontWeight: 700 }}
+                                itemStyle={{ fontWeight: 800 }}
+                                labelStyle={{ color: '#9ca3af', marginBottom: '8px', textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.1em' }}
+                            />
+                            <Legend 
+                                iconType="circle" 
+                                wrapperStyle={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', paddingTop: '16px' }}
+                            />
+                            <Line type="monotone" dataKey="email" name="Email" stroke="#8b5cf6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                            <Line type="monotone" dataKey="whatsapp" name="WhatsApp" stroke="#22c55e" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                            <Line type="monotone" dataKey="instagram" name="Instagram" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                        </LineChart>
+                    </ResponsiveContainer>
                 </div>
             </div>
 
