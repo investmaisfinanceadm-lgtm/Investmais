@@ -31,6 +31,7 @@ type CadastroForm = z.infer<typeof cadastroSchema>
 export default function CadastroPage() {
     const router = useRouter()
     const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
 
     const {
@@ -189,15 +190,23 @@ export default function CadastroPage() {
                         <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-accent transition-colors" />
                         <input
                             id="confirmarSenha"
-                            type="password"
+                            type={showConfirmPassword ? 'text' : 'password'}
                             placeholder="••••••••"
                             className={cn(
-                                "w-full bg-white/5 border rounded-[28px] py-4 pl-14 pr-6 text-white font-semibold text-[13px] focus:bg-white/[0.08] focus:ring-0 transition-all outline-none",
+                                "w-full bg-white/5 border rounded-[28px] py-4 pl-14 pr-14 text-white font-semibold text-[13px] focus:bg-white/[0.08] focus:ring-0 transition-all outline-none",
                                 errors.confirmarSenha ? 'border-red-500/60' : 'border-white/5 focus:border-accent/40'
                             )}
                             {...register('confirmarSenha')}
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-600 hover:text-white transition-colors"
+                        >
+                            {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
                     </div>
+                    {errors.confirmarSenha && <p className="mt-2 text-[9px] font-black text-red-500 uppercase tracking-widest pr-4 text-right italic">{errors.confirmarSenha.message}</p>}
                 </div>
 
                 <button
