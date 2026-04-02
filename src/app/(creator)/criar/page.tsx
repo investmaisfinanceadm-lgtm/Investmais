@@ -181,11 +181,6 @@ export default function CriarPage() {
         if (!pollingVideoId) return
 
         const interval = setInterval(async () => {
-            if (progress >= 95) {
-                clearInterval(interval)
-                return
-            }
-
             try {
                 const res = await fetch(`/api/creator/videos/status/${pollingVideoId}`)
                 if (!res.ok) return
@@ -204,7 +199,7 @@ export default function CriarPage() {
                     clearInterval(interval)
                     toast.error('Erro no processamento do vídeo.')
                 } else {
-                    setProgress((p) => Math.min(p + 2, 98))
+                    setProgress((p) => Math.min(p + 2, 94))
                 }
             } catch (e) {
                 console.error('Polling error:', e)
@@ -212,7 +207,7 @@ export default function CriarPage() {
         }, 3000)
 
         return () => clearInterval(interval)
-    }, [pollingVideoId, progress])
+    }, [pollingVideoId])
 
     const handleGenerate = async () => {
         setIsGenerating(true)
