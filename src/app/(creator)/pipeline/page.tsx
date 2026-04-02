@@ -21,6 +21,7 @@ import {
   LayoutGrid,
   TrendingUp,
   AlertTriangle,
+  Trash2,
 } from 'lucide-react'
 import { format, parseISO, isPast } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -1010,7 +1011,7 @@ export default function PipelinePage() {
         const newCard = await res.json()
         setBoardsData(prev => prev.map(b => ({
           ...b,
-          colunas: b.colunas.map((col: any) =>
+          colunas: (b.colunas || []).map((col: any) =>
             col.id === newCard.coluna_id
               ? { ...col, cards: [...(col.cards || []), newCard] }
               : col
@@ -1038,7 +1039,7 @@ export default function PipelinePage() {
         const updatedCard = await res.json()
         setBoardsData(prev => prev.map(b => ({
           ...b,
-          colunas: b.colunas.map((col: any) => ({
+          colunas: (b.colunas || []).map((col: any) => ({
             ...col,
             cards: col.id === targetColumnId
               ? [...(col.cards || []).filter((c: any) => c.id !== cardId), updatedCard]
@@ -1058,7 +1059,7 @@ export default function PipelinePage() {
       if (res.ok) {
         setBoardsData(prev => prev.map(b => ({
           ...b,
-          colunas: b.colunas.map((col: any) => ({
+          colunas: (b.colunas || []).map((col: any) => ({
             ...col,
             cards: (col.cards || []).filter((c: any) => c.id !== cardId)
           }))
