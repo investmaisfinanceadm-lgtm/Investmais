@@ -412,9 +412,9 @@ export default function BibliotecaPage() {
                                 
                                 {selectedVideo.video_url ? (
                                     <div className={cn(
-                                        "relative shadow-[0_0_100px_rgba(0,0,0,0.5)] bg-black overflow-hidden",
+                                        "relative shadow-[0_40px_100px_rgba(0,0,0,0.8)] bg-black/40 overflow-hidden flex items-center justify-center group/player",
                                         selectedVideo.formato === 'stories' 
-                                            ? "aspect-[9/16] h-full max-h-[85vh] rounded-[32px] border-[6px] border-white/5" 
+                                            ? "aspect-[9/16] h-[75vh] md:h-[80vh] rounded-[48px] border-[10px] border-[#18181B] ring-1 ring-white/10" 
                                             : "w-full aspect-video rounded-3xl border border-white/10"
                                     )}>
                                         <video 
@@ -425,9 +425,9 @@ export default function BibliotecaPage() {
                                             className="w-full h-full object-contain" 
                                         />
                                         
-                                        {/* Phone-style notch for 9:16 */}
+                                        {/* Phone-style notch for 9:16 visualization */}
                                         {selectedVideo.formato === 'stories' && (
-                                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-6 bg-black rounded-b-2xl z-10 border-x border-b border-white/5" />
+                                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-[#18181B] rounded-b-2xl z-20" />
                                         )}
                                     </div>
                                 ) : (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Kanban,
@@ -294,11 +294,13 @@ function CardDetailModal({
   columns,
   onClose,
   onMove,
+  onDelete,
 }: {
   card: KanbanCard
   columns: KanbanColumn[]
   onClose: () => void
   onMove: (cardId: string, targetColumnId: string) => void
+  onDelete: (cardId: string) => void
 }) {
   const [comment, setComment] = useState('')
   const [comments, setComments] = useState<{ id: string; text: string; user: string; date: string }[]>([
@@ -309,8 +311,9 @@ function CardDetailModal({
   const catClass = categoryColorMap[card.categoryColor] || categoryColorMap.blue
   const priCfg = priorityConfig[card.priority]
 
-  function handleSendComment() {
+  async function handleSendComment() {
     if (!comment.trim()) return
+    // Persist comment as history for now or just local
     setComments((prev) => [
       ...prev,
       { id: String(Date.now()), text: comment.trim(), user: 'Você', date: new Date().toISOString() },
@@ -351,12 +354,21 @@ function CardDetailModal({
             </div>
             <h2 className="text-xl font-black text-white leading-tight">{card.title}</h2>
           </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/10 text-gray-500 hover:text-white hover:border-white/20 transition-all flex-shrink-0"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+                onClick={() => { if(confirm('Excluir este card?')) onDelete(card.id) }}
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/10 text-gray-500 hover:text-red-400 hover:border-red-400/20 transition-all flex-shrink-0"
+                title="Excluir card"
+            >
+                <Trash2 className="w-4 h-4" />
+            </button>
+            <button
+                onClick={onClose}
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/10 text-gray-500 hover:text-white hover:border-white/20 transition-all flex-shrink-0"
+            >
+                <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Drawer body (scrollable) */}
@@ -875,24 +887,55 @@ const initialBoardColumns: Record<string, KanbanColumn[]> = {
 }
 
 export default function PipelinePage() {
-  const [boards, setBoards] = useState<BoardName[]>(DEFAULT_BOARDS)
-  const [selectedBoard, setSelectedBoard] = useState<BoardName>('Vendas')
-  const [boardColumns, setBoardColumns] = useState<Record<string, KanbanColumn[]>>(initialBoardColumns)
+  const [boardsData, setBoardsData] = useState<any[]>([])
+  const [selectedBoardId, setSelectedBoardId] = useState<string>('')
   const [selectedCard, setSelectedCard] = useState<KanbanCard | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isNewColumnOpen, setIsNewColumnOpen] = useState(false)
   const [isNewCardOpen, setIsNewCardOpen] = useState(false)
   const [isNewBoardOpen, setIsNewBoardOpen] = useState(false)
   const [activeColumnId, setActiveColumnId] = useState<string>('')
+  const [loading, setLoading] = useState(true)
 
-  const columns = boardColumns[selectedBoard] ?? []
+  // Fetch boards and columns on mount
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const res = await fetch('/api/creator/pipeline-config')
+        if (res.ok) {
+          const data = await res.json()
+          setBoardsData(data)
+          if (data.length > 0) {
+            setSelectedBoardId(data[0].id)
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch pipeline data:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
 
-  function setColumns(updater: (prev: KanbanColumn[]) => KanbanColumn[]) {
-    setBoardColumns((prev) => ({
-      ...prev,
-      [selectedBoard]: updater(prev[selectedBoard] ?? []),
+  const currentBoard = boardsData.find(b => b.id === selectedBoardId)
+  const columns: KanbanColumn[] = currentBoard?.colunas?.map((col: any) => ({
+    id: col.id,
+    name: col.nome,
+    color: col.cor,
+    cards: (col.cards || []).map((card: any) => ({
+      id: card.id,
+      title: card.titulo,
+      description: card.descricao,
+      value: card.valor,
+      dueDate: card.vencimento ? card.vencimento.split('T')[0] : '',
+      priority: card.prioridade,
+      columnId: card.coluna_id,
+      category: card.categoria || 'Lead',
+      categoryColor: 'blue',
+      responsible: { name: card.responsavel || 'Sem responsável', initials: 'US', color: '#30CB7B' }
     }))
-  }
+  })) || []
 
   function handleCardClick(card: KanbanCard) {
     setSelectedCard(card)
@@ -904,43 +947,129 @@ export default function PipelinePage() {
     setTimeout(() => setSelectedCard(null), 300)
   }
 
-  function handleAddBoard(name: string) {
-    setBoards((prev) => [...prev, name])
-    setBoardColumns((prev) => ({ ...prev, [name]: [] }))
-    setSelectedBoard(name)
+  async function handleAddBoard(name: string) {
+    try {
+      const res = await fetch('/api/creator/pipeline-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'board', nome: name })
+      })
+      if (res.ok) {
+        const newBoard = await res.json()
+        setBoardsData(prev => [...prev, newBoard])
+        setSelectedBoardId(newBoard.id)
+      }
+    } catch (err) {
+      console.error('Error adding board:', err)
+    }
   }
 
-  function handleAddColumn(name: string, color: string) {
-    const id = name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now()
-    setColumns((prev) => [...prev, { id, name, color, cards: [] }])
+  async function handleAddColumn(name: string, color: string) {
+    try {
+      const res = await fetch('/api/creator/pipeline-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'column', nome: name, color, boardId: selectedBoardId })
+      })
+      if (res.ok) {
+        const newCol = await res.json()
+        setBoardsData(prev => prev.map(b => 
+          b.id === selectedBoardId 
+            ? { ...b, colunas: [...(b.colunas || []), newCol] } 
+            : b
+        ))
+      }
+    } catch (err) {
+      console.error('Error adding column:', err)
+    }
   }
 
-  function handleAddCard(card: KanbanCard) {
-    setColumns((prev) =>
-      prev.map((col) =>
-        col.id === card.columnId ? { ...col, cards: [...col.cards, card] } : col
-      )
-    )
+  async function handleAddCard(cardData: any) {
+    try {
+      const res = await fetch('/api/creator/pipeline/cards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          titulo: cardData.title,
+          descricao: cardData.description,
+          valor: cardData.value,
+          vencimento: cardData.dueDate,
+          prioridade: cardData.priority,
+          responsavel: cardData.responsible.name,
+          coluna_id: cardData.columnId,
+          categoria: cardData.category
+        })
+      })
+      if (res.ok) {
+        const newCard = await res.json()
+        setBoardsData(prev => prev.map(b => ({
+          ...b,
+          colunas: b.colunas.map((col: any) => 
+            col.id === newCard.coluna_id 
+              ? { ...col, cards: [...(col.cards || []), newCard] } 
+              : col
+          )
+        })))
+      }
+    } catch (err) {
+      console.error('Error adding card:', err)
+    }
   }
 
-  function handleMoveCard(cardId: string, targetColumnId: string) {
-    setColumns((prev) => {
-      const card = prev.flatMap((c) => c.cards).find((c) => c.id === cardId)
-      if (!card) return prev
-      const updated = { ...card, columnId: targetColumnId }
-      return prev.map((col) => ({
-        ...col,
-        cards: col.id === targetColumnId
-          ? [...col.cards.filter((c) => c.id !== cardId), updated]
-          : col.cards.filter((c) => c.id !== cardId),
-      }))
-    })
-    handleCloseModal()
+  async function handleMoveCard(cardId: string, targetColumnId: string) {
+    try {
+      const res = await fetch(`/api/creator/pipeline/cards/${cardId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coluna_id: targetColumnId })
+      })
+      if (res.ok) {
+        const updatedCard = await res.json()
+        setBoardsData(prev => prev.map(b => ({
+          ...b,
+          colunas: b.colunas.map((col: any) => ({
+            ...col,
+            cards: col.id === targetColumnId
+              ? [...(col.cards || []).filter((c: any) => c.id !== cardId), updatedCard]
+              : (col.cards || []).filter((c: any) => c.id !== cardId)
+          }))
+        })))
+        handleCloseModal()
+      }
+    } catch (err) {
+      console.error('Error moving card:', err)
+    }
+  }
+
+  async function handleDeleteCard(cardId: string) {
+    try {
+      const res = await fetch(`/api/creator/pipeline/cards/${cardId}`, { method: 'DELETE' })
+      if (res.ok) {
+        setBoardsData(prev => prev.map(b => ({
+          ...b,
+          colunas: b.colunas.map((col: any) => ({
+            ...col,
+            cards: (col.cards || []).filter((c: any) => c.id !== cardId)
+          }))
+        })))
+        handleCloseModal()
+      }
+    } catch (err) {
+      console.error('Error deleting card:', err)
+    }
   }
 
   function openNewCard(columnId: string) {
     setActiveColumnId(columnId)
     setIsNewCardOpen(true)
+  }
+
+  if (loading) {
+    return (
+        <div className="flex items-center justify-center min-h-screen">
+            <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+        </div>
+    )
   }
 
   return (
@@ -962,7 +1091,14 @@ export default function PipelinePage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <BoardSelector boards={boards} selected={selectedBoard} onChange={setSelectedBoard} />
+          <BoardSelector 
+            boards={boardsData.map(b => b.nome)} 
+            selected={currentBoard?.nome || 'Vendas'} 
+            onChange={(name) => {
+                const b = boardsData.find(x => x.nome === name)
+                if (b) setSelectedBoardId(b.id)
+            }} 
+          />
           <button onClick={() => setIsNewColumnOpen(true)} className="btn-primary flex items-center gap-2 text-sm py-2.5 px-4">
             <Plus className="w-4 h-4" />
             Nova Coluna
@@ -1009,6 +1145,7 @@ export default function PipelinePage() {
             columns={columns}
             onClose={handleCloseModal}
             onMove={handleMoveCard}
+            onDelete={handleDeleteCard}
           />
         )}
       </AnimatePresence>

@@ -575,7 +575,7 @@ function ContactDetailModal({
   function addActivity() {
     if (!activityDesc.trim()) return
     const newActivity: ContactActivity = {
-      id: String(Date.now()),
+      id: 'new-' + Date.now(), // Temporary ID until saved
       type: activityType,
       description: activityDesc,
       date: new Date(),
@@ -968,24 +968,126 @@ export default function CRMPage() {
     return matchFilter && matchSearch
   })
 
+  // Fetch contacts on mount
+  useEffect(() => {
+    async function fetchContacts() {
+      try {
+        const res = await fetch('/api/creator/crm')
+        if (res.ok) {
+          const data = await res.json()
+          // Ensure dates are actual Date objects
+          const formatted = data.map((c: any) => ({
+            ...c,
+            canal: c.canal_origem || 'Site',
+            createdAt: new Date(c.created_at),
+            lastActivity: new Date(c.updated_at || c.created_at),
+            activities: (c.atividades || []).map((a: any) => ({
+              ...a,
+              date: new Date(a.data)
+            }))
+          }))
+          setContacts(formatted)
+        }
+      } catch (err) {
+        console.error('Failed to fetch contacts:', err)
+      }
+    }
+    fetchContacts()
+  }, [])
+
   function openDetail(contact: Contact) {
     setSelectedContact(contact)
     setIsDetailOpen(true)
   }
 
-  function handleUpdate(updated: Contact) {
-    setContacts((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
-    setSelectedContact(updated)
+  async function handleUpdate(updated: Contact) {
+    try {
+      // If we are updating just the status or notes, etc.
+      // We also look if a new activity was added in the modal's internal state
+      const res = await fetch(`/api/creator/crm/${updated.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status_funil: updated.status,
+          notas: updated.notas,
+          tags: updated.tags,
+          // Check if there's a new activity in the last item (just a heuristic for this mock-to-real transition)
+          activity: updated.activities[0]?.id.startsWith('new-') ? {
+              type: updated.activities[0].type,
+              description: updated.activities[0].description,
+              date: updated.activities[0].date
+          } : null
+        })
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        const formatted = {
+          ...data,
+          canal: data.canal_origem || 'Site',
+          createdAt: new Date(data.created_at),
+          lastActivity: new Date(data.updated_at || data.created_at),
+          activities: (data.atividades || []).map((a: any) => ({
+            ...a,
+            date: new Date(a.data)
+          }))
+        }
+        setContacts((prev) => prev.map((c) => (c.id === formatted.id ? formatted : c)))
+        setSelectedContact(formatted)
+      }
+    } catch (err) {
+      console.error('Failed to update contact:', err)
+    }
   }
 
-  function handleDelete(id: string) {
-    setContacts((prev) => prev.filter((c) => c.id !== id))
-    setIsDetailOpen(false)
-    setSelectedContact(null)
+  async function handleDelete(id: string) {
+    try {
+      const res = await fetch(`/api/creator/crm/${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setContacts((prev) => prev.filter((c) => c.id !== id))
+        setIsDetailOpen(false)
+        setSelectedContact(null)
+        const { default: toast } = await import('react-hot-toast')
+        toast.success('Contato excluído')
+      }
+    } catch (err) {
+      console.error('Failed to delete contact:', err)
+    }
   }
 
-  function handleAdd(contact: Contact) {
-    setContacts((prev) => [contact, ...prev])
+  async function handleAdd(contactData: any) {
+    try {
+      const res = await fetch('/api/creator/crm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            nome: contactData.nome,
+            email: contactData.email,
+            telefone: contactData.telefone,
+            empresa: contactData.empresa,
+            cargo: contactData.cargo,
+            canal_origem: contactData.canal,
+            tags: contactData.tags,
+            notas: contactData.notas
+        })
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        const formatted = {
+          ...data,
+          canal: data.canal_origem || 'Site',
+          createdAt: new Date(data.created_at),
+          lastActivity: new Date(data.created_at),
+          activities: []
+        }
+        setContacts((prev) => [formatted, ...prev])
+        const { default: toast } = await import('react-hot-toast')
+        toast.success('Contato adicionado!')
+      }
+    } catch (err) {
+      console.error('Failed to add contact:', err)
+    }
   }
 
   function handleImportCSV() {
@@ -1008,8 +1110,9 @@ export default function CRMPage() {
         canal: 'Site' as Canal,
         status: 'lead' as FunilStatus,
         tags: [],
-        avatar: '',
+        notas: '',
         createdAt: new Date(),
+        lastActivity: new Date(),
         activities: [],
       }
     })
