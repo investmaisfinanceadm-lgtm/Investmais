@@ -44,7 +44,7 @@ import toast from 'react-hot-toast'
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type FunilStatus = 'lead' | 'qualificado' | 'proposta' | 'cliente' | 'inativo'
-type Canal = 'Instagram' | 'Site' | 'Indicação' | 'LinkedIn' | 'WhatsApp'
+type Canal = 'Instagram' | 'Site' | 'Indicação' | 'LinkedIn' | 'WhatsApp' | 'Google'
 type ActivityType = 'phone' | 'email' | 'message' | 'meeting' | 'note'
 type ViewMode = 'list' | 'grid'
 type FilterTab = 'todos' | 'leads' | 'clientes' | 'inativos'
@@ -461,6 +461,7 @@ function AddContactModal({ onClose, onAdd }: { onClose: () => void; onAdd: (cont
     }
     onAdd(newContact)
     onClose()
+    onClose()
   }
 
   return (
@@ -565,6 +566,106 @@ function AddContactModal({ onClose, onAdd }: { onClose: () => void; onAdd: (cont
               Adicionar Contato
             </button>
           </div>
+        </form>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ─── Scrape Leads Modal (N8N Google Maps) ───────────────────────────────────
+
+function ScrapeLeadsModal({ onClose }: { onClose: () => void }) {
+  const [estado, setEstado] = useState('')
+  const [cidade, setCidade] = useState('')
+  const [nicho, setNicho] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!estado || !cidade || !nicho) {
+       toast.error('Preencha os três campos (Nicho, Cidade e Estado)')
+       return
+    }
+    setIsSubmitting(true)
+
+    try {
+      const res = await fetch('/api/creator/crm/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado, cidade, nicho })
+      })
+      if (res.ok) {
+        toast.success('Busca N8N iniciada! Seus novos leads vão começar a cair aqui na tabela em instantes.')
+        onClose()
+      } else {
+        const err = await res.json().catch(() => ({}))
+        toast.error(err?.error || 'Erro ao comunicar com nossa automação.')
+      }
+    } catch (err) {
+       toast.error('Erro de conexão ao iniciar raspe local.')
+       console.error('Scraping submission error:', err)
+    } finally {
+       setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        onClick={onClose}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      />
+      <motion.div
+        className="relative w-full max-w-lg bg-[#0f1117] border border-white/5 rounded-3xl p-8 shadow-[0_0_80px_rgba(0,0,0,0.8)]"
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+      >
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-7 h-7 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
+                <Globe className="w-4 h-4 text-accent" />
+              </div>
+              <h2 className="text-sm font-black text-white uppercase tracking-widest">Prospectar no Google Maps</h2>
+            </div>
+            <p className="text-xs text-gray-500">A nossa automação N8N irá extrair leads de empresas para você</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/5 transition-all text-gray-500 hover:text-white">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+           <div>
+              <label className="label">Nicho/Segmento de Empresa *</label>
+              <input value={nicho} onChange={e => setNicho(e.target.value)} className="input-field bg-[#161B22]" placeholder="Ex: Clínica de Estética, Dentista, Advogado..." />
+           </div>
+           <div className="grid grid-cols-2 gap-4">
+               <div>
+                 <label className="label">Cidade *</label>
+                 <input value={cidade} onChange={e => setCidade(e.target.value)} className="input-field bg-[#161B22]" placeholder="Ex: São Paulo" />
+               </div>
+               <div>
+                  <label className="label">Estado (Sigla) *</label>
+                  <input value={estado} onChange={e => setEstado(e.target.value.toUpperCase())} maxLength={2} className="input-field bg-[#161B22]" placeholder="Ex: SP" />
+               </div>
+           </div>
+
+           <div className="flex gap-3 pt-4">
+             <button type="button" onClick={onClose} className="btn-secondary flex-1 py-3 text-sm">Cancelar</button>
+             <button type="submit" disabled={isSubmitting} className="btn-primary flex-1 py-3 text-sm font-black flex items-center justify-center gap-2">
+                 {isSubmitting ? 'Iniciando Rastreio...' : <><Search className="w-4 h-4"/> Iniciar Extração</>}
+             </button>
+           </div>
         </form>
       </motion.div>
     </motion.div>
@@ -959,6 +1060,7 @@ export default function CRMPage() {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isAddOpen, setIsAddOpen] = useState(false)
+  const [isScrapeOpen, setIsScrapeOpen] = useState(false)
   const [isCsvOpen, setIsCsvOpen] = useState(false)
   const [csvText, setCsvText] = useState('')
   const [csvError, setCsvError] = useState('')
@@ -1206,6 +1308,10 @@ export default function CRMPage() {
             </p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
+            <button onClick={() => setIsScrapeOpen(true)} className="flex items-center gap-2 text-sm font-black uppercase tracking-widest py-2.5 px-5 rounded-xl border border-accent text-accent hover:bg-accent/10 transition-colors">
+              <Globe className="w-4 h-4" />
+              Prospectar Leads
+            </button>
             <button onClick={() => setIsCsvOpen(true)} className="btn-secondary flex items-center gap-2 text-sm py-2.5 px-5">
               <Upload className="w-4 h-4" />
               Importar CSV
@@ -1489,6 +1595,9 @@ export default function CRMPage() {
       </div>
 
       {/* ── Modals ── */}
+      <AnimatePresence>
+        {isScrapeOpen && <ScrapeLeadsModal onClose={() => setIsScrapeOpen(false)} />}
+      </AnimatePresence>
       <AnimatePresence>
         {isDetailOpen && selectedContact && (
           <ContactDetailModal
