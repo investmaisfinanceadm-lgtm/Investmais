@@ -272,12 +272,31 @@ const MOCK_CONTACTS: Contact[] = [
 // ─── Helper Functions ─────────────────────────────────────────────────────────
 
 function getInitials(name: string): string {
-  return name
+  return (name || '')
     .split(' ')
     .map((n) => n[0])
+    .filter(Boolean)
     .slice(0, 2)
     .join('')
-    .toUpperCase()
+    .toUpperCase() || '??'
+}
+
+function safeFormat(date: Date | string | null | undefined, fmt: string): string {
+  try {
+    if (!date) return '—'
+    const d = date instanceof Date ? date : new Date(date)
+    if (isNaN(d.getTime())) return '—'
+    return format(d, fmt, { locale: ptBR })
+  } catch { return '—' }
+}
+
+function safeDistance(date: Date | string | null | undefined): string {
+  try {
+    if (!date) return '—'
+    const d = date instanceof Date ? date : new Date(date)
+    if (isNaN(d.getTime())) return '—'
+    return formatDistanceToNow(d, { locale: ptBR, addSuffix: true })
+  } catch { return '—' }
 }
 
 const AVATAR_COLORS = [
@@ -313,33 +332,36 @@ function getStatusConfig(status: FunilStatus | undefined | null) {
   }
 }
 
-function getCanalIcon(canal: Canal) {
+function getCanalIcon(canal: Canal | undefined | null) {
   switch (canal) {
     case 'Instagram': return <Instagram className="w-3 h-3" />
     case 'LinkedIn': return <Linkedin className="w-3 h-3" />
     case 'Site': return <Globe className="w-3 h-3" />
     case 'WhatsApp': return <MessageSquare className="w-3 h-3" />
     case 'Indicação': return <UserCheck className="w-3 h-3" />
+    default: return <Globe className="w-3 h-3" />
   }
 }
 
-function getActivityIcon(type: ActivityType) {
+function getActivityIcon(type: ActivityType | undefined | null) {
   switch (type) {
     case 'phone': return <Phone className="w-4 h-4" />
     case 'email': return <Mail className="w-4 h-4" />
     case 'message': return <MessageSquare className="w-4 h-4" />
     case 'meeting': return <Calendar className="w-4 h-4" />
     case 'note': return <FileText className="w-4 h-4" />
+    default: return <MessageSquare className="w-4 h-4" />
   }
 }
 
-function getActivityColor(type: ActivityType) {
+function getActivityColor(type: ActivityType | undefined | null) {
   switch (type) {
     case 'phone': return 'bg-accent/10 text-accent border-accent/20'
     case 'email': return 'bg-blue-500/10 text-blue-400 border-blue-500/20'
     case 'message': return 'bg-purple-500/10 text-purple-400 border-purple-500/20'
     case 'meeting': return 'bg-amber-500/10 text-amber-400 border-amber-500/20'
     case 'note': return 'bg-gray-500/10 text-gray-400 border-gray-500/20'
+    default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20'
   }
 }
 
@@ -765,12 +787,12 @@ function ContactDetailModal({
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-dark-muted rounded-xl p-4 border border-white/5 text-center">
                     <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Criado em</p>
-                    <p className="text-sm font-bold text-white">{format(contact.createdAt, 'dd/MM/yyyy', { locale: ptBR })}</p>
+                    <p className="text-sm font-bold text-white">{safeFormat(contact.createdAt, 'dd/MM/yyyy')}</p>
                   </div>
                   <div className="bg-dark-muted rounded-xl p-4 border border-white/5 text-center">
                     <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Última Atividade</p>
                     <p className="text-sm font-bold text-white">
-                      {formatDistanceToNow(contact.lastActivity, { locale: ptBR, addSuffix: true })}
+                      {safeDistance(contact.lastActivity)}
                     </p>
                   </div>
                 </div>
@@ -859,7 +881,7 @@ function ContactDetailModal({
                         <div className="flex-1 bg-dark-muted rounded-xl p-4 border border-white/5">
                           <p className="text-sm text-gray-200">{activity.description}</p>
                           <p className="text-[10px] text-gray-600 mt-1 font-semibold uppercase tracking-wider">
-                            {format(activity.date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                            {safeFormat(activity.date, "dd 'de' MMMM 'de' yyyy")}
                           </p>
                         </div>
                       </motion.div>
@@ -992,8 +1014,10 @@ export default function CRMPage() {
             createdAt: new Date(c.created_at),
             lastActivity: new Date(c.updated_at || c.created_at),
             activities: (c.atividades || []).map((a: any) => ({
-              ...a,
-              date: new Date(a.data)
+              id: a.id,
+              type: (a.tipo || 'note') as ActivityType,
+              description: a.descricao || '',
+              date: new Date(a.data || Date.now()),
             }))
           }))
           setContacts(formatted)
@@ -1045,8 +1069,10 @@ export default function CRMPage() {
           createdAt: new Date(data.created_at),
           lastActivity: new Date(data.updated_at || data.created_at),
           activities: (data.atividades || []).map((a: any) => ({
-            ...a,
-            date: new Date(a.data)
+            id: a.id,
+            type: (a.tipo || 'note') as ActivityType,
+            description: a.descricao || '',
+            date: new Date(a.data || Date.now()),
           }))
         }
         setContacts((prev) => prev.map((c) => (c.id === formatted.id ? formatted : c)))
@@ -1347,7 +1373,7 @@ export default function CRMPage() {
 
                   {/* Last activity */}
                   <div className="text-xs text-gray-500">
-                    {formatDistanceToNow(contact.lastActivity, { locale: ptBR, addSuffix: true })}
+                    {safeDistance(contact.lastActivity)}
                   </div>
 
                   {/* Actions */}
@@ -1433,7 +1459,7 @@ export default function CRMPage() {
                 <div className="flex items-center justify-between pt-2 border-t border-white/5">
                   <span className="text-[10px] text-gray-600 flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    {formatDistanceToNow(contact.lastActivity, { locale: ptBR, addSuffix: true })}
+                    {safeDistance(contact.lastActivity)}
                   </span>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                     <button
