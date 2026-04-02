@@ -141,7 +141,7 @@ const categoryColorMap: Record<string, string> = {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function PriorityDot({ priority }: { priority: Priority }) {
-  const cfg = priorityConfig[priority]
+  const cfg = priorityConfig[priority] || priorityConfig['media']
   return (
     <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border ${cfg.bgClass}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${cfg.dotClass}`} />
@@ -519,7 +519,7 @@ function CardDetailModal({
 function StatsBar({ columns }: { columns: KanbanColumn[] }) {
   const allCards = columns.flatMap((c) => c.cards)
   const totalCards = allCards.length
-  const totalValue = allCards.reduce((sum, c) => sum + c.value, 0)
+  const totalValue = allCards.reduce((sum, c) => sum + (c.value || 0), 0)
   const overdueCards = allCards.filter((c) => isOverdue(c.dueDate)).length
 
   const stats = [
@@ -929,7 +929,7 @@ export default function PipelinePage() {
       title: card.titulo,
       description: card.descricao,
       value: card.valor,
-      dueDate: card.vencimento ? card.vencimento.split('T')[0] : '',
+      dueDate: card.vencimento ? String(card.vencimento).split('T')[0] : '',
       priority: card.prioridade,
       columnId: card.coluna_id,
       category: card.categoria || 'Lead',
