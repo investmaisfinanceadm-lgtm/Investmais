@@ -1,30 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { Video, Clock, Library, Plus, ArrowRight, TrendingUp, BarChart3, Activity, Zap, ChevronDown } from 'lucide-react'
 import { cn, formatDateTime, getStatusColor, getStatusLabel } from '@/lib/utils'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-
-const MOCK_DATA_7 = [
-  { day: "Day 01", email: 42, whatsapp: 87, instagram: 31 },
-  { day: "Day 02", email: 55, whatsapp: 93, instagram: 44 },
-  { day: "Day 03", email: 38, whatsapp: 76, instagram: 52 },
-  { day: "Day 04", email: 61, whatsapp: 110, instagram: 38 },
-  { day: "Day 05", email: 49, whatsapp: 98, instagram: 61 },
-  { day: "Day 06", email: 70, whatsapp: 125, instagram: 55 },
-  { day: "Day 07", email: 58, whatsapp: 103, instagram: 47 }
-]
-
-const generateData = (days: number) => {
-  if (days === 7) return MOCK_DATA_7;
-  return Array.from({ length: days }).map((_, i) => ({
-    day: `D${String(i + 1).padStart(2, '0')}`,
-    email: 40 + Math.sin(i) * 15 + (i % 3) * 5,
-    whatsapp: 80 + Math.cos(i) * 20 + (i % 2) * 10,
-    instagram: 30 + Math.sin(i / 2) * 10 + (i % 4) * 5,
-  }))
-}
 
 interface DashboardVideo {
     id: string
@@ -44,8 +24,31 @@ interface UserStats {
 export default function DashboardPage() {
     const [stats, setStats] = useState<UserStats | null>(null)
     const [recentVideos, setRecentVideos] = useState<DashboardVideo[]>([])
-    const [chartScale, setChartScale] = useState<7 | 30 | 90>(7)
     const [isLoading, setIsLoading] = useState(true)
+
+    const [chartScale, setChartScale] = useState<7 | 30 | 90>(7)
+    const [chartData, setChartData] = useState<any[]>([])
+    const [isChartLoading, setIsChartLoading] = useState(true)
+    const [chartError, setChartError] = useState(false)
+
+    const fetchChartData = useCallback(async () => {
+        setIsChartLoading(true)
+        setChartError(false)
+        try {
+            const r = await fetch(`/api/creator/performance?days=${chartScale}`)
+            if (!r.ok) throw new Error('Data err')
+            const d = await r.json()
+            setChartData(d)
+        } catch (e) {
+            setChartError(true)
+        } finally {
+            setIsChartLoading(false)
+        }
+    }, [chartScale])
+
+    useEffect(() => {
+        fetchChartData()
+    }, [fetchChartData])
 
     useEffect(() => {
         async function loadData() {
@@ -177,9 +180,9 @@ export default function DashboardPage() {
                             <div className="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
                                 <BarChart3 className="w-4 h-4 text-purple-400" />
                             </div>
-                            <h2 className="text-xs font-black text-white uppercase tracking-[0.4em]">Matriz de Performance (Simulada)</h2>
+                            <h2 className="text-xs font-black text-white uppercase tracking-[0.4em]">Matriz de Performance</h2>
                         </div>
-                        <p className="text-[11px] text-gray-600 font-bold uppercase tracking-widest">Fluxo de engajamento nos canais ativos</p>
+                        <p className="text-[11px] text-gray-600 font-bold uppercase tracking-widest">Fluxo de engajamento nos canais</p>
                     </div>
                     <div className="flex gap-4">
                          <div className="relative">
@@ -198,37 +201,61 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="h-[300px] w-full mt-4">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={generateData(chartScale)} margin={{ top: 10, right: 30, left: 0, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                            <XAxis 
-                                dataKey="day" 
-                                axisLine={false} 
-                                tickLine={false} 
-                                tick={{ fill: '#6b7280', fontSize: 10, fontWeight: 700, textTransform: 'uppercase' }} 
-                                dy={10}
-                                minTickGap={20}
-                            />
-                            <YAxis 
-                                axisLine={false} 
-                                tickLine={false} 
-                                tick={{ fill: '#6b7280', fontSize: 10, fontWeight: 700 }} 
-                                dx={-10}
-                            />
-                            <Tooltip 
-                                contentStyle={{ backgroundColor: '#0f1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff', fontSize: '11px', fontWeight: 700 }}
-                                itemStyle={{ fontWeight: 800 }}
-                                labelStyle={{ color: '#9ca3af', marginBottom: '8px', textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.1em' }}
-                            />
-                            <Legend 
-                                iconType="circle" 
-                                wrapperStyle={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', paddingTop: '16px' }}
-                            />
-                            <Line type="monotone" dataKey="email" name="Email" stroke="#8b5cf6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                            <Line type="monotone" dataKey="whatsapp" name="WhatsApp" stroke="#22c55e" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                            <Line type="monotone" dataKey="instagram" name="Instagram" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                        </LineChart>
-                    </ResponsiveContainer>
+                    {isChartLoading ? (
+                        <div className="w-full h-full flex flex-col justify-end gap-2 pb-6 px-4">
+                            <div className="absolute inset-0 flex flex-col justify-between opacity-5 pointer-events-none">
+                                {[1, 2, 3, 4, 5].map(i => <div key={i} className="w-full h-px bg-white" />)}
+                            </div>
+                             <div className="flex h-full items-end gap-2 px-6">
+                               {Array.from({ length: 7 }).map((_, i) => (
+                                   <div key={i} className="flex-1 bg-white/5 shimmer rounded-t-lg" style={{ height: `${Math.max(20, Math.random() * 100)}%` }}></div>
+                               ))}
+                             </div>
+                        </div>
+                    ) : chartError ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-center space-y-4">
+                            <Activity className="w-10 h-10 text-red-500/50" />
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Erro ao carregar matriz</p>
+                            <button onClick={fetchChartData} className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-black text-white uppercase transition-all">Tentar Novamente</button>
+                        </div>
+                    ) : chartData.every(d => d.email === 0 && d.whatsapp === 0 && d.instagram === 0) ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-center space-y-4">
+                            <BarChart3 className="w-10 h-10 text-gray-700/50" />
+                            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Nenhum dado de engajamento<br/>encontrado para o período selecionado</p>
+                        </div>
+                    ) : (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                                <XAxis 
+                                    dataKey="day" 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: '#6b7280', fontSize: 10, fontWeight: 700 }} 
+                                    dy={10}
+                                    minTickGap={20}
+                                />
+                                <YAxis 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: '#6b7280', fontSize: 10, fontWeight: 700 }} 
+                                    dx={-10}
+                                />
+                                <Tooltip 
+                                    contentStyle={{ backgroundColor: '#0f1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff', fontSize: '11px', fontWeight: 700 }}
+                                    itemStyle={{ fontWeight: 800 }}
+                                    labelStyle={{ color: '#9ca3af', marginBottom: '8px', textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.1em' }}
+                                />
+                                <Legend 
+                                    iconType="circle" 
+                                    wrapperStyle={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', paddingTop: '16px' }}
+                                />
+                                <Line type="monotone" dataKey="email" name="Email" stroke="#8b5cf6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                                <Line type="monotone" dataKey="whatsapp" name="WhatsApp" stroke="#22c55e" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                                <Line type="monotone" dataKey="instagram" name="Instagram" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    )}
                 </div>
             </div>
 
