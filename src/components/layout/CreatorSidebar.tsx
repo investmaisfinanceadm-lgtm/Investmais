@@ -206,28 +206,28 @@ export function CreatorSidebar() {
     return (
         <>
             {/* Desktop Sidebar */}
-            <aside className="hidden lg:flex flex-col w-72 bg-[var(--color-dark-card)] border-r border-[var(--color-dark-border)] h-screen sticky top-0 flex-shrink-0 z-50">
+            <aside className="hidden lg:flex flex-col w-72 bg-[var(--color-dark-muted)] border-r border-[var(--color-dark-border)] h-screen sticky top-0 flex-shrink-0 z-50">
                 <SidebarContent />
             </aside>
 
             {/* Mobile Header */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-[var(--color-dark-card)]/80 backdrop-blur-2xl border-b border-[var(--color-dark-border)]">
+            <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-[var(--color-dark-muted)]/80 backdrop-blur-2xl border-b border-[var(--color-dark-border)]">
                 <div className="flex items-center gap-3">
                     <div className="w-9 h-9 flex-shrink-0">
                         <img src="/logo.png" alt="InvestMais Finance" className="h-9 w-auto object-contain" />
                     </div>
-                    <span className="text-[var(--text-main)] font-bold text-xl tracking-tighter">
+                    <span className="text-white font-bold text-xl tracking-tighter">
                         INVEST<span className="text-accent">MAIS</span>
                     </span>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button className="relative p-2 text-gray-400 hover:text-[var(--text-main)] transition-colors">
+                    <button className="relative p-2 text-gray-400 hover:text-white transition-colors">
                         <Bell className="w-5 h-5" />
-                        <div className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full border-2 border-[var(--color-dark-card)]" />
+                        <div className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full border-2 border-[var(--color-dark-muted)]" />
                     </button>
                     <button
                         onClick={() => setMobileOpen(!mobileOpen)}
-                        className="p-2 text-gray-400 hover:text-[var(--text-main)] transition-colors"
+                        className="p-2 text-gray-400 hover:text-white transition-colors"
                     >
                         {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                     </button>
@@ -245,7 +245,7 @@ export function CreatorSidebar() {
             {/* Mobile Sidebar */}
             <aside
                 className={cn(
-                    'lg:hidden fixed top-0 left-0 h-full w-[80vw] max-w-[320px] bg-[var(--color-dark-card)] border-r border-[var(--color-dark-border)] z-[70] transition-transform duration-500 ease-in-out',
+                    'lg:hidden fixed top-0 left-0 h-full w-[80vw] max-w-[320px] bg-[var(--color-dark-muted)] border-r border-[var(--color-dark-border)] z-[70] transition-transform duration-500 ease-in-out',
                     mobileOpen ? 'translate-x-0' : '-translate-x-full'
                 )}
             >
