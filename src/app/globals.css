@@ -18,7 +18,7 @@
 
 @layer base {
   html.light {
-    --color-primary:     #0B1021; /* Azul marinho muito escuro (fundo principal) */
+    --color-primary:     #F0F2F5; /* Cinza claro suave (Fundo padrão Light) */
     --color-accent:      #2563EB; /* Azul principal */
     --color-gold:        #B48A14; /* Dourado escuro */
     --color-dark-card:   #FFFFFF; /* Branco puro para os cards */
