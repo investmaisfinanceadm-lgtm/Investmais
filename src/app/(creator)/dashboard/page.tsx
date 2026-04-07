@@ -100,7 +100,7 @@ export default function DashboardPage() {
                     {isLoading ? (
                         <div className="shimmer h-10 w-64 rounded-2xl" />
                     ) : (
-                        <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter leading-none">
+                        <h1 className="text-3xl md:text-5xl font-black text-[var(--text-main)] tracking-tighter leading-none">
                             {greeting()}, <br />
                             <span className="text-transparent bg-clip-text bg-gradient-accent">
                                 {stats?.nome?.split(' ')[0] || 'Investidor'}

@@ -18,13 +18,13 @@
 
 @layer base {
   html.light {
-    --color-primary:     #F0F2F5; /* Cinza claro suave */
+    --color-primary:     #0B1021; /* Azul marinho muito escuro (fundo principal) */
     --color-accent:      #2563EB; /* Azul principal */
     --color-gold:        #B48A14; /* Dourado escuro */
-    --color-dark-card:   #FFFFFF; /* Branco puro cards */
+    --color-dark-card:   #FFFFFF; /* Branco puro para os cards */
     --color-dark-border: #E5E7EB; /* Cinza claro bordas */
-    --color-dark-muted:  #F8F9FB; /* Cinza levíssimo sidebar */
-    --text-main:         #1A1A2E; /* Quase preto */
+    --color-dark-muted:  #F8F9FB; /* Fundo da sidebar (Claro) */
+    --text-main:         #1A1A2E; /* Quase preto para textos em fundo claro */
     --text-muted:        #6B7280; /* Cinza médio */
     --hover-bg:          #EEF2FF; /* Azul suave hover */
   }

@@ -124,12 +124,10 @@ export function CreatorSidebar() {
                                 onClick={() => setMobileOpen(false)}
                                 className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl font-black transition-all duration-300 group uppercase tracking-widest text-[10px] ${
                                     isPrimary
-                                        ? isActive
-                                            ? 'bg-accent text-white shadow-accent'
-                                            : 'bg-accent text-white shadow-accent hover:bg-accent/90 hover:shadow-accent-lg'
+                                        ? 'bg-accent text-white shadow-accent hover:bg-accent/90 hover:shadow-accent-lg'
                                         : isActive
-                                            ? 'bg-white/10 text-white border border-white/20'
-                                            : 'bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20'
+                                            ? 'bg-white/10 text-[var(--text-main)] border border-[var(--color-dark-border)]'
+                                            : 'bg-white/5 text-[var(--text-muted)] border border-[var(--color-dark-border)] hover:bg-accent/5 hover:text-accent'
                                 }`}
                             >
                                 <Icon className="w-4 h-4 flex-shrink-0" />
