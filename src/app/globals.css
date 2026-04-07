@@ -5,12 +5,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  --color-primary:     #06091A;   /* fundo principal — profundo, quase preto azulado */
-  --color-accent:      #2563EB;   /* azul principal */
+  /* Default Dark Mode */
+  --color-primary:     #06091A;   
+  --color-accent:      #2563EB;   
   --color-gold:        #DAAF37;
-  --color-dark-card:   #0D1526;   /* cards — levemente elevados sobre o fundo */
-  --color-dark-border: #1A2845;   /* bordas sutis */
-  --color-dark-muted:  #0A1020;   /* superfície rebaixada */
+  --color-dark-card:   #0D1526;   
+  --color-dark-border: #1A2845;   
+  --color-dark-muted:  #0A1020;   
+  --text-main:         #ffffff;
+  --text-muted:        #6b7280;
+}
+
+@layer base {
+  .light {
+    --color-primary:     #F9F9FB; /* Soft paper white/beige */
+    --color-accent:      #2563EB; /* Keep blue for contrast */
+    --color-gold:        #B48A14; /* Darker gold for light BG */
+    --color-dark-card:   #FFFFFF; /* Pure white cards */
+    --color-dark-border: #E2E8F0; /* Slate border */
+    --color-dark-muted:  #F1F5F9; /* Muted slate */
+    --text-main:         #0F172A; /* Navy dark text */
+    --text-muted:        #64748B; /* Slate muted */
+  }
 }
 
 * {
@@ -24,11 +40,12 @@ body {
   max-width: 100vw;
   overflow-x: hidden;
   font-family: 'Inter', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 body {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--text-main);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

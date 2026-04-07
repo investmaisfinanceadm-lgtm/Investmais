@@ -17,8 +17,12 @@ import {
     Users,
     Send,
     Search,
+    Moon,
+    Sun
 } from 'lucide-react'
 import { useSession, signOut } from 'next-auth/react'
+import { useTheme } from 'next-themes'
+import { useEffect } from 'react'
 import { cn, getInitials } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
@@ -39,8 +43,15 @@ const contentItems = [
 export function CreatorSidebar() {
     const pathname = usePathname()
     const router = useRouter()
+    const { theme, setTheme } = useTheme()
+    const [mounted, setMounted] = useState(false)
     const [mobileOpen, setMobileOpen] = useState(false)
     const { data: session } = useSession()
+
+    // Avoid hydration mismatch
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     const sessionUser = session?.user as any
 
@@ -77,7 +88,7 @@ export function CreatorSidebar() {
             <nav className="flex-1 p-6 space-y-6 overflow-y-auto">
                 <div className="space-y-1">
                     <p className="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">Monitoramento</p>
-                    {navItems.filter(i => !i.highlight).map((item) => {
+                    {navItems.map((item) => {
                         const Icon = item.icon
                         const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
 
@@ -167,16 +178,27 @@ export function CreatorSidebar() {
                             )}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs font-extrabold text-white truncate uppercase tracking-wider">{user.nome}</p>
+                            <p className="text-xs font-extrabold text-white dark:text-white truncate uppercase tracking-wider">{user.nome}</p>
                             <p className="text-[10px] text-gray-500 truncate font-medium">{user.email}</p>
                         </div>
-                        <button
-                            onClick={handleLogout}
-                            className="text-gray-600 hover:text-red-500 transition-colors p-1"
-                            title="Sair"
-                        >
-                            <LogOut className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                            {mounted && (
+                                <button
+                                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                                    className="p-2 text-gray-600 hover:text-accent transition-all rounded-lg hover:bg-white/5"
+                                    title="Alternar Tema"
+                                >
+                                    {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4 text-amber-500" />}
+                                </button>
+                            )}
+                            <button
+                                onClick={handleLogout}
+                                className="text-gray-600 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-white/5"
+                                title="Sair"
+                            >
+                                <LogOut className="w-4 h-4" />
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
