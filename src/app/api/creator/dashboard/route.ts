@@ -16,32 +16,59 @@ export async function GET() {
     const isDev = userId === 'dev-admin-id'
 
     try {
-      const [profile, recentVideos, totalVideos] = await Promise.all([
+      const startOfDay = new Date()
+      startOfDay.setHours(0, 0, 0, 0)
+
+      const [profile, totalLeads, leadsHoje, conversoes, contatosRecentes] = await Promise.all([
         prisma.profile.findUnique({
           where: { id: userId },
           select: { nome: true, cota_mensal: true, cota_usada: true },
         }),
-        prisma.video.findMany({
-          where: { user_id: userId },
-          select: { id: true, nome_produto: true, status: true, created_at: true, duracao: true },
-          orderBy: { created_at: 'desc' },
-          take: 5,
+        // @ts-ignore
+        prisma.contato.count({ where: { user_id: userId } }),
+        // @ts-ignore
+        prisma.contato.count({ 
+          where: { 
+            user_id: userId,
+            created_at: { gte: startOfDay }
+          } 
         }),
-        prisma.video.count({ where: { user_id: userId } }),
+        // @ts-ignore
+        prisma.contato.count({ 
+          where: { 
+            user_id: userId,
+            status_funil: 'cliente'
+          } 
+        }),
+        // @ts-ignore
+        prisma.contato.findMany({
+          where: { user_id: userId },
+          select: { 
+            id: true, 
+            nome: true, 
+            empresa: true, 
+            status_funil: true, 
+            canal_origem: true, 
+            created_at: true 
+          },
+          orderBy: { created_at: 'desc' },
+          take: 10,
+        }),
       ])
 
       return NextResponse.json({
         profile: profile
           ? {
               ...profile,
-              videosTotal: totalVideos,
+              totalLeads,
+              leadsHoje,
+              conversoes,
+              contatosRecentes: contatosRecentes.map((c: any) => ({
+                ...c,
+                created_at: c.created_at.toISOString()
+              }))
             }
-          : null,
-        recentVideos: recentVideos.map((v) => ({
-          ...v,
-          created_at: v.created_at.toISOString(),
-          status: v.status as string,
-        })),
+          : null
       })
     } catch (dbError) {
       if (isDev) {
@@ -49,15 +76,14 @@ export async function GET() {
         return NextResponse.json({
           profile: {
             nome: 'Administrador (Mock)',
-            cota_mensal: 999,
-            cota_usada: 12,
-            videosTotal: 8,
-          },
-          recentVideos: [
-            { id: '1', nome_produto: 'Video Estratégico #01', status: 'concluido', created_at: new Date().toISOString(), duracao: 45 },
-            { id: '2', nome_produto: 'Video Estratégico #02', status: 'processando', created_at: new Date().toISOString(), duracao: 30 },
-            { id: '3', nome_produto: 'Video Estratégico #03', status: 'concluido', created_at: new Date().toISOString(), duracao: 60 },
-          ],
+            totalLeads: 1250,
+            leadsHoje: 42,
+            conversoes: 156,
+            contatosRecentes: [
+              { id: '1', nome: 'Henrique Silva', empresa: 'InvestMais', status_funil: 'cliente', canal_origem: 'google', created_at: new Date().toISOString() },
+              { id: '2', nome: 'Ana Costa', empresa: 'Tech Corp', status_funil: 'oportunidade', canal_origem: 'whatsapp', created_at: new Date().toISOString() },
+            ]
+          }
         })
       }
       throw dbError

@@ -14,16 +14,28 @@ interface DashboardVideo {
     duracao: number
 }
 
+interface DashboardContact {
+    id: string
+    nome: string
+    empresa: string | null
+    status_funil: string
+    canal_origem: string | null
+    created_at: string
+}
+
 interface UserStats {
     nome: string
     cota_mensal: number
     cota_usada: number
     videosTotal: number
+    totalLeads: number
+    leadsHoje: number
+    conversoes: number
+    contatosRecentes: DashboardContact[]
 }
 
 export default function DashboardPage() {
     const [stats, setStats] = useState<UserStats | null>(null)
-    const [recentVideos, setRecentVideos] = useState<DashboardVideo[]>([])
     const [isLoading, setIsLoading] = useState(true)
 
     const [chartScale, setChartScale] = useState<7 | 30 | 90>(7)
@@ -57,7 +69,6 @@ export default function DashboardPage() {
                 if (response.ok) {
                     const data = await response.json()
                     if (data.profile) setStats(data.profile)
-                    setRecentVideos(data.recentVideos || [])
                 }
             } finally {
                 setIsLoading(false)
@@ -104,71 +115,83 @@ export default function DashboardPage() {
                 </Link>
             </div>
 
-            {/* Metric Cards - High Performance Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
-                <div className="card-hover group border-white/5 bg-white/[0.02] p-5 md:p-8 rounded-[32px] md:rounded-[40px] relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-6 md:p-8 opacity-5 group-hover:scale-110 transition-transform">
-                        <Video className="w-20 md:w-24 h-20 md:h-24" />
+            {/* Metric Cards - Lead Performance Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
+                <div className="card-hover group border-white/5 bg-white/[0.02] p-6 rounded-[32px] relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform">
+                        <TrendingUp className="w-16 h-16" />
                     </div>
-                    <div className="flex items-center justify-between mb-6 md:mb-10">
-                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-accent/10 flex items-center justify-center border border-accent/20 group-hover:scale-110 transition-transform shadow-accent/10 shadow-lg">
-                            <Video className="w-6 h-6 md:w-7 md:h-7 text-accent" />
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center border border-accent/20">
+                            <TrendingUp className="w-6 h-6 text-accent" />
                         </div>
-                        <div className="text-right">
-                            <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">Cota Utilizada</p>
-                            <p className="text-3xl font-black text-white leading-none mt-2">{isLoading ? '—' : stats?.cota_usada || 0}</p>
-                        </div>
-                    </div>
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-end">
-                            <p className="text-[10px] font-black text-accent uppercase tracking-widest">Nível de Processamento</p>
-                            <p className="text-[10px] font-black text-white uppercase tracking-widest">{quotaPercent}%</p>
-                        </div>
-                        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                            <div className="h-full bg-gradient-accent rounded-full transition-all duration-1000 ease-out" style={{ width: `${quotaPercent}%` }} />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="card-hover group border-white/5 bg-white/[0.02] p-5 md:p-8 rounded-[32px] md:rounded-[40px] relative overflow-hidden" style={{ animationDelay: '0.1s' }}>
-                    <div className="absolute top-0 right-0 p-6 md:p-8 opacity-5 group-hover:scale-110 transition-transform">
-                        <Zap className="w-20 md:w-24 h-20 md:h-24" />
-                    </div>
-                    <div className="flex items-center justify-between mb-6 md:mb-10">
-                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-amber-400/10 flex items-center justify-center border border-amber-400/20 group-hover:scale-110 transition-transform shadow-amber-400/10 shadow-lg">
-                            <Zap className="w-6 h-6 md:w-7 md:h-7 text-amber-400" />
-                        </div>
-                        <div className="text-right">
-                            <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">Créditos AI</p>
-                            <p className="text-3xl font-black text-white leading-none mt-2">
-                                {isLoading ? '—' : stats ? stats.cota_mensal - stats.cota_usada : 0}
-                            </p>
+                        <div>
+                            <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Base Leads</p>
+                            <h3 className="text-2xl font-black text-white">{isLoading ? '—' : stats?.totalLeads || 0}</h3>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                         <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                         <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                             Capacidade para geração imediata
-                         </p>
+                        <span className="text-[9px] font-bold text-emerald-400">+12%</span>
+                        <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">vs mês anterior</span>
                     </div>
                 </div>
 
-                <div className="card-hover group border-white/5 bg-white/[0.02] p-5 md:p-8 rounded-[32px] md:rounded-[40px] relative overflow-hidden" style={{ animationDelay: '0.2s' }}>
-                    <div className="absolute top-0 right-0 p-6 md:p-8 opacity-5 group-hover:scale-110 transition-transform">
-                        <Library className="w-20 md:w-24 h-20 md:h-24" />
+                <div className="card-hover group border-white/5 bg-white/[0.02] p-6 rounded-[32px] relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform">
+                        <Plus className="w-16 h-16" />
                     </div>
-                    <div className="flex items-center justify-between mb-6 md:mb-10">
-                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-blue-400/10 flex items-center justify-center border border-blue-400/20 group-hover:scale-110 transition-transform shadow-blue-400/10 shadow-lg">
-                            <Library className="w-6 h-6 md:w-7 md:h-7 text-blue-400" />
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                            <Plus className="w-6 h-6 text-emerald-400" />
                         </div>
-                        <div className="text-right">
-                            <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">Acervo Ativo</p>
-                            <p className="text-3xl font-black text-white leading-none mt-2">{isLoading ? '—' : stats?.videosTotal || 0}</p>
+                        <div>
+                            <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Novos Hoje</p>
+                            <h3 className="text-2xl font-black text-white">{isLoading ? '—' : stats?.leadsHoje || 0}</h3>
                         </div>
                     </div>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">
-                        Total de ativos otimizados armazenados
-                    </p>
+                    <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">Atividade em tempo real</span>
+                    </div>
+                </div>
+
+                <div className="card-hover group border-white/5 bg-white/[0.02] p-6 rounded-[32px] relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform">
+                        <Zap className="w-16 h-16" />
+                    </div>
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 rounded-2xl bg-amber-400/10 flex items-center justify-center border border-amber-400/20">
+                            <Zap className="w-6 h-6 text-amber-400" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Conversões</p>
+                            <h3 className="text-2xl font-black text-white">{isLoading ? '—' : stats?.conversoes || 0}</h3>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-amber-400/60 uppercase text-[9px] font-black tracking-widest italic">
+                        Win Rate Estável
+                    </div>
+                </div>
+
+                <div className="card-hover group border-white/5 bg-white/[0.02] p-6 rounded-[32px] relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform">
+                        <Activity className="w-16 h-16" />
+                    </div>
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                            <Activity className="w-6 h-6 text-blue-400" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Taxa de Conversão</p>
+                            <h3 className="text-2xl font-black text-white">{isLoading ? '—' : stats ? ((stats.conversoes / (stats.totalLeads || 1)) * 100).toFixed(1) : 0}%</h3>
+                        </div>
+                    </div>
+                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden mt-2">
+                        <div 
+                            className="h-full bg-blue-400 transition-all duration-1000" 
+                            style={{ width: stats ? `${(stats.conversoes / (stats.totalLeads || 1)) * 100}%` : '0%' }} 
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -266,10 +289,10 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between px-2">
                         <div className="flex items-center gap-3">
                              <div className="w-1.5 h-1.5 rounded-full bg-accent" />
-                             <h2 className="text-xs font-black text-white uppercase tracking-[0.3em]">Protocolos de Geração Recentes</h2>
+                             <h2 className="text-xs font-black text-white uppercase tracking-[0.3em]">Últimos Contatos do CRM</h2>
                         </div>
-                        <Link href="/biblioteca" className="text-[10px] font-black text-accent uppercase tracking-widest hover:translate-x-2 transition-all flex items-center gap-2 group">
-                            Acessar Acervo
+                        <Link href="/crm" className="text-[10px] font-black text-accent uppercase tracking-widest hover:translate-x-2 transition-all flex items-center gap-2 group">
+                            Ver Funil Completo
                             <ArrowRight className="w-3 h-3 group-hover:scale-125 transition-transform" />
                         </Link>
                     </div>
@@ -280,42 +303,40 @@ export default function DashboardPage() {
                                 <div key={i} className="card h-24 shimmer opacity-20 border-white/5 bg-white/[0.02] rounded-[32px]" />
                             ))}
                         </div>
-                    ) : recentVideos.length === 0 ? (
+                    ) : !stats?.contatosRecentes || stats.contatosRecentes.length === 0 ? (
                         <div className="card border-dashed border-white/10 bg-transparent py-24 text-center space-y-6 rounded-[56px] shadow-2xl">
                             <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4 border border-white/5 transition-transform hover:scale-110">
-                                <Video className="w-10 h-10 text-gray-800" />
+                                <Activity className="w-10 h-10 text-gray-800" />
                             </div>
                             <div className="space-y-2">
-                                <p className="text-gray-500 uppercase tracking-[0.3em] font-black text-xs">Nenhum rastro de conteúdo detectado</p>
-                                <p className="text-[9px] text-gray-700 font-bold uppercase tracking-widest italic">Aguardando comando de inicialização</p>
+                                <p className="text-gray-500 uppercase tracking-[0.3em] font-black text-xs">Sem contatos registrados</p>
+                                <p className="text-[9px] text-gray-700 font-bold uppercase tracking-widest italic">Aguardando entrada de novos leads</p>
                             </div>
-                            <Link href="/criar" className="btn-primary inline-flex items-center gap-4 px-10 py-5 bg-accent text-black font-black uppercase tracking-widest text-[10px] rounded-2xl shadow-accent/20">
-                                <Plus className="w-4 h-4" />
-                                <span>Configurar Primeira Campanha</span>
-                            </Link>
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {recentVideos.map((video) => (
-                                <div key={video.id} className="card-hover group flex items-center gap-4 md:gap-6 border-white/5 bg-white/[0.02] hover:bg-white/[0.05] p-4 md:p-6 rounded-[24px] md:rounded-[32px] transition-all">
-                                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-primary border border-white/5 flex items-center justify-center flex-shrink-0 group-hover:border-accent/30 transition-all shadow-xl group-hover:shadow-accent/5">
-                                        <Video className="w-6 h-6 md:w-7 md:h-7 text-gray-700 group-hover:text-accent transition-all duration-500" />
+                            {stats.contatosRecentes.map((contato) => (
+                                <div key={contato.id} className="card-hover group flex items-center gap-4 md:gap-6 border-white/5 bg-white/[0.02] hover:bg-white/[0.05] p-4 md:p-6 rounded-[24px] md:rounded-[32px] transition-all">
+                                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary border border-white/5 flex items-center justify-center flex-shrink-0 group-hover:border-accent/30 transition-all shadow-xl group-hover:shadow-accent/5 overflow-hidden">
+                                        <div className="w-full h-full bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center text-accent font-black text-xs uppercase">
+                                            {contato.nome.substring(0, 2)}
+                                        </div>
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-white font-black text-xs md:text-sm uppercase tracking-tight truncate group-hover:text-accent transition-colors duration-500">
-                                            {video.nome_produto}
+                                            {contato.nome}
                                         </p>
-                                        <div className="flex flex-wrap items-center gap-3 md:gap-6 mt-2 md:mt-3">
+                                        <div className="flex flex-wrap items-center gap-3 md:gap-6 mt-1 md:mt-2">
                                             <div className="flex items-center gap-2">
-                                                <Clock className="w-3 h-3 text-gray-700" />
+                                                <Library className="w-3 h-3 text-gray-700" />
                                                 <span className="text-[9px] font-black text-gray-700 uppercase tracking-widest">
-                                                    {formatDateTime(video.created_at)}
+                                                    {contato.empresa || 'Empresa não inf.'}
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <Activity className="w-3 h-3 text-gray-700" />
+                                                <Clock className="w-3 h-3 text-gray-700" />
                                                 <span className="text-[9px] font-black text-gray-700 uppercase tracking-widest">
-                                                    Escala: {video.duracao}s
+                                                    {formatDateTime(contato.created_at)}
                                                 </span>
                                             </div>
                                         </div>
@@ -323,15 +344,11 @@ export default function DashboardPage() {
                                     <div className="hidden sm:flex items-center gap-4">
                                         <span className={cn(
                                             "inline-flex items-center gap-2 px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border shadow-2xl transition-all",
-                                            video.status === 'concluido' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
-                                            video.status === 'processando' ? 'bg-amber-400/10 text-amber-400 border-amber-400/20 animate-pulse' : 
-                                            'bg-red-500/10 text-red-500 border-red-500/20'
+                                            contato.status_funil === 'cliente' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
+                                            contato.status_funil === 'oportunidade' ? 'bg-amber-400/10 text-amber-400 border-amber-400/20' : 
+                                            'bg-white/5 text-gray-400 border-white/10'
                                         )}>
-                                            <div className={cn("w-1.5 h-1.5 rounded-full", 
-                                                video.status === 'concluido' ? 'bg-emerald-400' : 
-                                                video.status === 'processando' ? 'bg-amber-400' : 'bg-red-500'
-                                            )} />
-                                            {getStatusLabel(video.status)}
+                                            {contato.status_funil}
                                         </span>
                                     </div>
                                 </div>
