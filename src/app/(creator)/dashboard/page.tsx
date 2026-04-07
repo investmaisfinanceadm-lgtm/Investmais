@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { Video, Clock, Library, Plus, ArrowRight, TrendingUp, BarChart3, Activity, Zap, ChevronDown } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts'
+import { Video, Clock, Library, Plus, ArrowRight, TrendingUp, BarChart3, Activity, Zap, ChevronDown, Users, Globe } from 'lucide-react'
 import { cn, formatDateTime, getStatusColor, getStatusLabel } from '@/lib/utils'
 
 interface DashboardVideo {
@@ -40,6 +40,7 @@ export default function DashboardPage() {
 
     const [chartScale, setChartScale] = useState<7 | 30 | 90>(7)
     const [chartData, setChartData] = useState<any[]>([])
+    const [originData, setOriginData] = useState<any[]>([])
     const [isChartLoading, setIsChartLoading] = useState(true)
     const [chartError, setChartError] = useState(false)
 
@@ -50,7 +51,8 @@ export default function DashboardPage() {
             const r = await fetch(`/api/creator/performance?days=${chartScale}`)
             if (!r.ok) throw new Error('Data err')
             const d = await r.json()
-            setChartData(d)
+            setChartData(d.chartData || [])
+            setOriginData(d.originData || [])
         } catch (e) {
             setChartError(true)
         } finally {
@@ -200,12 +202,12 @@ export default function DashboardPage() {
                 <div className="flex flex-col md:flex-row items-center justify-between gap-5 md:gap-8 mb-8 md:mb-12">
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
-                                <BarChart3 className="w-4 h-4 text-purple-400" />
+                            <div className="w-8 h-8 rounded-xl bg-accent/10 flex items-center justify-center border border-accent/20">
+                                <Users className="w-4 h-4 text-accent" />
                             </div>
-                            <h2 className="text-xs font-black text-white uppercase tracking-[0.4em]">Matriz de Performance</h2>
+                            <h2 className="text-xs font-black text-white uppercase tracking-[0.4em]">Crescimento da Base</h2>
                         </div>
-                        <p className="text-[11px] text-gray-600 font-bold uppercase tracking-widest">Fluxo de engajamento nos canais</p>
+                        <p className="text-[11px] text-gray-600 font-bold uppercase tracking-widest">Aquisição de novos leads por período</p>
                     </div>
                     <div className="flex gap-4">
                          <div className="relative">
@@ -223,62 +225,96 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                <div className="h-[300px] w-full mt-4">
-                    {isChartLoading ? (
-                        <div className="w-full h-full flex flex-col justify-end gap-2 pb-6 px-4">
-                            <div className="absolute inset-0 flex flex-col justify-between opacity-5 pointer-events-none">
-                                {[1, 2, 3, 4, 5].map(i => <div key={i} className="w-full h-px bg-white" />)}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-4">
+                    <div className="lg:col-span-3 h-[300px]">
+                        {isChartLoading ? (
+                            <div className="w-full h-full flex flex-col justify-end gap-2 pb-6 px-4">
+                                <div className="absolute inset-0 flex flex-col justify-between opacity-5 pointer-events-none">
+                                    {[1, 2, 3, 4, 5].map(i => <div key={i} className="w-full h-px bg-white" />)}
+                                </div>
+                                <div className="flex h-full items-end gap-2 px-6">
+                                {Array.from({ length: 7 }).map((_, i) => (
+                                    <div key={i} className="flex-1 bg-white/5 shimmer rounded-t-lg" style={{ height: `${Math.max(20, Math.random() * 100)}%` }}></div>
+                                ))}
+                                </div>
                             </div>
-                             <div className="flex h-full items-end gap-2 px-6">
-                               {Array.from({ length: 7 }).map((_, i) => (
-                                   <div key={i} className="flex-1 bg-white/5 shimmer rounded-t-lg" style={{ height: `${Math.max(20, Math.random() * 100)}%` }}></div>
-                               ))}
-                             </div>
-                        </div>
-                    ) : chartError ? (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-center space-y-4">
-                            <Activity className="w-10 h-10 text-red-500/50" />
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Erro ao carregar matriz</p>
-                            <button onClick={fetchChartData} className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-black text-white uppercase transition-all">Tentar Novamente</button>
-                        </div>
-                    ) : chartData.every(d => d.email === 0 && d.whatsapp === 0 && d.instagram === 0) ? (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-center space-y-4">
-                            <BarChart3 className="w-10 h-10 text-gray-700/50" />
-                            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Nenhum dado de engajamento<br/>encontrado para o período selecionado</p>
-                        </div>
-                    ) : (
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                                <XAxis 
-                                    dataKey="day" 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{ fill: '#6b7280', fontSize: 10, fontWeight: 700 }} 
-                                    dy={10}
-                                    minTickGap={20}
-                                />
-                                <YAxis 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{ fill: '#6b7280', fontSize: 10, fontWeight: 700 }} 
-                                    dx={-10}
-                                />
-                                <Tooltip 
-                                    contentStyle={{ backgroundColor: '#0f1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff', fontSize: '11px', fontWeight: 700 }}
-                                    itemStyle={{ fontWeight: 800 }}
-                                    labelStyle={{ color: '#9ca3af', marginBottom: '8px', textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.1em' }}
-                                />
-                                <Legend 
-                                    iconType="circle" 
-                                    wrapperStyle={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', paddingTop: '16px' }}
-                                />
-                                <Line type="monotone" dataKey="email" name="Email" stroke="#8b5cf6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                                <Line type="monotone" dataKey="whatsapp" name="WhatsApp" stroke="#22c55e" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                                <Line type="monotone" dataKey="instagram" name="Instagram" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    )}
+                        ) : chartError ? (
+                            <div className="w-full h-full flex flex-col items-center justify-center text-center space-y-4">
+                                <Activity className="w-10 h-10 text-red-500/50" />
+                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Erro ao carregar dados</p>
+                                <button onClick={fetchChartData} className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-black text-white uppercase transition-all">Tentar Novamente</button>
+                            </div>
+                        ) : chartData.length === 0 || chartData.every(d => d.leads === 0) ? (
+                            <div className="w-full h-full flex flex-col items-center justify-center text-center space-y-4">
+                                <Users className="w-10 h-10 text-gray-700/50" />
+                                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Nenhum novo lead<br/>encontrado para o período</p>
+                            </div>
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                                    <XAxis 
+                                        dataKey="day" 
+                                        axisLine={false} 
+                                        tickLine={false} 
+                                        tick={{ fill: '#6b7280', fontSize: 10, fontWeight: 700 }} 
+                                        dy={10}
+                                        minTickGap={20}
+                                    />
+                                    <YAxis 
+                                        axisLine={false} 
+                                        tickLine={false} 
+                                        tick={{ fill: '#6b7280', fontSize: 10, fontWeight: 700 }} 
+                                        dx={-10}
+                                    />
+                                    <Tooltip 
+                                        cursor={{ fill: 'rgba(255,255,255,0.02)' }}
+                                        contentStyle={{ backgroundColor: '#0f1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff', fontSize: '11px', fontWeight: 700 }}
+                                        itemStyle={{ fontWeight: 800, color: '#30CB7B' }}
+                                        labelStyle={{ color: '#9ca3af', marginBottom: '8px', textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.1em' }}
+                                    />
+                                    <Bar dataKey="leads" name="Novos Leads" fill="#30CB7B" radius={[6, 6, 0, 0]} barSize={24} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        )}
+                    </div>
+                    
+                    <div className="lg:col-span-1 flex flex-col justify-center border-l border-white/5 pl-8 hidden lg:flex">
+                         <div className="space-y-6">
+                            <div>
+                                <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <Globe className="w-3 h-3" /> Origem dos Leads
+                                </h3>
+                                <div className="space-y-3">
+                                    {isChartLoading ? (
+                                        Array.from({ length: 3 }).map((_, i) => (
+                                            <div key={i} className="h-4 w-full shimmer bg-white/5 rounded-full" />
+                                        ))
+                                    ) : originData.length === 0 ? (
+                                        <p className="text-[9px] font-bold text-gray-700 uppercase italic">Aguardando dados...</p>
+                                    ) : (
+                                        originData.map((item, idx) => (
+                                            <div key={idx} className="space-y-1.5">
+                                                <div className="flex justify-between text-[9px] font-black uppercase tracking-widest">
+                                                    <span className="text-gray-400">{item.name}</span>
+                                                    <span className="text-white">{item.value}</span>
+                                                </div>
+                                                <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className="h-full bg-accent transition-all duration-1000" 
+                                                        style={{ 
+                                                            width: `${(item.value / originData.reduce((acc, curr) => acc + curr.value, 0)) * 100}%`,
+                                                            opacity: 1 - (idx * 0.2)
+                                                        }} 
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                         </div>
+                    </div>
                 </div>
             </div>
 

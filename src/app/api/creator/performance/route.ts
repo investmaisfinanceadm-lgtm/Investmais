@@ -25,45 +25,46 @@ export async function GET(request: Request) {
     const startDate = subDays(new Date(), days)
 
     // @ts-ignore
-    const atividades = await prisma.atividadeCRM.findMany({
+    const leads = await prisma.contato.findMany({
       where: {
-        contato: {
-           user_id: user.id
-        },
-        data: {
+        user_id: user.id,
+        created_at: {
           gte: startDate
         }
       },
       select: {
-        tipo: true,
-        data: true
+        canal_origem: true,
+        created_at: true
       }
     })
 
     // Prepare structure for each day
-    const resultMap = new Map<string, { day: string, email: number, whatsapp: number, instagram: number }>()
+    const resultMap = new Map<string, { day: string, leads: number }>()
+    const originsMap = new Map<string, number>()
 
     for (let i = days - 1; i >= 0; i--) {
       const d = subDays(new Date(), i)
       const dayStr = format(d, 'dd/MM')
-      resultMap.set(dayStr, { day: dayStr, email: 0, whatsapp: 0, instagram: 0 })
+      resultMap.set(dayStr, { day: dayStr, leads: 0 })
     }
 
     // Populate data
-    atividades.forEach((a: any) => {
-      const dayStr = format(new Date(a.data), 'dd/MM')
+    leads.forEach((l: any) => {
+      const dayStr = format(new Date(l.created_at), 'dd/MM')
       if (resultMap.has(dayStr)) {
         const item = resultMap.get(dayStr)!
-        const t = a.tipo.toLowerCase()
-        if (t.includes('email')) item.email += 1
-        else if (t.includes('whatsapp') || t.includes('wpp')) item.whatsapp += 1
-        else if (t.includes('instagram') || t.includes('ig')) item.instagram += 1
+        item.leads += 1
       }
+
+      const rawOrigin = l.canal_origem || 'Outros'
+      const origin = rawOrigin.charAt(0).toUpperCase() + rawOrigin.slice(1).toLowerCase()
+      originsMap.set(origin, (originsMap.get(origin) || 0) + 1)
     })
 
     const chartData = Array.from(resultMap.values())
+    const originData = Array.from(originsMap.entries()).map(([name, value]) => ({ name, value }))
 
-    return NextResponse.json(chartData)
+    return NextResponse.json({ chartData, originData })
   } catch (error) {
     console.error('[PERFORMANCE_API_GET]', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
