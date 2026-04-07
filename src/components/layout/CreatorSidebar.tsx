@@ -126,8 +126,8 @@ export function CreatorSidebar() {
                                     isPrimary
                                         ? 'bg-accent text-white shadow-accent hover:bg-accent/90 hover:shadow-accent-lg'
                                         : isActive
-                                            ? 'bg-white/10 text-[var(--text-main)] border border-[var(--color-dark-border)]'
-                                            : 'bg-white/5 text-[var(--text-muted)] border border-[var(--color-dark-border)] hover:bg-accent/5 hover:text-accent'
+                                            ? 'bg-white/10 text-white border border-white/20'
+                                            : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20'
                                 }`}
                             >
                                 <Icon className="w-4 h-4 flex-shrink-0" />

@@ -18,15 +18,14 @@
 
 @layer base {
   html.light {
-    --color-primary:     #F0F2F5; /* Cinza claro suave (Fundo padrão Light) */
-    --color-accent:      #2563EB; /* Azul principal */
-    --color-gold:        #B48A14; /* Dourado escuro */
-    --color-dark-card:   #FFFFFF; /* Branco puro para os cards */
-    --color-dark-border: #E5E7EB; /* Cinza claro bordas */
-    --color-dark-muted:  #F8F9FB; /* Fundo da sidebar (Claro) */
-    --text-main:         #1A1A2E; /* Quase preto para textos em fundo claro */
-    --text-muted:        #6B7280; /* Cinza médio */
-    --hover-bg:          #EEF2FF; /* Azul suave hover */
+    --color-primary:     #F0F2F5; /* Fundo principal (Light) */
+    --color-accent:      #2563EB; 
+    --color-gold:        #B48A14; 
+    --color-dark-card:   #FFFFFF; /* Cards (Light) */
+    --color-dark-border: #E5E7EB; 
+    --color-dark-muted:  #06091A; /* SIDEBAR PERMANECE ESCURA */
+    --text-main:         #1A1A2E; 
+    --text-muted:        #6B7280; 
   }
 }
 
@@ -113,11 +112,10 @@ body {
 
   /* ── Sidebar ── */
   .sidebar-item {
-    color: var(--text-muted);
-    @apply flex items-center gap-3 px-4 py-3 rounded-xl hover:text-accent hover:bg-accent/5 transition-all duration-200 font-medium uppercase tracking-wider text-xs min-h-[44px];
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200 font-medium uppercase tracking-wider text-xs min-h-[44px];
   }
   .sidebar-item-active {
-    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-accent bg-accent/10 border border-accent/20 font-black uppercase tracking-wider text-xs min-h-[44px];
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-white bg-accent border border-accent/20 font-black uppercase tracking-wider text-xs min-h-[44px];
   }
 
   /* ── Tables ── */
