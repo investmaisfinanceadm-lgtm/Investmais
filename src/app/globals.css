@@ -18,14 +18,15 @@
 
 @layer base {
   html.light {
-    --color-primary:     #F9F9FB; /* Soft paper white/beige */
-    --color-accent:      #2563EB; /* Keep blue for contrast */
-    --color-gold:        #B48A14; /* Darker gold for light BG */
-    --color-dark-card:   #FFFFFF; /* Pure white cards */
-    --color-dark-border: #E2E8F0; /* Slate border */
-    --color-dark-muted:  #F1F5F9; /* Muted slate */
-    --text-main:         #0F172A; /* Navy dark text */
-    --text-muted:        #64748B; /* Slate muted */
+    --color-primary:     #F0F2F5; /* Cinza claro suave */
+    --color-accent:      #2563EB; /* Azul principal */
+    --color-gold:        #B48A14; /* Dourado escuro */
+    --color-dark-card:   #FFFFFF; /* Branco puro cards */
+    --color-dark-border: #E5E7EB; /* Cinza claro bordas */
+    --color-dark-muted:  #F8F9FB; /* Cinza levíssimo sidebar */
+    --text-main:         #1A1A2E; /* Quase preto */
+    --text-muted:        #6B7280; /* Cinza médio */
+    --hover-bg:          #EEF2FF; /* Azul suave hover */
   }
 }
 
@@ -40,7 +41,7 @@ body {
   max-width: 100vw;
   overflow-x: hidden;
   font-family: 'Inter', sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body {
@@ -64,11 +65,15 @@ body {
   }
 
   .btn-secondary {
-    @apply bg-dark-card border border-dark-border text-gray-300 font-medium px-6 py-3 rounded-xl hover:border-accent/40 hover:text-white hover:bg-dark-muted transition-all duration-200;
+    background-color: var(--color-dark-card);
+    border: 1px solid var(--color-dark-border);
+    color: var(--text-muted);
+    @apply font-medium px-6 py-3 rounded-xl hover:border-accent/40 hover:text-accent transition-all duration-200;
   }
 
   .btn-ghost {
-    @apply text-gray-400 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 transition-all duration-200;
+    color: var(--text-muted);
+    @apply hover:text-accent px-4 py-2 rounded-lg hover:bg-accent/5 transition-all duration-200;
   }
 
   .btn-danger {
@@ -77,24 +82,26 @@ body {
 
   /* Cards com glow sutil no hover */
   .card {
-    @apply bg-dark-card border border-dark-border rounded-2xl p-6;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 0 transparent;
+    background-color: var(--color-dark-card);
+    border: 1px solid var(--color-dark-border);
+    @apply rounded-2xl p-6 transition-all duration-300;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   }
 
-  .card-hover {
-    @apply card transition-all duration-300;
-  }
   .card-hover:hover {
     border-color: rgba(37,99,235,0.25);
-    box-shadow: 0 4px 24px rgba(6,9,26,0.6), 0 0 0 1px rgba(37,99,235,0.12);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
   }
 
   .input-field {
-    @apply w-full bg-dark-muted border border-dark-border text-white placeholder-gray-600 px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 focus:ring-1 focus:ring-accent/20 transition-all duration-200;
+    background-color: var(--color-dark-muted);
+    border: 1px solid var(--color-dark-border);
+    color: var(--text-main);
+    @apply w-full placeholder-slate-400 px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 focus:ring-1 focus:ring-accent/20 transition-all duration-200;
   }
 
   .label {
-    @apply block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2;
+    @apply block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2;
   }
 
   /* ── Badges ── */
@@ -106,25 +113,26 @@ body {
 
   /* ── Sidebar ── */
   .sidebar-item {
-    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:text-white hover:bg-white/5 transition-all duration-200 font-medium uppercase tracking-wider text-xs min-h-[44px];
+    color: var(--text-muted);
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl hover:text-accent hover:bg-accent/5 transition-all duration-200 font-medium uppercase tracking-wider text-xs min-h-[44px];
   }
   .sidebar-item-active {
-    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-accent bg-accent/10 border border-accent/20 font-semibold uppercase tracking-wider text-xs min-h-[44px];
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-accent bg-accent/10 border border-accent/20 font-black uppercase tracking-wider text-xs min-h-[44px];
   }
 
-  /* ── Tables — fundo levemente diferente para leitura ── */
+  /* ── Tables ── */
   .table-header {
+    background-color: var(--color-dark-muted);
     @apply text-[10px] font-black text-gray-500 uppercase tracking-widest px-4 py-3 text-left;
-    background: rgba(10, 16, 32, 0.6);
   }
-  .table-cell { @apply px-4 py-4 text-sm text-gray-300; }
-  .table-row  { @apply border-b border-dark-border hover:bg-white/[0.03] transition-colors; }
+  .table-cell { color: var(--text-main); @apply px-4 py-4 text-sm; }
+  .table-row  { border-bottom: 1px solid var(--color-dark-border); @apply hover:bg-accent/[0.02] transition-colors; }
 
   /* ── Misc ── */
-  .section-title    { @apply text-2xl font-bold text-white mb-1; }
-  .section-subtitle { @apply text-gray-500 text-sm; }
+  .section-title    { color: var(--text-main); @apply text-2xl font-black mb-1; }
+  .section-subtitle { color: var(--text-muted); @apply text-sm; }
   .metric-card      { @apply card flex flex-col gap-2; }
-  .divider          { @apply border-t border-dark-border my-6; }
+  .divider          { border-top: 1px solid var(--color-dark-border); @apply my-6; }
 
   /* ── Progress ── */
   .progress-bar  { @apply h-2 rounded-full overflow-hidden; background: rgba(255,255,255,0.06); }
