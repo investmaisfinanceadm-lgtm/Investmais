@@ -17,7 +17,7 @@
 }
 
 @layer base {
-  .light {
+  html.light {
     --color-primary:     #F9F9FB; /* Soft paper white/beige */
     --color-accent:      #2563EB; /* Keep blue for contrast */
     --color-gold:        #B48A14; /* Darker gold for light BG */
