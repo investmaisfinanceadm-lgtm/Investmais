@@ -107,7 +107,7 @@ export default function DashboardPage() {
                             </span> ⚡
                         </h1>
                     )}
-                    <p className="text-gray-500 font-medium tracking-wide uppercase text-[10px]">
+                    <p className="text-muted font-medium tracking-wide uppercase text-[10px]">
                         ESTÚDIO DE CONTEÚDO AI • STATUS OPERACIONAL: ONLINE
                     </p>
                 </div>

@@ -408,7 +408,7 @@ function MetricCard({
 }) {
   return (
     <div
-      className="card-hover group border-white/5 bg-white/[0.02] p-8 rounded-[32px] relative overflow-hidden"
+      className="card card-hover group border-dark-border bg-dark-card p-8 rounded-[32px] relative overflow-hidden shadow-light-card"
       style={{ animationDelay: `${delay}s` }}
     >
       <div className="flex items-center justify-between mb-6">
@@ -417,9 +417,9 @@ function MetricCard({
         </div>
       </div>
       <div>
-        <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">{label}</p>
-        <p className="text-3xl font-black text-white leading-none mb-2">{value}</p>
-        {sub && <p className="text-[10px] text-gray-600 font-semibold uppercase tracking-widest">{sub}</p>}
+        <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-1">{label}</p>
+        <p className="text-3xl font-black text-main leading-none mb-2">{value}</p>
+        {sub && <p className="text-[10px] text-muted font-semibold uppercase tracking-widest">{sub}</p>}
       </div>
     </div>
   )
@@ -1287,7 +1287,7 @@ export default function CRMPage() {
   ]
 
   return (
-    <div className="p-4 md:p-6 lg:p-10 space-y-6 md:space-y-10 max-w-7xl mx-auto animate-fade-in pb-20">
+    <div className="p-4 md:p-8 space-y-8 md:space-y-12 max-w-7xl mx-auto animate-fade-in pb-20 bg-primary">
 
       {/* ── Header ── */}
       <div className="flex flex-col gap-4 md:gap-6 pb-6 md:pb-8 border-b border-white/5">
