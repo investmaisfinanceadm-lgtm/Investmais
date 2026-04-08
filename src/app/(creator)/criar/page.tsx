@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react'
 import {
     ChevronRight,
     Upload,
-    Video,
     Plus,
     CheckCircle,
     Instagram,
@@ -522,160 +521,112 @@ export default function CriarPage() {
 
             {/* Step 2 — Configuração Modular */}
             {currentStep === 1 && (
-                <div className="space-y-5 md:space-y-6 animate-fade-in pb-10">
-                    <div className="space-y-2">
+                <div className="animate-fade-in pb-28">
+                    <div className="space-y-2 mb-6">
                         <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-main tracking-tighter uppercase italic leading-none">Matriz de Formatação</h2>
                         <p className="text-muted font-medium uppercase tracking-[0.2em] text-xs">Ajuste os parâmetros de saída e a frequência narrativa do conteúdo.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 md:gap-10">
-                        <div className="lg:col-span-3 space-y-5 md:space-y-7">
-                            {/* Formato */}
+                    <div className="max-w-[680px] space-y-6">
+                        {/* Formato */}
+                        <div className="space-y-4">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Arquitetura de Saída (Formato) *</label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {FORMATOS.map((f) => (
+                                    <button
+                                        key={f.id}
+                                        type="button"
+                                        onClick={() => setStep2((p) => ({ ...p, formato: f.id as any }))}
+                                        className={cn(
+                                            "flex items-center gap-4 p-5 rounded-[32px] border transition-all text-left group",
+                                            step2.formato === f.id
+                                                ? 'border-accent bg-accent/10 shadow-accent-sm'
+                                                : 'border-[var(--border-main)] bg-[var(--bg-primary)] hover:border-accent/30 hover:bg-[var(--bg-primary)]'
+                                        )}
+                                    >
+                                        <div className={cn(
+                                            "w-10 h-10 rounded-2xl flex items-center justify-center transition-all flex-shrink-0",
+                                            step2.formato === f.id ? 'bg-accent text-black' : 'bg-[var(--bg-primary)] text-gray-600 group-hover:text-[var(--text-main)]'
+                                        )}>
+                                            <f.icon className="w-5 h-5" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className={cn(
+                                                "text-sm font-black uppercase tracking-widest",
+                                                step2.formato === f.id ? 'text-accent' : 'text-gray-400 group-hover:text-[var(--text-main)]'
+                                            )}>{f.label}</span>
+                                            <span className="text-[9px] text-gray-600 font-bold uppercase mt-2 leading-relaxed">{f.desc}</span>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 md:gap-8">
+                            {/* Duração */}
                             <div className="space-y-4">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Arquitetura de Saída (Formato) *</label>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {FORMATOS.map((f) => (
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Matriz Temporal (Duração)</label>
+                                <div className="flex gap-4">
+                                    {DURACOES.map((d) => (
                                         <button
-                                            key={f.id}
+                                            key={d.value}
                                             type="button"
-                                            onClick={() => setStep2((p) => ({ ...p, formato: f.id as any }))}
+                                            onClick={() => setStep2((p) => ({ ...p, duracao: d.value }))}
                                             className={cn(
-                                                "flex items-center gap-4 p-5 rounded-[32px] border transition-all text-left group",
-                                                step2.formato === f.id
-                                                    ? 'border-accent bg-accent/10 shadow-accent-sm'
-                                                    : 'border-[var(--border-main)] bg-[var(--bg-primary)] hover:border-accent/30 hover:bg-[var(--bg-primary)]'
+                                                "flex-1 py-3 rounded-2xl border transition-all font-black text-[10px] uppercase tracking-widest",
+                                                step2.duracao === d.value
+                                                    ? 'border-accent bg-accent/10 text-accent'
+                                                    : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-gray-600 hover:border-accent/30 hover:text-[var(--text-main)]'
                                             )}
                                         >
-                                            <div className={cn(
-                                                "w-10 h-10 rounded-2xl flex items-center justify-center transition-all flex-shrink-0",
-                                                step2.formato === f.id ? 'bg-accent text-black' : 'bg-[var(--bg-primary)] text-gray-600 group-hover:text-[var(--text-main)]'
-                                            )}>
-                                                <f.icon className="w-5 h-5" />
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className={cn(
-                                                    "text-sm font-black uppercase tracking-widest",
-                                                    step2.formato === f.id ? 'text-accent' : 'text-gray-400 group-hover:text-[var(--text-main)]'
-                                                )}>{f.label}</span>
-                                                <span className="text-[9px] text-gray-600 font-bold uppercase mt-2 leading-relaxed">{f.desc}</span>
-                                            </div>
+                                            {d.label}
                                         </button>
                                     ))}
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
-                                {/* Duração */}
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Matriz Temporal (Duração)</label>
-                                    <div className="flex gap-4">
-                                        {DURACOES.map((d) => (
-                                            <button
-                                                key={d.value}
-                                                type="button"
-                                                onClick={() => setStep2((p) => ({ ...p, duracao: d.value }))}
-                                                className={cn(
-                                                    "flex-1 py-3 rounded-2xl border transition-all font-black text-[10px] uppercase tracking-widest",
-                                                    step2.duracao === d.value
-                                                        ? 'border-accent bg-accent/10 text-accent'
-                                                        : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-gray-600 hover:border-accent/30 hover:text-[var(--text-main)]'
-                                                )}
-                                            >
-                                                {d.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Tom */}
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Frequência de Comunicação (Tom) *</label>
-                                    <div className="flex gap-4">
-                                        {TONS.map((t) => (
-                                            <button
-                                                key={t.id}
-                                                type="button"
-                                                onClick={() => setStep2((p) => ({ ...p, tom: t.id }))}
-                                                className={cn(
-                                                    "flex-1 flex flex-col items-center gap-2 py-3 rounded-2xl border transition-all font-black text-[10px] uppercase tracking-widest group",
-                                                    step2.tom === t.id
-                                                        ? 'border-accent bg-accent/10 text-accent'
-                                                        : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-gray-600 hover:border-accent/30 hover:text-[var(--text-main)]'
-                                                )}
-                                            >
-                                                <t.icon className={cn("w-5 h-5 mb-1", step2.tom === t.id ? 'text-accent' : 'text-gray-700')} />
-                                                {t.nome}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        {/* PREVIEW SOCIAL - NEW RECOMMENDATION */}
-                        <div className="lg:col-span-2">
-                            <div className="sticky top-20 flex flex-col items-center gap-8">
-                                <div className="text-center space-y-2">
-                                     <h4 className="text-[10px] font-black text-[var(--text-main)] uppercase tracking-[0.3em]">Previsão Social Operacional</h4>
-                                     <p className="text-[8px] text-gray-600 font-bold uppercase">Simulação de saída em tempo real</p>
-                                </div>
-                                
-                                {/* Phone Mockup */}
-                                <div className="relative w-[300px] h-[600px] bg-black rounded-[60px] border-[8px] border-[#1a1a1a] shadow-[0_0_80px_rgba(48,203,123,0.1)] p-4 overflow-hidden group">
-                                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-[#1a1a1a] rounded-b-3xl z-40" />
-                                     
-                                     {/* Content Inside Phone */}
-                                     <div className="w-full h-full bg-[#050B14] rounded-[48px] relative overflow-hidden flex flex-col items-center justify-center">
-                                          {step2.formato === 'stories' ? (
-                                              <div className="w-full h-full p-4 flex flex-col justify-end gap-10">
-                                                   <div className="space-y-4">
-                                                        <div className="w-2/3 h-6 bg-white/20 rounded-lg shimmer" />
-                                                        <div className="w-1/2 h-6 bg-white/20 rounded-lg shimmer" />
-                                                   </div>
-                                                   <div className="w-full h-12 bg-accent rounded-xl flex items-center justify-center font-black text-[10px] text-black uppercase tracking-widest shadow-accent animate-pulse">
-                                                        Arraste para Cima
-                                                   </div>
-                                              </div>
-                                          ) : (
-                                              <div className="w-full space-y-6 px-4">
-                                                   <div className="w-full aspect-square bg-[var(--bg-primary)] rounded-2xl flex items-center justify-center">
-                                                        <Video className="w-12 h-12 text-gray-800" />
-                                                   </div>
-                                                   <div className="space-y-3">
-                                                        <div className="w-3/4 h-3 bg-white/10 rounded-full" />
-                                                        <div className="w-1/2 h-3 bg-white/10 rounded-full" />
-                                                   </div>
-                                              </div>
-                                          )}
-                                          
-                                          {/* Overlay UI based on format */}
-                                          <div className="absolute bottom-10 right-4 flex flex-col gap-6 items-center">
-                                               <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/10" />
-                                               <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/10" />
-                                               <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/10" />
-                                          </div>
-                                     </div>
-                                     
-                                     {/* Scanline effect */}
-                                     <div className="absolute inset-x-0 h-1 top-0 bg-accent/20 blur-sm pointer-events-none animate-scanline" />
-                                </div>
-                                <div className="px-6 py-3 rounded-full bg-accent/10 border border-accent/20 inline-flex items-center gap-3">
-                                     <Layout className="w-3 h-3 text-accent" />
-                                     <span className="text-[9px] font-black text-accent uppercase tracking-widest">Layout: {step2.formato}</span>
+                            {/* Tom */}
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Frequência de Comunicação (Tom) *</label>
+                                <div className="flex gap-4">
+                                    {TONS.map((t) => (
+                                        <button
+                                            key={t.id}
+                                            type="button"
+                                            onClick={() => setStep2((p) => ({ ...p, tom: t.id }))}
+                                            className={cn(
+                                                "flex-1 flex flex-col items-center gap-2 py-3 rounded-2xl border transition-all font-black text-[10px] uppercase tracking-widest group",
+                                                step2.tom === t.id
+                                                    ? 'border-accent bg-accent/10 text-accent'
+                                                    : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-gray-600 hover:border-accent/30 hover:text-[var(--text-main)]'
+                                            )}
+                                        >
+                                            <t.icon className={cn("w-5 h-5 mb-1", step2.tom === t.id ? 'text-accent' : 'text-gray-700')} />
+                                            {t.nome}
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex justify-between items-center pt-8 border-t border-[var(--border-main)]">
-                        <button onClick={() => setCurrentStep(0)} className="text-[10px] font-black text-gray-600 uppercase tracking-widest hover:text-[var(--text-main)] transition-colors">
+                    {/* Fixed footer */}
+                    <div className="fixed bottom-0 left-0 lg:left-72 right-0 z-40 bg-[var(--bg-primary)] border-t border-[var(--border-main)] px-6 py-4 flex items-center gap-6">
+                        <button
+                            onClick={() => setCurrentStep(0)}
+                            className="text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-[var(--text-main)] transition-colors whitespace-nowrap flex-shrink-0"
+                        >
                             ← Reavaliar Entradas
                         </button>
-                        <button onClick={handleNext} className="btn-primary flex items-center gap-4 px-12 py-6 group bg-accent text-black font-black uppercase tracking-widest text-sm rounded-[24px]">
-                            <span className="uppercase tracking-[0.2em] font-black text-xs">Validar Parâmetros</span>
-                            <ChevronRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
-                        </button>
+                        <div className="flex-1 flex justify-center">
+                            <button
+                                onClick={handleNext}
+                                className="btn-primary w-full max-w-[400px] flex items-center justify-center gap-3 py-4 bg-accent text-white font-black uppercase tracking-widest text-xs rounded-2xl group"
+                            >
+                                <span>Validar Parâmetros</span>
+                                <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -706,8 +657,8 @@ export default function CriarPage() {
                                     <p className="text-[var(--text-main)] font-black uppercase text-base tracking-tight">{step2.formato}</p>
                                 </div>
                                 <div className="space-y-3">
-                                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Protocolo Narrativo</p>
-                                    <p className="text-[var(--text-main)] font-black uppercase text-base tracking-tight">{step2.linha_editorial}</p>
+                                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Tom de Comunicação</p>
+                                    <p className="text-[var(--text-main)] font-black uppercase text-base tracking-tight">{step2.tom}</p>
                                 </div>
                                 <div className="space-y-3">
                                     <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Escala Temporal</p>
