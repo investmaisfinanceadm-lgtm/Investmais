@@ -8,7 +8,6 @@ import {
     Plus,
     CheckCircle,
     Instagram,
-    Play,
     Zap,
     Layout,
     Clock,
@@ -39,7 +38,6 @@ interface Step1Data {
 
 interface Step2Data {
     formato: 'instagram' | 'stories' | 'youtube' | 'educativo' | 'divulgacao'
-    linha_editorial: string
     duracao: number
     tom: string
 }
@@ -55,12 +53,6 @@ const FORMATOS = [
     { id: 'stories', label: 'Stories / Reels (9:16)', icon: Phone, desc: 'Conversão direta em Ads e Reels' },
 ]
 
-const LINHAS = [
-    { id: 'demonstracao', nome: 'Demonstração Técnica', icon: Video, desc: 'Destaque para taxas e regras de crédito' },
-    { id: 'storytelling', nome: 'Foco Narrativo', icon: Play, desc: 'Conexão emocional com a dor do cliente' },
-    { id: 'vendas', nome: 'Conversão Agressiva', icon: Zap, desc: 'Foco em ROI e call-to-action pesado' },
-    { id: 'educativo', nome: 'Autoridade Técnica', icon: Type, desc: 'Posicionamento como especialista (CVM)' },
-]
 
 const DURACOES = [
     { value: 15, label: '15 SEG' },
@@ -120,7 +112,6 @@ export default function CriarPage() {
 
     const [step2, setStep2] = useState<Step2Data>({
         formato: 'stories',
-        linha_editorial: 'demonstracao',
         duracao: 15,
         tom: 'persuasivo',
     })
@@ -162,9 +153,8 @@ export default function CriarPage() {
         if (currentStep === 1) {
             const errors: Partial<Record<keyof Step2Data, string>> = {}
             if (!step2.formato) errors.formato = 'Selecione um formato'
-            if (!step2.linha_editorial) errors.linha_editorial = 'Selecione uma linha editorial'
             if (!step2.tom) errors.tom = 'Selecione um tom'
-            
+
             if (Object.keys(errors).length > 0) {
                 setStep2Errors(errors)
                 toast.error('Selecione todas as opções')
@@ -218,7 +208,6 @@ export default function CriarPage() {
             formData.append('nome_produto', step1.nome_produto)
             formData.append('descricao_produto', step1.descricao_produto)
             formData.append('formato', step2.formato)
-            formData.append('linha_editorial', step2.linha_editorial)
             formData.append('duracao', step2.duracao.toString())
             formData.append('tom', step2.tom)
             
@@ -417,11 +406,11 @@ export default function CriarPage() {
                     <div key={s} className="flex items-center gap-4 group">
                         <div className={cn(
                             "w-12 h-12 rounded-2xl flex items-center justify-center font-black transition-all text-sm",
-                            currentStep === s 
-                                ? 'bg-accent text-black shadow-accent scale-110' 
-                                : currentStep > s 
+                            currentStep === s
+                                ? 'bg-accent text-black shadow-accent scale-110'
+                                : currentStep > s
                                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                : 'bg-[var(--bg-primary)] text-gray-700 border border-white/10'
+                                : 'bg-[var(--bg-card)] text-[#475569] border border-[var(--border-main)] shadow-sm'
                         )}>
                             {currentStep > s ? <CheckCircle className="w-5 h-5" /> : `0${s + 1}`}
                         </div>
@@ -622,33 +611,6 @@ export default function CriarPage() {
                                 </div>
                             </div>
 
-                            <div className="space-y-8">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Fluxo Narrativo (Linha Editorial) *</label>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                    {LINHAS.map((l) => (
-                                        <button
-                                            key={l.id}
-                                            type="button"
-                                            onClick={() => setStep2((p) => ({ ...p, linha_editorial: l.id }))}
-                                            className={cn(
-                                                "flex items-center gap-6 p-8 rounded-[40px] border transition-all text-left relative overflow-hidden group",
-                                                step2.linha_editorial === l.id
-                                                    ? 'border-accent bg-accent/10'
-                                                    : 'border-[var(--border-main)] bg-[var(--bg-primary)] hover:border-accent/30 hover:bg-[var(--bg-primary)]'
-                                            )}
-                                        >
-                                            <l.icon className={cn("w-7 h-7", step2.linha_editorial === l.id ? 'text-accent' : 'text-gray-800')} />
-                                            <div className="flex flex-col">
-                                                <span className={cn(
-                                                    "text-sm font-black uppercase tracking-widest",
-                                                    step2.linha_editorial === l.id ? 'text-accent' : 'text-gray-400 group-hover:text-[var(--text-main)]'
-                                                )}>{l.nome}</span>
-                                                <span className="text-[9px] text-gray-600 font-bold uppercase mt-2 leading-relaxed">{l.desc}</span>
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
                         </div>
 
                         {/* PREVIEW SOCIAL - NEW RECOMMENDATION */}
