@@ -26,6 +26,9 @@
   
   /* Shadows */
   --shadow-card:        none;
+
+  /* Inputs */
+  --bg-input:           #06091A;
 }
 
 @layer base {
@@ -42,6 +45,7 @@
     --text-support:       #64748B;
     
     --shadow-card:        0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06);
+    --bg-input:           #F8FAFC;
   }
 
   /* Fixed sidebar background and variables to always be dark */
@@ -53,6 +57,7 @@
     --text-main:  #FFFFFF !important;
     --text-muted: #94A3B8 !important;
     background-color: #0F172A !important;
+    --bg-input: #06091A !important;
   }
 }
 
@@ -185,6 +190,7 @@ html.light .shimmer {
   background-size: 200% 100%;
 }
 html.light .progress-bar { background: rgba(0,0,0,0.08); }
+html.light .shadow-light-card { box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important; }
 @keyframes shimmer {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }

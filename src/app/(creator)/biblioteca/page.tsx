@@ -239,7 +239,7 @@ export default function BibliotecaPage() {
                                 onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
                                 className={cn(
                                     "px-4 py-2 rounded-full text-[8px] font-black uppercase tracking-widest transition-all border",
-                                    selectedTag === tag ? 'border-accent bg-accent/10 text-accent shadow-accent-sm' : 'border-[var(--border-main)] text-gray-700 hover:text-gray-400'
+                                    selectedTag === tag ? 'border-accent bg-accent/10 text-accent shadow-accent-sm' : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
                                 )}
                             >
                                 {tag}

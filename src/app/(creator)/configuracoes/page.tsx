@@ -51,7 +51,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function InputDark({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className={cn('w-full bg-[var(--bg-primary)] border border-[var(--border-main)] text-[var(--text-main)] placeholder-[#94A3B8] px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm', className)}
+      className={cn('w-full bg-[var(--bg-input)] border border-[var(--border-main)] text-[var(--text-main)] placeholder-[#94A3B8] px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm', className)}
       {...props}
     />
   )
