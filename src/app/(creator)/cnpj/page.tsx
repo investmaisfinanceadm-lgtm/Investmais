@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import {
   Search, Building2, RefreshCw, CheckCircle2, XCircle, AlertCircle,
   AlertTriangle, UserPlus, Copy, Phone, Mail, MapPin, Calendar,
@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { format, parseISO } from 'date-fns'
 import toast from 'react-hot-toast'
 import { ptBR } from 'date-fns/locale'
+import { cn } from '@/lib/utils'
 
 // ─── CNPJ helpers ────────────────────────────────────────────────────────────
 function validarCNPJ(cnpj: string): boolean {
@@ -114,22 +115,34 @@ function GoogleTab() {
   const [loading, setLoading] = useState(false)
   const [buscaStatus, setBuscaStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [googleLeads, setGoogleLeads] = useState<any[]>([])
+  const [countdown, setCountdown] = useState<number | null>(null)
+  const [selectedSession, setSelectedSession] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetch('/api/creator/crm')
-      .then(r => r.json())
-      .then((d: any[]) => {
-        if (Array.isArray(d)) {
-          const leadsGoogle = d.filter(c => c.canal_origem?.toLowerCase() === 'google' || c.canal?.toLowerCase() === 'google')
-          setGoogleLeads(leadsGoogle)
-        }
-      })
-      .catch(() => {})
+  const fetchGoogleLeads = useCallback(async () => {
+    try {
+      const d = await fetch('/api/creator/crm').then(r => r.json())
+      if (Array.isArray(d)) {
+        const leadsGoogle = d.filter((c: any) => c.canal_origem?.toLowerCase() === 'google' || c.canal?.toLowerCase() === 'google')
+        setGoogleLeads(leadsGoogle)
+      }
+    } catch {}
   }, [])
 
+  useEffect(() => { fetchGoogleLeads() }, [fetchGoogleLeads])
+
+  useEffect(() => { setCidade('') }, [estado])
+
+  // Countdown: tick every second, fetch at 0
   useEffect(() => {
-    setCidade('')
-  }, [estado])
+    if (countdown === null) return
+    if (countdown === 0) {
+      fetchGoogleLeads()
+      setCountdown(null)
+      return
+    }
+    const t = setTimeout(() => setCountdown(c => c !== null ? c - 1 : null), 1000)
+    return () => clearTimeout(t)
+  }, [countdown, fetchGoogleLeads])
 
   const handleBuscar = async () => {
     if (!estado || !cidade || !nicho) return
@@ -144,6 +157,7 @@ function GoogleTab() {
       setBuscaStatus(res.ok ? 'success' : 'error')
       if (res.ok) {
         toast.success('Busca iniciada! Os leads serão adicionados em breve.')
+        setCountdown(10)
       } else {
         toast.error(`Erro ao iniciar busca (${res.status})`)
       }
@@ -154,6 +168,37 @@ function GoogleTab() {
       setLoading(false)
     }
   }
+
+  // Group leads into sessions: consecutive leads within 10min = same session
+  const sessions = useMemo(() => {
+    if (googleLeads.length === 0) return []
+    const sorted = [...googleLeads].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+    const groups: { key: string; label: string; firstDate: Date; leads: any[] }[] = []
+    for (const lead of sorted) {
+      const t = new Date(lead.created_at).getTime()
+      const last = groups[groups.length - 1]
+      const lastTime = last ? new Date(last.leads[last.leads.length - 1].created_at).getTime() : 0
+      if (last && t - lastTime < 10 * 60 * 1000) {
+        last.leads.push(lead)
+      } else {
+        const d = new Date(lead.created_at)
+        const parts = [lead.nicho || lead.cidade || lead.estado || 'Busca', format(d, "dd/MM HH:mm")].filter(Boolean)
+        const key = `${d.toISOString().slice(0, 16)}-${lead.cidade || ''}-${lead.estado || ''}`
+        groups.push({ key, label: parts.join(' • '), firstDate: d, leads: [lead] })
+      }
+    }
+    return groups.reverse()
+  }, [googleLeads])
+
+  // Auto-select most recent session
+  useEffect(() => {
+    if (sessions.length > 0 && selectedSession === null) setSelectedSession(sessions[0].key)
+  }, [sessions, selectedSession])
+
+  const displayedLeads = useMemo(() => {
+    if (!selectedSession || sessions.length === 0) return googleLeads
+    return sessions.find(s => s.key === selectedSession)?.leads ?? googleLeads
+  }, [selectedSession, sessions, googleLeads])
 
   return (
     <div className="space-y-6">
@@ -202,13 +247,29 @@ function GoogleTab() {
           className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-sm font-black uppercase tracking-wider disabled:opacity-40">
           {loading ? <><RefreshCw className="w-4 h-4 animate-spin" />Buscando...</> : <><Search className="w-4 h-4" />Buscar Leads no Google</>}
         </button>
-        {buscaStatus === 'success' && (
-          <p className="flex items-center gap-2 text-accent text-[11px] mt-2">
+        {buscaStatus === 'success' && countdown === null && (
+          <p className="flex items-center gap-2 text-accent text-[11px]">
             <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
             Busca enviada com sucesso! Os leads serão adicionados ao CRM em instantes.
           </p>
         )}
       </div>
+
+      {/* Countdown bar */}
+      {countdown !== null && (
+        <div className="card p-4 rounded-2xl border border-accent/30 bg-accent/5 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black text-accent uppercase tracking-wider flex items-center gap-2">
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              Atualizando resultados em {countdown}s...
+            </span>
+            <button onClick={() => setCountdown(null)} className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)] uppercase font-bold transition-colors">Cancelar</button>
+          </div>
+          <div className="h-1.5 bg-[var(--border-main)] rounded-full overflow-hidden">
+            <div className="h-full bg-accent rounded-full transition-all duration-1000 ease-linear" style={{ width: `${(countdown / 10) * 100}%` }} />
+          </div>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -228,26 +289,50 @@ function GoogleTab() {
       {/* Últimas Buscas */}
       <div className="card card-hover rounded-2xl overflow-hidden shadow-sm">
         <div className="px-6 py-4 border-b border-[var(--border-main)] flex items-center justify-between">
-            <div className="flex items-center gap-2">
-               <Clock className="w-4 h-4 text-[var(--text-muted)]" />
-               <h3 className="text-sm font-black text-[var(--text-main)] uppercase tracking-wider">Últimos Leads Extraídos</h3>
-            </div>
-            <button onClick={() => window.location.reload()} className="text-[10px] text-[var(--text-muted)] flex items-center gap-1 hover:text-[var(--text-main)] uppercase font-black"><RefreshCw className="w-3 h-3"/> Atualizar</button>
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-[var(--text-muted)]" />
+            <h3 className="text-sm font-black text-[var(--text-main)] uppercase tracking-wider">Últimos Leads Extraídos</h3>
+          </div>
+          <button onClick={fetchGoogleLeads} className="text-[10px] text-[var(--text-muted)] flex items-center gap-1 hover:text-[var(--text-main)] uppercase font-black transition-colors">
+            <RefreshCw className="w-3 h-3" /> Atualizar
+          </button>
         </div>
+
+        {/* Session chips */}
+        {sessions.length > 1 && (
+          <div className="px-6 py-3 border-b border-[var(--border-main)] flex gap-2 overflow-x-auto no-scrollbar">
+            {sessions.slice(0, 10).map(s => (
+              <button key={s.key} onClick={() => setSelectedSession(s.key)}
+                className={cn(
+                  'flex-shrink-0 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all whitespace-nowrap',
+                  selectedSession === s.key
+                    ? 'bg-accent/10 border-accent/30 text-accent'
+                    : 'border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)] bg-[var(--bg-primary)]'
+                )}>
+                {s.label} <span className="opacity-60">({s.leads.length})</span>
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="divide-y divide-[var(--border-main)]">
-          {googleLeads.length === 0 ? (
-             <p className="text-sm text-[var(--text-muted)] text-center py-6">Nenhum lead extraído do Google Maps até o momento.</p>
+          {displayedLeads.length === 0 ? (
+            <p className="text-sm text-[var(--text-muted)] text-center py-6">Nenhum lead extraído do Google Maps até o momento.</p>
           ) : (
-            googleLeads.slice(0, 8).map((b, i) => (
+            displayedLeads.slice(0, 20).map((b, i) => (
               <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-[var(--bg-primary)] transition-colors">
-                <div className="flex items-start md:items-center flex-col md:flex-row gap-1 md:gap-3">
-                  <span className="text-sm font-semibold text-[var(--text-main)] truncate max-w-[200px] md:max-w-[300px]">{b.nome}</span>
-                  <span className="text-[var(--text-support)] hidden md:block">•</span>
-                  <span className="text-sm text-accent font-black tracking-tight">{b.telefone || 'Sem número'}</span>
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-sm font-semibold text-[var(--text-main)] truncate max-w-[200px] md:max-w-[300px]">{b.nome}</span>
+                    <span className="text-sm text-accent font-black tracking-tight whitespace-nowrap">{b.telefone || 'Sem número'}</span>
+                  </div>
+                  {b.email && (
+                    <span className="text-[11px] text-[var(--text-muted)] font-medium truncate">{b.email}</span>
+                  )}
                 </div>
-                <div className="flex flex-col items-end">
-                   <span className="text-xs text-[var(--text-muted)] font-black uppercase tracking-wider">{b.status_funil}</span>
-                   <span className="text-[10px] text-[var(--text-support)] font-medium">{format(new Date(b.created_at || new Date()), "dd/MM/yy 'às' HH:mm")}</span>
+                <div className="flex flex-col items-end ml-4 shrink-0">
+                  <span className="text-xs text-[var(--text-muted)] font-black uppercase tracking-wider">{b.status_funil || 'lead'}</span>
+                  <span className="text-[10px] text-[var(--text-support)] font-medium">{format(new Date(b.created_at || new Date()), "dd/MM/yy 'às' HH:mm")}</span>
                 </div>
               </div>
             ))
