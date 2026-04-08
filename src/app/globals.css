@@ -59,6 +59,10 @@
     background-color: #0F172A !important;
     --bg-input: #06091A !important;
   }
+
+  html.light .sidebar-fixed-dark {
+    background-color: #1e3a5f !important;
+  }
 }
 
 * {
