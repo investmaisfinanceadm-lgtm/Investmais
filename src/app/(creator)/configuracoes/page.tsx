@@ -51,7 +51,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function InputDark({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className={cn('w-full bg-[var(--bg-primary)] border border-white/10 text-[var(--text-main)] placeholder-gray-600 px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm', className)}
+      className={cn('w-full bg-[var(--bg-primary)] border border-[var(--border-main)] text-[var(--text-main)] placeholder-[#94A3B8] px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm', className)}
       {...props}
     />
   )
@@ -67,7 +67,7 @@ function CodeBlock({ code }: { code: string }) {
 
 function SectionCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <div className="bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-2xl p-6 space-y-5">
+    <div className="bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl p-6 space-y-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
       <div>
         <h3 className="text-sm font-bold text-[var(--text-main)]">{title}</h3>
         {subtitle && <p className="text-[11px] text-gray-500 mt-0.5">{subtitle}</p>}

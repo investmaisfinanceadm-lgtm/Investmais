@@ -149,18 +149,18 @@ export default function BibliotecaPage() {
     }
 
     return (
-        <div className="flex h-screen bg-primary overflow-hidden">
-            <div className="flex-1 flex flex-col min-w-0 bg-primary">
+        <div className="flex h-screen bg-[var(--bg-primary)] overflow-hidden">
+            <div className="flex-1 flex flex-col min-w-0 bg-[var(--bg-primary)]">
                 {/* Header Actions */}
-                <div className="min-h-[60px] md:h-24 border-b border-[var(--border-main)] flex flex-wrap items-center justify-between gap-3 px-4 md:px-10 py-3 md:py-0 backdrop-blur-md sticky top-0 z-20">
+                <div className="min-h-[60px] md:h-24 border-b border-[var(--border-main)] bg-[var(--bg-card)] flex flex-wrap items-center justify-between gap-3 px-4 md:px-10 py-3 md:py-0 backdrop-blur-md sticky top-0 z-20">
                     <div className="flex items-center gap-4 md:gap-10 flex-1 max-w-4xl min-w-0">
                         <div className="flex items-center gap-4">
                              <div className="w-10 h-10 rounded-2xl bg-accent/20 flex items-center justify-center border border-accent/20">
                                 <LayoutGrid className="w-5 h-5 text-accent" />
                             </div>
                             <div className="flex flex-col">
-                                <h1 className="text-xl font-black text-main uppercase tracking-tighter">Acervo Digital</h1>
-                                <p className="text-[8px] text-muted font-bold uppercase tracking-widest">Protocolos de Mídia Estúdio AI</p>
+                                <h1 className="text-xl font-black text-[var(--text-main)] uppercase tracking-tighter">Acervo Digital</h1>
+                                <p className="text-[8px] text-[var(--text-muted)] font-bold uppercase tracking-widest">Protocolos de Mídia Estúdio AI</p>
                             </div>
                         </div>
 
@@ -171,7 +171,7 @@ export default function BibliotecaPage() {
                                 placeholder="BUSCAR NO ACERVO..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl py-3 pl-12 pr-4 text-[10px] font-black uppercase tracking-widest text-main focus:bg-[var(--bg-primary)] focus:border-accent/40 focus:ring-0 transition-all outline-none"
+                                className="w-full bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl py-3 pl-12 pr-4 text-[10px] font-black uppercase tracking-widest text-[var(--text-main)] placeholder-[#94A3B8] focus:bg-[var(--bg-primary)] focus:border-accent/40 focus:ring-0 transition-all outline-none"
                             />
                         </div>
                     </div>
@@ -186,7 +186,7 @@ export default function BibliotecaPage() {
                 </div>
 
                 {/* Advanced Filter Bar (Folders & Tags) - NEW RECOMMENDATION */}
-                <div className="px-4 md:px-10 py-4 md:py-6 border-b border-[var(--border-main)] flex flex-col gap-4 md:gap-6 bg-[var(--bg-primary)]">
+                <div className="px-4 md:px-10 py-4 md:py-6 border-b border-[var(--border-main)] flex flex-col gap-4 md:gap-6 bg-[var(--bg-card)]">
                     {/* Folders */}
                     <div className="flex items-center gap-4 overflow-x-auto custom-scrollbar no-view">
                         <div className="flex items-center gap-2 mr-4 border-r border-[var(--border-main)] pr-4">
@@ -197,7 +197,7 @@ export default function BibliotecaPage() {
                             onClick={() => setSelectedFolder(null)}
                             className={cn(
                                 "flex items-center gap-3 px-6 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap",
-                                !selectedFolder ? 'bg-accent text-black shadow-accent' : 'bg-[var(--bg-primary)] text-gray-600 hover:text-[var(--text-main)] hover:bg-[var(--bg-primary)]'
+                                !selectedFolder ? 'bg-accent text-black shadow-accent' : 'bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--border-main)]'
                             )}
                         >
                             <LayoutGrid className="w-3.5 h-3.5" />
@@ -209,7 +209,7 @@ export default function BibliotecaPage() {
                                 onClick={() => setSelectedFolder(folder.id)}
                                 className={cn(
                                     "flex items-center gap-3 px-6 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border border-[var(--border-main)]",
-                                    selectedFolder === folder.id ? 'bg-accent text-black shadow-accent' : 'bg-[var(--bg-primary)] text-gray-600 hover:text-[var(--text-main)] hover:bg-[var(--bg-primary)]'
+                                    selectedFolder === folder.id ? 'bg-accent text-black shadow-accent' : 'bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--border-main)]'
                                 )}
                             >
                                 <Folder className="w-3.5 h-3.5" />
@@ -228,7 +228,7 @@ export default function BibliotecaPage() {
                             onClick={() => setSelectedTag(null)}
                             className={cn(
                                 "px-4 py-2 rounded-full text-[8px] font-black uppercase tracking-widest transition-all border",
-                                !selectedTag ? 'border-accent bg-accent/10 text-accent' : 'border-[var(--border-main)] text-gray-700 hover:text-gray-400'
+                                !selectedTag ? 'border-accent bg-accent/10 text-accent' : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
                             )}
                         >
                             TODAS AS TAGS
