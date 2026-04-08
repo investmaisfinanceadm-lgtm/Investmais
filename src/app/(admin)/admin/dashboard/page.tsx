@@ -54,7 +54,7 @@ function generateChartData() {
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-dark-card border border-dark-border rounded-xl px-4 py-3 shadow-card">
+            <div className="bg-[var(--bg-card)] border border-[var(--border-main)] rounded-xl px-4 py-3 shadow-card">
                 <p className="text-xs text-gray-400">{label}</p>
                 <p className="text-white font-semibold mt-1">
                     {payload[0].value} vídeos
@@ -266,7 +266,7 @@ export default function AdminDashboardPage() {
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="border-b border-dark-border">
+                                <tr className="border-b border-[var(--border-main)]">
                                     <th className="table-header">Produto</th>
                                     <th className="table-header">Usuário</th>
                                     <th className="table-header">Data</th>

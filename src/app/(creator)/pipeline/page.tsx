@@ -173,7 +173,7 @@ function Avatar({ initials, color, size = 'sm' }: { initials: string; color: str
   const sizeClass = size === 'sm' ? 'w-6 h-6 text-[9px]' : 'w-8 h-8 text-xs'
   return (
     <span
-      className={`${sizeClass} rounded-full flex items-center justify-center font-black text-white flex-shrink-0`}
+      className={`${sizeClass} rounded-full flex items-center justify-center font-black text-[var(--text-main)] flex-shrink-0`}
       style={{ backgroundColor: color + '33', border: `1px solid ${color}55` }}
     >
       <span style={{ color }}>{initials}</span>
@@ -205,7 +205,7 @@ function KanbanCardItem({
     >
       {/* Title & category */}
       <div className="flex items-start justify-between gap-2 mb-3">
-        <p className="text-sm font-semibold text-main leading-snug group-hover:text-accent transition-colors line-clamp-2">
+        <p className="text-sm font-semibold text-[var(--text-main)] leading-snug group-hover:text-accent transition-colors line-clamp-2">
           {card.title}
         </p>
         <span className={`badge ${catClass} whitespace-nowrap flex-shrink-0 text-[10px]`}>
@@ -225,7 +225,7 @@ function KanbanCardItem({
       </div>
 
       {/* Footer: responsible + due date */}
-      <div className="flex items-center justify-between pt-2 border-t border-white/5">
+      <div className="flex items-center justify-between pt-2 border-t border-[var(--border-main)]">
         <div className="flex items-center gap-1.5 min-w-0">
           <Avatar initials={card.responsible.initials} color={card.responsible.color} />
           <span className="text-[10px] text-[var(--text-muted)] truncate">{card.responsible.name.split(' ')[0]}</span>
@@ -266,7 +266,7 @@ function KanbanColumnComponent({
               className="w-2.5 h-2.5 rounded-full flex-shrink-0"
               style={{ backgroundColor: column.color, boxShadow: `0 0 8px ${column.color}60` }}
             />
-            <span className="text-sm font-black text-main uppercase tracking-wider">{column.name}</span>
+            <span className="text-sm font-black text-[var(--text-main)] uppercase tracking-wider">{column.name}</span>
           </div>
           <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--bg-primary)] text-[10px] font-black text-[var(--text-muted)]">
             {column.cards.length}
@@ -299,7 +299,7 @@ function KanbanColumnComponent({
       </div>
 
       {/* Add card button */}
-      <button onClick={onAddCard} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-white/10 text-gray-600 hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all duration-200 text-xs font-semibold">
+      <button onClick={onAddCard} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-[var(--border-main)] text-[var(--text-muted)] hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all duration-200 text-xs font-semibold">
         <Plus className="w-3.5 h-3.5" />
         Adicionar Card
       </button>
@@ -411,9 +411,9 @@ function CardDetailModal({
         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
           {label}
           {!isEditingGlobal && editingField !== field && (
-            <button 
+            <button
               onClick={() => setEditingField(field)}
-              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-gray-600 hover:text-white"
+              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-[var(--text-muted)] hover:text-[var(--text-main)]"
             >
               <Pencil className="w-3 h-3" />
             </button>
@@ -423,10 +423,10 @@ function CardDetailModal({
         {isEditMode ? (
           <div className="flex items-center gap-2">
             {type === 'select' ? (
-              <select 
-                value={localVal} 
-                onChange={e => setLocalVal(e.target.value)} 
-                className="input-field bg-[#161B22] border-white/10 text-sm py-1.5 h-9"
+              <select
+                value={localVal}
+                onChange={e => setLocalVal(e.target.value)}
+                className="input-field bg-[var(--bg-primary)] border-[var(--border-main)] text-sm py-1.5 h-9"
               >
                 {options.map(o => <option key={o} value={o}>{o}</option>)}
               </select>
@@ -437,7 +437,7 @@ function CardDetailModal({
                    type={type} 
                    value={localVal}
                    onChange={e => setLocalVal(e.target.value)}
-                   className={cn("input-field bg-[#161B22] border-white/10 text-sm py-1.5 h-9", prefix && "pl-8")}
+                   className={cn("input-field bg-[var(--bg-primary)] border-[var(--border-main)] text-sm py-1.5 h-9", prefix && "pl-8")}
                    autoFocus={editingField === field && !isEditingGlobal}
                  />
                </div>
@@ -446,12 +446,12 @@ function CardDetailModal({
             {!isEditingGlobal && (
               <div className="flex items-center gap-1">
                 <button onClick={onSaveInline} className="p-1.5 rounded-lg bg-accent/20 text-accent hover:bg-accent/30"><Check className="w-4 h-4" /></button>
-                <button onClick={() => { setEditingField(null); setLocalVal(String(value ?? '')) }} className="p-1.5 rounded-lg bg-white/5 text-gray-500 hover:text-white"><X className="w-4 h-4" /></button>
+                <button onClick={() => { setEditingField(null); setLocalVal(String(value ?? '')) }} className="p-1.5 rounded-lg bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-main)]"><X className="w-4 h-4" /></button>
               </div>
             )}
           </div>
         ) : (
-          <p className="text-sm text-gray-200 font-medium tracking-tight">
+          <p className="text-sm text-[var(--text-main)] font-medium tracking-tight">
              {prefix} {value || <span className="text-gray-600 italic">Não informado</span>}
           </p>
         )}
@@ -476,10 +476,10 @@ function CardDetailModal({
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: '100%', opacity: 0 }}
         transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-        className="fixed top-0 right-0 h-full w-full max-w-[600px] bg-[#0f1117] border-l border-white/5 z-50 flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.8)]"
+        className="fixed top-0 right-0 h-full w-full max-w-[600px] bg-[var(--bg-card)] border-l border-[var(--border-main)] z-50 flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.15)]"
       >
         {/* ── Header ── */}
-        <div className="p-6 border-b border-white/5 flex-shrink-0 bg-gradient-to-b from-white/[0.02] to-transparent relative group">
+        <div className="p-6 border-b border-[var(--border-main)] flex-shrink-0 relative group">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div className="flex gap-2 items-center flex-wrap">
               <span className={`badge ${catClass}`}>{editedCard.category}</span>
@@ -489,12 +489,12 @@ function CardDetailModal({
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => setIsEditingGlobal(!isEditingGlobal)} 
-                className={cn("px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5", isEditingGlobal ? "bg-accent/10 border-accent/20 text-accent" : "border-white/10 text-gray-400 hover:text-white hover:border-white/20")}
+                className={cn("px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5", isEditingGlobal ? "bg-accent/10 border-accent/20 text-accent" : "border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-accent/40")}
               >
                 <Pencil className="w-3 h-3" />
                 {isEditingGlobal ? 'Editando' : 'Editar'}
               </button>
-              <button onClick={onClose} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all">
+              <button onClick={onClose} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-primary)] transition-all">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -509,20 +509,20 @@ function CardDetailModal({
                    type="text" 
                    value={editedCard.title} 
                    onChange={e => setEditedCard({...editedCard, title: e.target.value})}
-                   className="flex-1 bg-[#161B22] border border-white/10 rounded-xl px-4 py-2 text-xl font-black text-white"
+                   className="flex-1 bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-xl px-4 py-2 text-xl font-black text-[var(--text-main)]"
                 />
                 {!isEditingGlobal && (
                    <div className="flex shrink-0 gap-1">
                       <button onClick={() => { onUpdate(editedCard); setEditingField(null) }} className="p-2 rounded-xl bg-accent text-black"><Check className="w-4 h-4" /></button>
-                      <button onClick={() => { setEditedCard(card); setEditingField(null) }} className="p-2 rounded-xl bg-white/5 text-gray-400"><X className="w-4 h-4" /></button>
+                      <button onClick={() => { setEditedCard(card); setEditingField(null) }} className="p-2 rounded-xl bg-[var(--bg-primary)] text-gray-400"><X className="w-4 h-4" /></button>
                    </div>
                 )}
               </div>
             ) : (
-              <h2 className="text-2xl font-black text-white tracking-tighter leading-tight flex items-center gap-3">
+              <h2 className="text-2xl font-black text-[var(--text-main)] tracking-tighter leading-tight flex items-center gap-3">
                 {editedCard.title}
                 {!isEditingGlobal && (
-                  <button onClick={() => setEditingField('title')} className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 w-fit">
+                  <button onClick={() => setEditingField('title')} className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-primary)] w-fit">
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
                 )}
@@ -533,31 +533,31 @@ function CardDetailModal({
 
         {/* ── Featured Metrics Grid ── */}
         <div className="px-6 pt-6 pb-2 grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
-          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 flex flex-col gap-1 relative group/metric">
+          <div className="bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-2xl p-4 flex flex-col gap-1 relative group/metric">
             <EditableField field="value" label="Valor Estimado" value={editedCard.value} type="number" prefix="R$" />
           </div>
-          <div className={cn("bg-white/[0.02] border border-white/5 rounded-2xl p-4 flex flex-col gap-1 relative group/metric", overdue && !isEditingGlobal && "border-red-500/20 bg-red-500/5")}>
+          <div className={cn("bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-2xl p-4 flex flex-col gap-1 relative group/metric", overdue && !isEditingGlobal && "border-red-500/20 bg-red-500/5")}>
              <EditableField field="dueDate" label="Vencimento" value={editedCard.dueDate} type="date" />
           </div>
-          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
+          <div className="bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-2xl p-4 flex flex-col justify-between">
             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2"><Clock className="w-3 h-3" /> No Estágio</span>
-            <span className="text-lg font-black text-white">{daysInStage} dias</span>
+            <span className="text-lg font-black text-[var(--text-main)]">{daysInStage} dias</span>
           </div>
-          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
+          <div className="bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-2xl p-4 flex flex-col justify-between">
             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2"><ListTodo className="w-3 h-3" /> Pendentes</span>
             <span className="text-lg font-black text-accent">{pendingActivities} ativ.</span>
           </div>
         </div>
 
         {/* ── Tab Navigation ── */}
-        <div className="px-6 flex items-center gap-6 border-b border-white/5 shrink-0 overflow-x-auto no-scrollbar">
+        <div className="px-6 flex items-center gap-6 border-b border-[var(--border-main)] shrink-0 overflow-x-auto no-scrollbar">
           {(['dados', 'atividades', 'historico', 'comentarios'] as DrawerTab[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={cn(
                 "py-4 text-[11px] font-black uppercase tracking-[0.2em] relative transition-colors whitespace-nowrap",
-                activeTab === tab ? "text-accent" : "text-gray-500 hover:text-white"
+                activeTab === tab ? "text-accent" : "text-[var(--text-muted)] hover:text-[var(--text-main)]"
               )}
             >
               {tab}
@@ -578,17 +578,17 @@ function CardDetailModal({
               {/* Descrição */}
               <div className="space-y-3">
                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2"><Layers className="w-4 h-4 text-gray-500" /> Sobre a Oportunidade</span>
+                    <span className="text-xs font-black text-[var(--text-main)] uppercase tracking-widest flex items-center gap-2"><Layers className="w-4 h-4 text-gray-500" /> Sobre a Oportunidade</span>
                  </div>
                  {isEditingGlobal ? (
                    <textarea 
                      rows={3} 
                      value={editedCard.description} 
                      onChange={e => setEditedCard({...editedCard, description: e.target.value})}
-                     className="input-field bg-[#161B22] border-white/5 w-full text-sm resize-none"
+                     className="input-field bg-[var(--bg-primary)] border-[var(--border-main)] w-full text-sm resize-none"
                    />
                  ) : (
-                   <div className="p-4 bg-white/[0.01] border border-white/5 rounded-xl text-sm text-gray-400 leading-relaxed font-medium">
+                   <div className="p-4 bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-xl text-sm text-[var(--text-muted)] leading-relaxed font-medium">
                      {editedCard.description || 'Nenhuma descrição adicionada.'}
                    </div>
                  )}
@@ -602,20 +602,20 @@ function CardDetailModal({
                  <EditableField field="monthlyRevenue" label="Faturamento Mensal" value={editedCard.monthlyRevenue} prefix="R$" type="number" />
               </div>
 
-              <div className="w-full h-px bg-white/5 my-2" />
+              <div className="w-full h-px bg-[var(--border-main)] my-2" />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
                  <EditableField field="responsible" label="Vendedor / Owner" value={editedCard.responsible.name} options={['InvestMais Admin', 'Ana Paula', 'Carlos Eduardo', 'Rafael Silva']} type="select" />
                  <div className="flex flex-col gap-1.5">
                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Contato Vinculado</label>
                     {editedCard.linkedContact ? (
-                      <div className="flex items-center justify-between p-3 bg-[#161B22] border border-white/5 rounded-xl cursor-pointer hover:border-accent/30 group transition-all">
+                      <div className="flex items-center justify-between p-3 bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-xl cursor-pointer hover:border-accent/30 group transition-all">
                         <div className="flex items-center gap-3">
                            <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-black text-xs border border-blue-500/30">
                              {editedCard.linkedContact.name.substring(0,2).toUpperCase()}
                            </div>
                            <div>
-                             <p className="text-xs font-bold text-white">{editedCard.linkedContact.name}</p>
+                             <p className="text-xs font-bold text-[var(--text-main)]">{editedCard.linkedContact.name}</p>
                              <p className="text-[10px] text-gray-500">{editedCard.linkedContact.phone}</p>
                            </div>
                         </div>
@@ -628,13 +628,13 @@ function CardDetailModal({
               </div>
 
               {/* Move To Field */}
-              <div className="pt-6 border-t border-white/5 space-y-4">
+              <div className="pt-6 border-t border-[var(--border-main)] space-y-4">
                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Estágio Atual (Mover pipeline)</label>
                  <div className="relative">
                    <select
                      value={moveTo}
                      onChange={(e) => setMoveTo(e.target.value)}
-                     className="input-field appearance-none pr-10 text-sm font-semibold h-12 bg-white/[0.03] border-white/10"
+                     className="input-field appearance-none pr-10 text-sm font-semibold h-12 bg-[var(--bg-primary)] border-[var(--border-main)]"
                    >
                      {columns.map((col) => (
                        <option key={col.id} value={col.id}>
@@ -662,17 +662,17 @@ function CardDetailModal({
           {activeTab === 'atividades' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 animate-fade-in">
               {MOCK_ACTIVITIES.map((act, i) => (
-                 <div key={i} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+                 <div key={i} className="flex items-center justify-between p-4 bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-2xl">
                     <div className="flex items-center gap-3">
                        <button className={cn("w-5 h-5 rounded border flex items-center justify-center transition-colors", act.status === 'done' ? "bg-accent border-accent text-black" : "border-gray-600 text-transparent hover:border-gray-400")}>
                          <Check className="w-3 h-3" />
                        </button>
-                       <span className={cn("text-sm font-medium", act.status === 'done' ? "text-gray-500 line-through" : "text-white")}>{act.title}</span>
+                       <span className={cn("text-sm font-medium", act.status === 'done' ? "text-[var(--text-muted)] line-through" : "text-[var(--text-main)]")}>{act.title}</span>
                     </div>
                     <span className="text-[10px] font-black text-gray-500 tracking-widest">{formatDate(act.date)}</span>
                  </div>
               ))}
-              <button className="w-full py-4 border-2 border-dashed border-white/5 rounded-2xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-gray-500 hover:text-accent hover:border-accent/30 transition-colors">
+              <button className="w-full py-4 border-2 border-dashed border-[var(--border-main)] rounded-2xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-accent hover:border-accent/30 transition-colors">
                 <Plus className="w-4 h-4" /> Nova Atividade
               </button>
             </motion.div>
@@ -680,19 +680,19 @@ function CardDetailModal({
 
           {/* TAB: HISTÓRICO */}
           {activeTab === 'historico' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="animate-fade-in pl-2 space-y-6 relative before:absolute before:inset-y-0 before:left-[17px] before:w-px before:bg-white/5">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="animate-fade-in pl-2 space-y-6 relative before:absolute before:inset-y-0 before:left-[17px] before:w-px before:bg-[var(--border-main)]">
               {MOCK_HISTORY.length === 0 ? (
                  <p className="text-gray-500 text-sm font-medium text-center py-10 w-full">Nenhum histórico registrado.</p>
               ) : (
                 MOCK_HISTORY.map((entry, idx) => (
                   <div key={entry.id} className="relative pl-10 flex flex-col gap-1">
-                    <div className="absolute left-[-5px] top-0 w-11 h-11 bg-[#0f1117] flex items-start justify-center">
+                    <div className="absolute left-[-5px] top-0 w-11 h-11 bg-[var(--bg-card)] flex items-start justify-center">
                        <div className="w-6 h-6 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
                          {idx === MOCK_HISTORY.length - 1 ? <CheckCircle2 className="w-3 h-3 text-accent" /> : <Circle className="w-3 h-3 text-gray-600" />}
                        </div>
                     </div>
-                    <p className="text-sm text-gray-300 leading-snug">
-                      <span className="font-semibold text-white">{entry.user}</span> {entry.action}
+                    <p className="text-sm text-[var(--text-muted)] leading-snug">
+                      <span className="font-semibold text-[var(--text-main)]">{entry.user}</span> {entry.action}
                       {entry.to && <span className="text-accent font-semibold ml-1">{entry.to}</span>}
                     </p>
                     <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">{formatDateTime(entry.date)}</p>
@@ -707,26 +707,26 @@ function CardDetailModal({
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 animate-fade-in flex flex-col h-full">
               <div className="flex-1 space-y-4">
                 {comments.map((c) => (
-                  <div key={c.id} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4">
-                    <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/5">
+                  <div key={c.id} className="bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-2xl p-4">
+                    <div className="flex items-center justify-between mb-2 pb-2 border-b border-[var(--border-main)]">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center font-black text-[9px]">{c.user.substring(0,2).toUpperCase()}</div>
-                        <span className="text-xs font-black text-white">{c.user}</span>
+                        <span className="text-xs font-black text-[var(--text-main)]">{c.user}</span>
                       </div>
                       <span className="text-[10px] text-gray-600 uppercase tracking-widest">{formatDateTime(c.date)}</span>
                     </div>
-                    <p className="text-sm text-gray-300 leading-relaxed font-medium">{c.text}</p>
+                    <p className="text-sm text-[var(--text-muted)] leading-relaxed font-medium">{c.text}</p>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 pt-4 border-t border-white/5 flex gap-3">
+              <div className="mt-4 pt-4 border-t border-[var(--border-main)] flex gap-3">
                 <input
                   type="text"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendComment()}
                   placeholder="Escreva um comentário (pressione Enter para enviar)..."
-                  className="input-field bg-[#161B22] border-white/10 text-sm flex-1"
+                  className="input-field bg-[var(--bg-primary)] border-[var(--border-main)] text-sm flex-1"
                 />
                 <button
                   onClick={handleSendComment}
@@ -742,10 +742,10 @@ function CardDetailModal({
         </div>
 
         {/* ── Footer Actions ── */}
-        <div className="p-6 border-t border-white/5 bg-gradient-to-t from-black/40 to-transparent flex shrink-0 gap-3">
+        <div className="p-6 border-t border-[var(--border-main)] flex shrink-0 gap-3">
            {isEditingGlobal ? (
               <>
-                 <button onClick={() => { setEditedCard(card); setIsEditingGlobal(false); setEditingField(null); }} className="flex-1 py-3.5 rounded-xl border border-white/10 text-sm font-black text-gray-400 hover:text-white uppercase tracking-wider transition-colors">Cancelar Modificações</button>
+                 <button onClick={() => { setEditedCard(card); setIsEditingGlobal(false); setEditingField(null); }} className="flex-1 py-3.5 rounded-xl border border-[var(--border-main)] text-sm font-black text-[var(--text-muted)] hover:text-[var(--text-main)] uppercase tracking-wider transition-colors">Cancelar Modificações</button>
                  <button onClick={handleSaveGlobal} className="flex-1 py-3.5 rounded-xl bg-accent text-black text-sm font-black uppercase tracking-wider hover:opacity-90 transition-opacity">Salvar Alterações</button>
               </>
            ) : (
@@ -792,7 +792,7 @@ function StatsBar({ columns }: { columns: KanbanColumn[] }) {
       value: String(overdueCards),
       icon: AlertTriangle,
       iconColor: overdueCards > 0 ? 'text-red-400' : 'text-gray-500',
-      iconBg: overdueCards > 0 ? 'bg-red-500/10 border-red-500/20' : 'bg-white/5 border-white/5',
+      iconBg: overdueCards > 0 ? 'bg-red-500/10 border-red-500/20' : 'bg-[var(--bg-primary)] border-[var(--border-main)]',
       accent: false,
     },
   ]
@@ -802,7 +802,7 @@ function StatsBar({ columns }: { columns: KanbanColumn[] }) {
       {stats.map((s, i) => (
         <div
           key={s.label}
-          className="card-hover group border-white/5 bg-white/[0.02] p-5 rounded-2xl flex items-center gap-4 relative overflow-hidden"
+          className="card-hover group border border-[var(--border-main)] bg-[var(--bg-card)] p-5 rounded-2xl flex items-center gap-4 relative overflow-hidden"
           style={{ animationDelay: `${i * 0.08}s` }}
         >
           <div className={`w-11 h-11 rounded-xl flex items-center justify-center border flex-shrink-0 ${s.iconBg} group-hover:scale-110 transition-transform`}>
@@ -810,7 +810,7 @@ function StatsBar({ columns }: { columns: KanbanColumn[] }) {
           </div>
           <div className="min-w-0">
             <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.15em] mb-0.5">{s.label}</p>
-            <p className={`text-2xl font-black leading-none truncate ${s.accent ? 'text-accent' : 'text-white'}`}>
+            <p className={`text-2xl font-black leading-none truncate ${s.accent ? 'text-accent' : 'text-[var(--text-main)]'}`}>
               {s.value}
             </p>
           </div>
@@ -850,7 +850,7 @@ function BoardSelector({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 mt-1 w-48 bg-dark-card border border-white/10 rounded-xl shadow-card-hover z-20 overflow-hidden"
+            className="absolute top-full left-0 mt-1 w-48 bg-[var(--bg-card)] border border-[var(--border-main)] rounded-xl shadow-card-hover z-20 overflow-hidden"
           >
             {boards.map((b) => (
               <button
@@ -859,7 +859,7 @@ function BoardSelector({
                 className={`w-full text-left px-4 py-2.5 text-sm font-semibold transition-colors flex items-center gap-2 ${
                   b === selected
                     ? 'text-accent bg-accent/10'
-                    : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                    : 'text-[var(--text-muted)] hover:bg-[var(--bg-primary)] hover:text-[var(--text-main)]'
                 }`}
               >
                 {b === selected && <span className="w-1.5 h-1.5 rounded-full bg-accent" />}
@@ -905,10 +905,10 @@ function NewColumnModal({ onClose, onAdd }: { onClose: () => void; onAdd: (name:
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-dark-card border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl p-6 w-full max-w-sm shadow-2xl">
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-base font-black text-white uppercase tracking-wider">Nova Coluna</h3>
-            <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg border border-white/10 text-gray-500 hover:text-white transition-all">
+            <h3 className="text-base font-black text-[var(--text-main)] uppercase tracking-wider">Nova Coluna</h3>
+            <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg border border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -1011,10 +1011,10 @@ function NewCardModal({
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-dark-card border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-base font-black text-white uppercase tracking-wider">Novo Card</h3>
-            <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg border border-white/10 text-gray-500 hover:text-white transition-all">
+            <h3 className="text-base font-black text-[var(--text-main)] uppercase tracking-wider">Novo Card</h3>
+            <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg border border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -1097,10 +1097,10 @@ function NewBoardModal({ onClose, onAdd }: { onClose: () => void; onAdd: (name: 
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-dark-card border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl p-6 w-full max-w-sm shadow-2xl">
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-base font-black text-white uppercase tracking-wider">Novo Board</h3>
-            <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg border border-white/10 text-gray-500 hover:text-white transition-all">
+            <h3 className="text-base font-black text-[var(--text-main)] uppercase tracking-wider">Novo Board</h3>
+            <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg border border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -1369,16 +1369,16 @@ export default function PipelinePage() {
     <div className="p-4 md:p-6 lg:p-10 space-y-6 md:space-y-8 max-w-full animate-fade-in pb-20">
 
       {/* ── Header ── */}
-      <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4 md:gap-6 pb-5 md:pb-6 border-b border-white/5">
+      <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4 md:gap-6 pb-5 md:pb-6 border-b border-[var(--border-main)]">
         <div className="space-y-2 md:space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20">
             <Kanban className="w-3 h-3 text-accent" />
             <span className="text-[10px] font-black text-accent uppercase tracking-widest">Pipeline Comercial</span>
           </div>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tighter leading-none">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-[var(--text-main)] tracking-tighter leading-none">
             Pipeline
           </h1>
-          <p className="text-gray-500 font-medium tracking-wide uppercase text-[10px]">
+          <p className="text-[var(--text-muted)] font-bold tracking-wide uppercase text-[10px]">
             GESTÃO DE OPORTUNIDADES • VISÃO KANBAN
           </p>
         </div>
@@ -1420,7 +1420,7 @@ export default function PipelinePage() {
 
           {/* Add column placeholder */}
           <div className="flex-shrink-0 w-72">
-            <button onClick={() => setIsNewColumnOpen(true)} className="w-full h-full min-h-[180px] flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-white/10 text-gray-600 hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all duration-200 group">
+            <button onClick={() => setIsNewColumnOpen(true)} className="w-full h-full min-h-[180px] flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[var(--border-main)] text-[var(--text-support)] hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all duration-200 group">
               <div className="w-10 h-10 rounded-xl border-2 border-dashed border-current flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Plus className="w-5 h-5" />
               </div>

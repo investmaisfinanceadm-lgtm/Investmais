@@ -49,7 +49,7 @@ export function AdminSidebar() {
     const SidebarContent = () => (
         <div className="flex flex-col h-full">
             {/* Logo */}
-            <div className="p-6 border-b border-dark-border">
+            <div className="p-6 border-b border-[var(--border-main)]">
                 <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-gradient-gold flex items-center justify-center shadow-gold">
                         <span className="text-primary font-black text-base">I+</span>
@@ -91,7 +91,7 @@ export function AdminSidebar() {
 
             {/* Admin Footer */}
             {admin && (
-                <div className="p-4 border-t border-dark-border">
+                <div className="p-4 border-t border-[var(--border-main)]">
                     <div className="flex items-center gap-3 px-2">
                         <div className="w-9 h-9 rounded-full bg-gold/20 border border-gold/30 flex items-center justify-center flex-shrink-0">
                             {admin.avatar_url ? (
@@ -126,12 +126,12 @@ export function AdminSidebar() {
     return (
         <>
             {/* Desktop Sidebar */}
-            <aside className="hidden lg:flex flex-col w-64 bg-dark-card border-r border-dark-border h-screen sticky top-0 flex-shrink-0">
+            <aside className="hidden lg:flex flex-col w-64 bg-[var(--bg-card)] border-r border-[var(--border-main)] h-screen sticky top-0 flex-shrink-0">
                 <SidebarContent />
             </aside>
 
             {/* Mobile Header */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 bg-dark-card/95 backdrop-blur-lg border-b border-dark-border">
+            <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 bg-[var(--bg-card)]/95 backdrop-blur-lg border-b border-[var(--border-main)]">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-xl bg-gradient-gold flex items-center justify-center">
                         <span className="text-primary font-black text-sm">I+</span>
@@ -158,7 +158,7 @@ export function AdminSidebar() {
 
             <aside
                 className={cn(
-                    'lg:hidden fixed top-0 left-0 h-full w-72 bg-dark-card border-r border-dark-border z-50 transition-transform duration-300',
+                    'lg:hidden fixed top-0 left-0 h-full w-72 bg-[var(--bg-card)] border-r border-[var(--border-main)] z-50 transition-transform duration-300',
                     mobileOpen ? 'translate-x-0' : '-translate-x-full'
                 )}
             >

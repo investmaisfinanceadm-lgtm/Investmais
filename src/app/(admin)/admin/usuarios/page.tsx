@@ -103,8 +103,8 @@ function CreateUserModal({
                 className="absolute inset-0 bg-black/70 backdrop-blur-sm"
                 onClick={onClose}
             />
-            <div className="relative z-10 bg-dark-card border border-dark-border rounded-2xl w-full max-w-lg shadow-card-hover animate-fade-in">
-                <div className="flex items-center justify-between p-6 border-b border-dark-border">
+            <div className="relative z-10 bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl w-full max-w-lg shadow-card-hover animate-fade-in">
+                <div className="flex items-center justify-between p-6 border-b border-[var(--border-main)]">
                     <h2 className="text-lg font-semibold text-white">Novo Usuário</h2>
                     <button
                         onClick={onClose}
@@ -238,8 +238,8 @@ function EditUserModal({ user, onClose, onSuccess }: { user: UserProfile; onClos
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative z-10 bg-dark-card border border-dark-border rounded-2xl w-full max-w-lg shadow-card-hover animate-fade-in">
-                <div className="flex items-center justify-between p-6 border-b border-dark-border">
+            <div className="relative z-10 bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl w-full max-w-lg shadow-card-hover animate-fade-in">
+                <div className="flex items-center justify-between p-6 border-b border-[var(--border-main)]">
                     <h2 className="text-lg font-semibold text-white">Editar Usuário</h2>
                     <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
                 </div>
@@ -430,7 +430,7 @@ export default function AdminUsuariosPage() {
             <div className="card overflow-hidden p-0">
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-dark-muted">
+                        <thead className="bg-[var(--bg-primary)]">
                             <tr>
                                 <th className="table-header">Usuário</th>
                                 <th className="table-header">Perfil</th>
@@ -527,7 +527,7 @@ export default function AdminUsuariosPage() {
                                                 </button>
 
                                                 {activeMenu === user.id && (
-                                                    <div className="absolute right-0 mt-1 w-48 bg-dark-card border border-dark-border rounded-xl shadow-card-hover z-10 overflow-hidden animate-fade-in">
+                                                    <div className="absolute right-0 mt-1 w-48 bg-[var(--bg-card)] border border-[var(--border-main)] rounded-xl shadow-card-hover z-10 overflow-hidden animate-fade-in">
                                                         <button
                                                             onClick={() => {
                                                                 setActiveMenu(null)

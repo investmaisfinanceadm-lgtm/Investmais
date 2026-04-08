@@ -175,6 +175,16 @@ body {
   background-size: 200% 100%;
   animation: shimmer 2s linear infinite;
 }
+html.light .shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(0,0,0,0.04) 25%,
+    rgba(0,0,0,0.09) 50%,
+    rgba(0,0,0,0.04) 75%
+  );
+  background-size: 200% 100%;
+}
+html.light .progress-bar { background: rgba(0,0,0,0.08); }
 @keyframes shimmer {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }

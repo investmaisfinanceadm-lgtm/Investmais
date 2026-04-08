@@ -59,14 +59,14 @@ function SituacaoBadge({ situacao }: { situacao: string | null }) {
 function DataRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   const [copied, setCopied] = useState(false)
   return (
-    <div className="flex items-start gap-3 p-3 rounded-xl bg-dark-muted border border-dark-border group hover:border-accent/20 transition-colors">
-      <div className="text-gray-500 mt-0.5 shrink-0">{icon}</div>
+    <div className="flex items-start gap-3 p-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-main)] group hover:border-accent/20 transition-colors">
+      <div className="text-[var(--text-muted)] mt-0.5 shrink-0">{icon}</div>
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-black text-muted uppercase tracking-wider">{label}</p>
-        <p className="text-sm text-main font-medium mt-0.5 truncate">{value}</p>
+        <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">{label}</p>
+        <p className="text-sm text-[var(--text-main)] font-medium mt-0.5 truncate">{value}</p>
       </div>
       <button onClick={() => { navigator.clipboard.writeText(value).catch(() => {}); setCopied(true); setTimeout(() => setCopied(false), 1500) }}
-        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-white transition-all shrink-0">
+        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all shrink-0">
         {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-accent" /> : <Copy className="w-3.5 h-3.5" />}
       </button>
     </div>
@@ -123,39 +123,39 @@ function GoogleTab() {
 
   return (
     <div className="space-y-6">
-      <div className="card p-6 rounded-2xl space-y-5 bg-dark-card border border-dark-border shadow-light-card">
-        <h2 className="text-sm font-black text-main uppercase tracking-wider flex items-center gap-2">
+      <div className="card card-hover p-6 rounded-2xl space-y-5">
+        <h2 className="text-sm font-black text-[var(--text-main)] uppercase tracking-wider flex items-center gap-2">
           <Search className="w-4 h-4 text-accent" />
           Buscar Leads no Google
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Estado</label>
+            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">Estado</label>
             <div className="relative">
               <select value={estado} onChange={e => setEstado(e.target.value)}
                 className="input-field appearance-none pr-8 text-sm">
                 <option value="">Selecione o Estado</option>
-                {ESTADOS.map(e => <option key={e} value={e}>{e}</option>)}
+                {ESTADOS.map(e => <option key={e} value={e} className="text-gray-900 bg-white">{e}</option>)}
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Cidade</label>
+            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">Cidade</label>
             <input value={cidade} onChange={e => setCidade(e.target.value)}
               placeholder={estado ? 'Digite a cidade' : 'Selecione o estado primeiro'}
               disabled={!estado}
               className="input-field text-sm disabled:opacity-40" />
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Nicho de Mercado</label>
+            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">Nicho de Mercado</label>
             <div className="relative">
               <select value={nicho} onChange={e => setNicho(e.target.value)}
                 className="input-field appearance-none pr-8 text-sm">
                 <option value="">Selecione o Nicho</option>
-                {NICHOS.map(n => <option key={n} value={n}>{n}</option>)}
+                {NICHOS.map(n => <option key={n} value={n} className="text-gray-900 bg-white">{n}</option>)}
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
             </div>
           </div>
         </div>
@@ -175,40 +175,40 @@ function GoogleTab() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Total Google', value: googleLeads.length.toString(), color: 'text-accent' },
-          { label: 'Leads Hoje', value: googleLeads.filter(l => new Date(l.created_at).toDateString() === new Date().toDateString()).length.toString(), color: 'text-white' },
-          { label: 'Conversões', value: googleLeads.filter(l => l.status_funil === 'cliente').length.toString(), color: 'text-white' },
-          { label: 'Na Semana', value: googleLeads.filter(l => (new Date().getTime() - new Date(l.created_at).getTime()) / (1000 * 3600 * 24) < 7).length.toString(), color: 'text-white' },
+          { label: 'Leads Hoje', value: googleLeads.filter(l => new Date(l.created_at).toDateString() === new Date().toDateString()).length.toString(), color: 'text-[var(--text-main)]' },
+          { label: 'Conversões', value: googleLeads.filter(l => l.status_funil === 'cliente').length.toString(), color: 'text-[var(--text-main)]' },
+          { label: 'Na Semana', value: googleLeads.filter(l => (new Date().getTime() - new Date(l.created_at).getTime()) / (1000 * 3600 * 24) < 7).length.toString(), color: 'text-[var(--text-main)]' },
         ].map(s => (
-          <div key={s.label} className="card p-5 rounded-2xl text-center bg-dark-card border border-dark-border shadow-light-card">
-            <p className={`text-3xl font-black ${s.color === 'text-white' ? 'text-main' : s.color}`}>{s.value}</p>
-            <p className="text-[10px] text-muted uppercase tracking-wider mt-1">{s.label}</p>
+          <div key={s.label} className="card card-hover p-5 rounded-2xl text-center shadow-sm">
+            <p className={`text-3xl font-black ${s.color}`}>{s.value}</p>
+            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mt-1">{s.label}</p>
           </div>
         ))}
       </div>
 
       {/* Últimas Buscas */}
-      <div className="card rounded-2xl overflow-hidden bg-dark-card border border-dark-border shadow-light-card">
-        <div className="px-6 py-4 border-b border-dark-border flex items-center justify-between">
+      <div className="card card-hover rounded-2xl overflow-hidden shadow-sm">
+        <div className="px-6 py-4 border-b border-[var(--border-main)] flex items-center justify-between">
             <div className="flex items-center gap-2">
-               <Clock className="w-4 h-4 text-gray-500" />
-               <h3 className="text-sm font-black text-main uppercase tracking-wider">Últimos Leads Extraídos</h3>
+               <Clock className="w-4 h-4 text-[var(--text-muted)]" />
+               <h3 className="text-sm font-black text-[var(--text-main)] uppercase tracking-wider">Últimos Leads Extraídos</h3>
             </div>
-            <button onClick={() => window.location.reload()} className="text-[10px] text-gray-500 flex items-center gap-1 hover:text-white uppercase font-black"><RefreshCw className="w-3 h-3"/> Atualizar</button>
+            <button onClick={() => window.location.reload()} className="text-[10px] text-[var(--text-muted)] flex items-center gap-1 hover:text-[var(--text-main)] uppercase font-black"><RefreshCw className="w-3 h-3"/> Atualizar</button>
         </div>
-        <div className="divide-y divide-dark-border">
+        <div className="divide-y divide-[var(--border-main)]">
           {googleLeads.length === 0 ? (
-             <p className="text-sm text-gray-500 text-center py-6">Nenhum lead extraído do Google Maps até o momento.</p>
+             <p className="text-sm text-[var(--text-muted)] text-center py-6">Nenhum lead extraído do Google Maps até o momento.</p>
           ) : (
             googleLeads.slice(0, 8).map((b, i) => (
-              <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-white/2 transition-colors">
+              <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-[var(--bg-primary)] transition-colors">
                 <div className="flex items-start md:items-center flex-col md:flex-row gap-1 md:gap-3">
-                  <span className="text-sm font-semibold text-white truncate max-w-[200px] md:max-w-[300px]">{b.nome}</span>
-                  <span className="text-gray-600 hidden md:block">•</span>
-                  <span className="text-sm text-accent">{b.telefone || 'Sem número'}</span>
+                  <span className="text-sm font-semibold text-[var(--text-main)] truncate max-w-[200px] md:max-w-[300px]">{b.nome}</span>
+                  <span className="text-[var(--text-support)] hidden md:block">•</span>
+                  <span className="text-sm text-accent font-black tracking-tight">{b.telefone || 'Sem número'}</span>
                 </div>
                 <div className="flex flex-col items-end">
-                   <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">{b.status_funil}</span>
-                   <span className="text-[10px] text-gray-600">{format(new Date(b.created_at || new Date()), "dd/MM/yy 'às' HH:mm")}</span>
+                   <span className="text-xs text-[var(--text-muted)] font-black uppercase tracking-wider">{b.status_funil}</span>
+                   <span className="text-[10px] text-[var(--text-support)] font-medium">{format(new Date(b.created_at || new Date()), "dd/MM/yy 'às' HH:mm")}</span>
                 </div>
               </div>
             ))
@@ -275,8 +275,8 @@ function CNPJTab() {
   return (
     <div className="space-y-6">
       {/* Search card */}
-      <div className="card p-6 rounded-2xl">
-        <h2 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2 mb-5">
+      <div className="card card-hover p-6 rounded-2xl shadow-sm">
+        <h2 className="text-sm font-black text-[var(--text-main)] uppercase tracking-wider flex items-center gap-2 mb-5">
           <Building2 className="w-4 h-4 text-accent" />
           Buscar Empresas por CNPJ
         </h2>
@@ -346,12 +346,12 @@ function CNPJTab() {
                 </motion.div>
               )}
             </AnimatePresence>
-            <div className="p-6 border-b border-dark-border space-y-2">
+            <div className="p-6 border-b border-[var(--border-main)] space-y-2">
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <SituacaoBadge situacao={result.situacaoCadastral} />
-                <span className="text-xs text-gray-500 font-mono">{result.cnpj}</span>
+                <span className="text-xs text-[var(--text-muted)] font-mono">{result.cnpj}</span>
               </div>
-              <h2 className="text-2xl font-black text-white tracking-tight">{result.razaoSocial}</h2>
+              <h2 className="text-2xl font-black text-[var(--text-main)] tracking-tight">{result.razaoSocial}</h2>
               {result.nomeFantasia && result.nomeFantasia !== result.razaoSocial && (
                 <p className="text-accent font-semibold">{result.nomeFantasia}</p>
               )}
@@ -371,13 +371,13 @@ function CNPJTab() {
                     <Users className="w-3 h-3" />Quadro Societário
                   </p>
                   {result.socios.map((s, i) => (
-                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-dark-muted border border-dark-border">
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-main)]">
                       <div className="w-8 h-8 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
                         <span className="text-accent text-[10px] font-black">{s.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">{s.nome}</p>
-                        <p className="text-xs text-gray-400">{s.qualificacao}</p>
+                        <p className="text-sm font-semibold text-[var(--text-main)] truncate">{s.nome}</p>
+                        <p className="text-xs text-[var(--text-muted)]">{s.qualificacao}</p>
                       </div>
                     </div>
                   ))}
@@ -399,32 +399,32 @@ function CNPJTab() {
       </AnimatePresence>
 
       {/* Leads CNPJ Table */}
-      <div className="card rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-dark-border flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+      <div className="card card-hover rounded-2xl overflow-hidden shadow-sm">
+        <div className="px-6 py-4 border-b border-[var(--border-main)] flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
           <div className="flex items-center gap-2">
             <Building2 className="w-4 h-4 text-accent" />
-            <h3 className="text-sm font-black text-white uppercase tracking-wider">Leads CNPJ</h3>
+            <h3 className="text-sm font-black text-[var(--text-main)] uppercase tracking-wider">Leads CNPJ</h3>
             <span className="badge badge-accent text-[10px]">{leads.length}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Filter className="w-3.5 h-3.5 text-gray-500" />
+            <Filter className="w-3.5 h-3.5 text-[var(--text-muted)]" />
             <div className="relative">
               <select value={filterEstado} onChange={e => setFilterEstado(e.target.value)}
-                className="text-xs bg-dark-muted border border-dark-border rounded-lg px-3 py-1.5 text-gray-300 appearance-none pr-6">
-                <option value="">Todos os Estados</option>
-                {estadosDisponiveis.map(e => <option key={e} value={e}>{e}</option>)}
+                className="text-xs bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-lg px-3 py-1.5 text-[var(--text-main)] appearance-none pr-6">
+                <option value="" className="text-gray-900 bg-white">Todos os Estados</option>
+                {estadosDisponiveis.map(e => <option key={e} value={e} className="text-gray-900 bg-white">{e}</option>)}
               </select>
-              <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 pointer-events-none" />
+              <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)] pointer-events-none" />
             </div>
             <div className="relative">
               <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-                className="text-xs bg-dark-muted border border-dark-border rounded-lg px-3 py-1.5 text-gray-300 appearance-none pr-6">
-                <option value="">Todos os Status</option>
-                <option value="ATIVA">Ativa</option>
-                <option value="INATIVA">Inativa</option>
-                <option value="SUSPENSA">Suspensa</option>
+                className="text-xs bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-lg px-3 py-1.5 text-[var(--text-main)] appearance-none pr-6">
+                <option value="" className="text-gray-900 bg-white">Todos os Status</option>
+                <option value="ATIVA" className="text-gray-900 bg-white">Ativa</option>
+                <option value="INATIVA" className="text-gray-900 bg-white">Inativa</option>
+                <option value="SUSPENSA" className="text-gray-900 bg-white">Suspensa</option>
               </select>
-              <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 pointer-events-none" />
+              <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)] pointer-events-none" />
             </div>
           </div>
         </div>
@@ -432,15 +432,15 @@ function CNPJTab() {
           <div className="p-8 space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="shimmer h-12 rounded-xl" />)}</div>
         ) : filteredLeads.length === 0 ? (
           <div className="py-16 text-center">
-            <Building2 className="w-10 h-10 text-gray-700 mx-auto mb-3" />
-            <p className="text-gray-500 text-sm">Nenhum lead encontrado</p>
-            <p className="text-gray-600 text-xs mt-1">Faça uma busca por CNPJ para gerar leads</p>
+            <Building2 className="w-10 h-10 text-[var(--text-support)] mx-auto mb-3" />
+            <p className="text-[var(--text-muted)] text-sm font-semibold">Nenhum lead encontrado</p>
+            <p className="text-[var(--text-support)] text-xs mt-1 uppercase font-black tracking-widest">Faça uma busca por CNPJ para gerar leads</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-dark-border">
+                <tr className="border-b border-[var(--border-main)] bg-[var(--bg-primary)]/50">
                   <th className="table-header">CNPJ</th>
                   <th className="table-header">Empresa</th>
                   <th className="table-header">Telefone</th>
@@ -453,13 +453,13 @@ function CNPJTab() {
               <tbody>
                 {filteredLeads.map(lead => (
                   <tr key={lead.id} className="table-row">
-                    <td className="table-cell font-mono text-xs text-gray-400">{lead.cnpj}</td>
-                    <td className="table-cell font-semibold text-white max-w-[180px] truncate">{lead.nome ?? '—'}</td>
-                    <td className="table-cell text-gray-400 text-xs">{lead.telefone ?? '—'}</td>
-                    <td className="table-cell text-gray-400 text-xs max-w-[160px] truncate">{lead.email ?? '—'}</td>
+                    <td className="table-cell font-mono text-xs text-[var(--text-muted)]">{lead.cnpj}</td>
+                    <td className="table-cell font-bold text-[var(--text-main)] max-w-[180px] truncate">{lead.nome ?? '—'}</td>
+                    <td className="table-cell text-[var(--text-muted)] text-xs font-semibold">{lead.telefone ?? '—'}</td>
+                    <td className="table-cell text-[var(--text-muted)] text-xs max-w-[160px] truncate">{lead.email ?? '—'}</td>
                     <td className="table-cell text-center"><SituacaoBadge situacao={lead.situacao} /></td>
-                    <td className="table-cell text-gray-400 text-xs">{lead.cidade && lead.estado ? `${lead.cidade}/${lead.estado}` : '—'}</td>
-                    <td className="table-cell text-gray-400 text-xs max-w-[200px] truncate">{lead.cnae_descricao ?? '—'}</td>
+                    <td className="table-cell text-[var(--text-muted)] text-xs">{lead.cidade && lead.estado ? `${lead.cidade}/${lead.estado}` : '—'}</td>
+                    <td className="table-cell text-[var(--text-muted)] text-xs max-w-[200px] truncate">{lead.cnae_descricao ?? '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -479,20 +479,20 @@ export default function BuscaLeadsPage() {
     <div className="p-4 md:p-8 lg:p-12 space-y-6 md:space-y-8 max-w-7xl mx-auto animate-fade-in pb-20">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-3xl md:text-4xl font-black text-main tracking-tighter">Busca de Leads</h1>
-        <p className="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">
+        <h1 className="text-3xl md:text-4xl font-black text-[var(--text-main)] tracking-tighter">Busca de Leads</h1>
+        <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">
           Encontre leads para alavancar seu negócio
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-dark-muted border border-dark-border rounded-xl w-fit">
+      <div className="flex gap-1 p-1 bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-xl w-fit">
         {([['google', 'Busca Google'], ['cnpj', 'Busca CNPJ']] as const).map(([key, label]) => (
           <button key={key} onClick={() => setActiveTab(key)}
             className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
               activeTab === key
-                ? 'bg-accent text-white shadow-accent'
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-accent text-[var(--text-main)] shadow-accent'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
             }`}>
             {label}
           </button>

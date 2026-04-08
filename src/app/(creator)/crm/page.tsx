@@ -492,7 +492,7 @@ function AddContactModal({ onClose, onAdd }: { onClose: () => void; onAdd: (cont
               <div className="w-7 h-7 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
                 <Plus className="w-4 h-4 text-accent" />
               </div>
-              <h2 className="text-sm font-black text-white uppercase tracking-widest">Novo Contato</h2>
+              <h2 className="text-sm font-black text-[var(--text-main)] uppercase tracking-widest">Novo Contato</h2>
             </div>
             <p className="text-xs text-gray-500">Preencha os dados para adicionar ao CRM</p>
           </div>
@@ -530,7 +530,7 @@ function AddContactModal({ onClose, onAdd }: { onClose: () => void; onAdd: (cont
             </div>
             <div>
               <label className="label">Canal de Origem *</label>
-              <select {...register('canal')} className="input-field bg-dark-muted">
+              <select {...register('canal')} className="input-field bg-[var(--bg-primary)]">
                 <option value="">Selecione...</option>
                 <option value="Instagram">Instagram</option>
                 <option value="Site">Site</option>
@@ -635,11 +635,11 @@ function ScrapeLeadsModal({ onClose }: { onClose: () => void }) {
               <div className="w-7 h-7 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
                 <Globe className="w-4 h-4 text-accent" />
               </div>
-              <h2 className="text-sm font-black text-white uppercase tracking-widest">Prospectar no Google Maps</h2>
+              <h2 className="text-sm font-black text-[var(--text-main)] uppercase tracking-widest">Prospectar no Google Maps</h2>
             </div>
             <p className="text-xs text-gray-500">A nossa automação N8N irá extrair leads de empresas para você</p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/5 transition-all text-gray-500 hover:text-white">
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-[var(--bg-primary)] transition-all text-gray-500 hover:text-[var(--text-main)]">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -647,7 +647,7 @@ function ScrapeLeadsModal({ onClose }: { onClose: () => void }) {
         <form onSubmit={handleSubmit} className="space-y-5">
            <div>
               <label className="label">Nicho/Segmento de Empresa *</label>
-              <input value={nicho} onChange={e => setNicho(e.target.value)} className="input-field bg-[#161B22]" placeholder="Ex: Clínica de Estética, Dentista, Advogado..." />
+              <input value={nicho} onChange={e => setNicho(e.target.value)} className="input-field bg-[var(--bg-primary)]" placeholder="Ex: Clínica de Estética, Dentista, Advogado..." />
            </div>
            <div className="grid grid-cols-2 gap-4">
                <div>
@@ -1336,13 +1336,13 @@ export default function CRMPage() {
                 onClick={() => setActiveFilter(tab.key)}
                 className={cn(
                   'px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5',
-                  activeFilter === tab.key ? 'bg-accent text-white shadow-md' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                  activeFilter === tab.key ? 'bg-accent text-[var(--text-main)] shadow-md' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 )}
               >
                 {tab.label}
                 <span className={cn(
                   'text-[10px] px-1.5 py-0.5 rounded-full',
-                  activeFilter === tab.key ? 'bg-white/20 text-white' : 'bg-[var(--bg-primary)] text-[var(--text-muted)]'
+                  activeFilter === tab.key ? 'bg-accent/20 text-accent' : 'bg-[var(--bg-primary)] text-[var(--text-muted)]'
                 )}>
                   {tab.count}
                 </span>
@@ -1548,7 +1548,7 @@ export default function CRMPage() {
                       <span key={tag} className="badge badge-accent text-[9px]">{tag}</span>
                     ))}
                     {contact.tags.length > 3 && (
-                      <span className="badge bg-white/5 text-gray-500 border border-white/5 text-[9px]">+{contact.tags.length - 3}</span>
+                      <span className="badge bg-[var(--bg-primary)] text-gray-500 border border-white/5 text-[9px]">+{contact.tags.length - 3}</span>
                     )}
                   </div>
                 )}
@@ -1613,13 +1613,13 @@ export default function CRMPage() {
         {isCsvOpen && (
           <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setIsCsvOpen(false)} />
-            <motion.div className="relative w-full max-w-lg bg-dark-card border border-dark-border rounded-2xl shadow-card-hover" initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}>
-              <div className="p-5 border-b border-dark-border flex items-center justify-between">
+            <motion.div className="relative w-full max-w-lg bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl shadow-card-hover" initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}>
+              <div className="p-5 border-b border-[var(--border-main)] flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-black text-white uppercase tracking-wider">Importar CSV</h2>
-                  <p className="text-xs text-gray-400 mt-0.5">Cole o conteúdo do CSV ou o texto com colunas separadas por vírgula</p>
+                  <h2 className="text-base font-black text-[var(--text-main)] uppercase tracking-wider">Importar CSV</h2>
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5">Cole o conteúdo do CSV ou o texto com colunas separadas por vírgula</p>
                 </div>
-                <button onClick={() => setIsCsvOpen(false)} className="p-1.5 rounded-lg hover:bg-white/5 text-gray-400"><X className="w-4 h-4" /></button>
+                <button onClick={() => setIsCsvOpen(false)} className="p-1.5 rounded-lg hover:bg-[var(--bg-primary)] text-[var(--text-muted)]"><X className="w-4 h-4" /></button>
               </div>
               <div className="p-5 space-y-4">
                 <div className="p-3 rounded-xl bg-accent/5 border border-accent/20 text-xs text-accent font-medium">

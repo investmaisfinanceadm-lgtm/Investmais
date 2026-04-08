@@ -148,12 +148,12 @@ export default function AdminCotasPage() {
 
             {/* Users Quota Table */}
             <div className="card overflow-hidden p-0">
-                <div className="px-6 py-4 border-b border-dark-border">
+                <div className="px-6 py-4 border-b border-[var(--border-main)]">
                     <h2 className="text-base font-semibold text-white">Cotas Individuais</h2>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-dark-muted">
+                        <thead className="bg-[var(--bg-primary)]">
                             <tr>
                                 <th className="table-header">
                                     <button

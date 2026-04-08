@@ -157,7 +157,7 @@ export default function AdminMonitoramentoPage() {
             <div className="card overflow-hidden p-0">
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-dark-muted">
+                        <thead className="bg-[var(--bg-primary)]">
                             <tr>
                                 <th className="table-header">Produto</th>
                                 <th className="table-header">Usuário</th>
@@ -239,7 +239,7 @@ export default function AdminMonitoramentoPage() {
                         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
                         onClick={() => setSelectedVideo(null)}
                     />
-                    <div className="relative z-10 bg-dark-card border border-dark-border rounded-2xl w-full max-w-2xl shadow-card-hover animate-fade-in p-6">
+                    <div className="relative z-10 bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl w-full max-w-2xl shadow-card-hover animate-fade-in p-6">
                         <h3 className="text-lg font-semibold text-white mb-4">
                             {selectedVideo.nome_produto}
                         </h3>
@@ -250,7 +250,7 @@ export default function AdminMonitoramentoPage() {
                                 className="w-full rounded-xl"
                             />
                         ) : (
-                            <div className="aspect-video flex items-center justify-center bg-dark-muted rounded-xl text-gray-500">
+                            <div className="aspect-video flex items-center justify-center bg-[var(--bg-primary)] rounded-xl text-gray-500">
                                 Vídeo não disponível
                             </div>
                         )}

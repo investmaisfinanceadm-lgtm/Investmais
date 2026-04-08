@@ -125,7 +125,7 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
     }
 
     const statusConfig: Record<string, { label: string; icon: typeof Circle; color: string; bg: string }> = {
-        'rascunho': { label: 'RASCUNHO', icon: Circle, color: 'text-gray-500', bg: 'bg-white/5 border-white/5' },
+        'rascunho': { label: 'RASCUNHO', icon: Circle, color: 'text-gray-500', bg: 'bg-[var(--bg-primary)] border-[var(--border-main)]' },
         'em revisão': { label: 'PENDENTE', icon: AlertCircle, color: 'text-amber-400', bg: 'bg-amber-400/5 border-amber-400/20' },
         'aprovado': { label: 'APROVADO', icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-400/5 border-emerald-400/20' },
         'publicado': { label: 'PUBLICADO', icon: Zap, color: 'text-blue-400', bg: 'bg-blue-400/5 border-blue-400/20' },
@@ -134,7 +134,7 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
     if (connectState !== 'connected') {
         return (
             <div className="p-4 md:p-8 lg:p-12 max-w-2xl mx-auto space-y-8 md:space-y-12 bg-primary min-h-[80vh] flex flex-col justify-center">
-                <div className="space-y-4 text-center border-b border-white/5 pb-12">
+                <div className="space-y-4 text-center border-b border-[var(--border-main)] pb-12">
                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 mb-4 transition-all hover:bg-accent/20">
                         <Calendar className="w-3 h-3 text-accent" />
                         <span className="text-[10px] font-black text-accent uppercase tracking-widest">Sincronização de Protocolo</span>
@@ -143,8 +143,8 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
                     <p className="text-muted font-medium uppercase tracking-widest text-[10px]">Inicialize a arquitetura de conteúdo via Notion Engine</p>
                 </div>
 
-                <div className="card text-center p-12 border-dark-border bg-dark-card shadow-light-card space-y-10 shadow-2xl rounded-[48px]">
-                    <div className="w-24 h-24 rounded-[32px] bg-dark-muted border border-dark-border flex items-center justify-center mx-auto shadow-lg relative">
+                <div className="card text-center p-12 border-[var(--border-main)] bg-[var(--bg-card)] shadow-light-card space-y-10 shadow-2xl rounded-[48px]">
+                    <div className="w-24 h-24 rounded-[32px] bg-[var(--bg-primary)] border border-[var(--border-main)] flex items-center justify-center mx-auto shadow-lg relative">
                          <Calendar className="w-10 h-10 text-gray-500" />
                          <div className="absolute -inset-2 rounded-[40px] border border-accent/10 animate-pulse" />
                     </div>
@@ -162,9 +162,9 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
                             placeholder="secret_..."
                             value={notionToken}
                             onChange={(e) => setNotionToken(e.target.value)}
-                            className="input-field h-14 bg-white/5 border-white/5 rounded-2xl px-6 text-xs text-white outline-none focus:bg-white/[0.08]"
+                            className="input-field h-14 bg-[var(--bg-primary)] border-[var(--border-main)] rounded-2xl px-6 text-xs text-[var(--text-main)] outline-none focus:bg-[var(--bg-primary)]"
                         />
-                        <div className="bg-white/5 p-4 rounded-xl">
+                        <div className="bg-[var(--bg-primary)] p-4 rounded-xl">
                             <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">
                                 Protocolo: Vá para notion.so → Configurações → Conexões → Gerenciar Integrações
                             </p>
@@ -194,7 +194,7 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
 
     return (
         <div className="p-4 md:p-8 lg:p-12 space-y-8 md:space-y-12 max-w-7xl mx-auto bg-primary pb-20 animate-fade-in">
-            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4 md:gap-6 border-b border-white/5 pb-6 md:pb-12">
+            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4 md:gap-6 border-b border-[var(--border-main)] pb-6 md:pb-12">
                 <div className="space-y-3 md:space-y-4">
                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 transition-all hover:bg-accent/20">
                         <Activity className="w-3 h-3 text-accent" />
@@ -210,11 +210,11 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                 {/* Content Hub */}
-                <div className="card space-y-8 border-dark-border bg-dark-card shadow-light-card p-10 shadow-2xl relative overflow-hidden flex flex-col rounded-[48px]">
+                <div className="card space-y-8 border-[var(--border-main)] bg-[var(--bg-card)] shadow-light-card p-10 shadow-2xl relative overflow-hidden flex flex-col rounded-[48px]">
                     <div className="absolute top-0 right-0 p-8 opacity-5">
                         <Calendar className="w-32 h-32" />
                     </div>
-                    <div className="flex items-center gap-4 border-b border-dark-border pb-6">
+                    <div className="flex items-center gap-4 border-b border-[var(--border-main)] pb-6">
                         <div className="w-10 h-10 rounded-2xl bg-accent/10 flex items-center justify-center border border-accent/20 shadow-accent">
                             <Calendar className="w-5 h-5 text-accent" />
                         </div>
@@ -252,18 +252,18 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
                             a.click()
                             URL.revokeObjectURL(url)
                         }}
-                        className="btn-secondary w-full py-4 text-[10px] font-black uppercase tracking-widest border-white/5 hover:border-accent/40 mt-4 rounded-xl">
+                        className="btn-secondary w-full py-4 text-[10px] font-black uppercase tracking-widest border-[var(--border-main)] hover:border-accent/40 mt-4 rounded-xl">
                         Exportar Lista de Manifesto (CSV)
                     </button>
                 </div>
 
                 {/* Idea Generator */}
-                <div className="card space-y-8 border-white/5 bg-white/[0.02] p-10 shadow-2xl flex flex-col rounded-[48px]">
-                    <div className="flex items-center gap-4 border-b border-white/5 pb-6">
+                <div className="card space-y-8 border-[var(--border-main)] bg-[var(--bg-primary)] p-10 shadow-2xl flex flex-col rounded-[48px]">
+                    <div className="flex items-center gap-4 border-b border-[var(--border-main)] pb-6">
                         <div className="w-10 h-10 rounded-2xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20 shadow-[0_0_20px_rgba(168,85,247,0.1)]">
                             <Brain className="w-5 h-5 text-purple-400" />
                         </div>
-                        <h2 className="text-xs font-black text-white uppercase tracking-[0.4em]">Motor de Núcleo Narrativo</h2>
+                        <h2 className="text-xs font-black text-[var(--text-main)] uppercase tracking-[0.4em]">Motor de Núcleo Narrativo</h2>
                     </div>
 
                     <div className="space-y-6">
@@ -275,7 +275,7 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
                                     placeholder="ex: Soluções de Dívida com Garantia"
                                     value={ideaInput}
                                     onChange={(e) => setIdeaInput(e.target.value)}
-                                    className="input-field h-14 bg-white/5 border-white/5 rounded-2xl px-6 text-[10px] font-bold tracking-widest uppercase flex-1 focus:bg-white/[0.08] outline-none"
+                                    className="input-field h-14 bg-[var(--bg-primary)] border-[var(--border-main)] rounded-2xl px-6 text-[10px] font-bold tracking-widest uppercase flex-1 focus:bg-[var(--bg-primary)] outline-none"
                                     onKeyDown={(e) => e.key === 'Enter' && handleGenerateIdeas()}
                                 />
                                 <button
@@ -291,9 +291,9 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
                         {ideas.length > 0 && (
                             <div className="space-y-3 flex-1 overflow-y-auto max-h-[300px] pr-2 custom-scrollbar">
                                 {ideas.map((idea, i) => (
-                                    <div key={i} className="flex items-start gap-4 p-5 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-purple-400/40 transition-all cursor-pointer group">
+                                    <div key={i} className="flex items-start gap-4 p-5 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-main)] hover:border-purple-400/40 transition-all cursor-pointer group">
                                         <span className="text-purple-400 text-[10px] font-black mt-1">#0{i + 1}</span>
-                                        <p className="text-[11px] text-gray-400 font-medium group-hover:text-white transition-colors leading-relaxed uppercase tracking-tighter">{idea}</p>
+                                        <p className="text-[11px] text-gray-400 font-medium group-hover:text-[var(--text-main)] transition-colors leading-relaxed uppercase tracking-tighter">{idea}</p>
                                     </div>
                                 ))}
                             </div>
@@ -302,12 +302,12 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
                 </div>
 
                 {/* Recon Análise */}
-                <div className="card space-y-8 border-white/5 bg-white/[0.02] p-10 shadow-2xl relative overflow-hidden rounded-[48px]">
-                    <div className="flex items-center gap-4 border-b border-white/5 pb-6">
+                <div className="card space-y-8 border-[var(--border-main)] bg-[var(--bg-primary)] p-10 shadow-2xl relative overflow-hidden rounded-[48px]">
+                    <div className="flex items-center gap-4 border-b border-[var(--border-main)] pb-6">
                         <div className="w-10 h-10 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.1)]">
                             <Target className="w-5 h-5 text-blue-400" />
                         </div>
-                        <h2 className="text-xs font-black text-white uppercase tracking-[0.4em]">Reconhecimento de Inteligência</h2>
+                        <h2 className="text-xs font-black text-[var(--text-main)] uppercase tracking-[0.4em]">Reconhecimento de Inteligência</h2>
                     </div>
 
                     <div className="space-y-10">
@@ -319,12 +319,12 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
                                     placeholder="@no_concorrente"
                                     value={concorrenteInput}
                                     onChange={(e) => setConcorrenteInput(e.target.value)}
-                                    className="input-field h-14 bg-white/5 border-white/5 rounded-2xl px-6 text-[10px] font-bold tracking-widest lowercase flex-1 focus:bg-white/[0.08] outline-none"
+                                    className="input-field h-14 bg-[var(--bg-primary)] border-[var(--border-main)] rounded-2xl px-6 text-[10px] font-bold tracking-widest lowercase flex-1 focus:bg-[var(--bg-primary)] outline-none"
                                 />
                                 <button
                                     onClick={handleAnalyzeCompetitor}
                                     disabled={isAnalyzing}
-                                    className="btn-primary px-8 rounded-2xl flex items-center justify-center bg-blue-500 text-white shadow-blue-500/20"
+                                    className="btn-primary px-8 rounded-2xl flex items-center justify-center bg-blue-500 text-[var(--text-main)] shadow-blue-500/20"
                                 >
                                     {isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <BarChart2 className="w-5 h-5" />}
                                 </button>
@@ -332,7 +332,7 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
                         </div>
 
                         {analysisResult && (
-                            <div className="p-8 rounded-[32px] bg-white/[0.02] border border-blue-500/20 text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-pre-line leading-relaxed italic animate-fade-in shadow-[0_0_50px_rgba(59,130,246,0.05)]">
+                            <div className="p-8 rounded-[32px] bg-[var(--bg-primary)] border border-blue-500/20 text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-pre-line leading-relaxed italic animate-fade-in shadow-[0_0_50px_rgba(59,130,246,0.05)]">
                                 <div className="text-blue-400 mb-4 not-italic font-black">DADOS DE RECON DESCRIPTOGRAFADOS // SOBREPOSIÇÃO DE ANÁLISE</div>
                                 {analysisResult}
                             </div>
@@ -341,23 +341,23 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
                 </div>
 
                 {/* Agendamento Autônomo */}
-                <div className="card space-y-8 border-white/5 bg-white/[0.02] p-10 shadow-2xl flex flex-col justify-between rounded-[48px]">
+                <div className="card space-y-8 border-[var(--border-main)] bg-[var(--bg-primary)] p-10 shadow-2xl flex flex-col justify-between rounded-[48px]">
                     <div className="space-y-8">
-                        <div className="flex items-center gap-4 border-b border-white/5 pb-6">
+                        <div className="flex items-center gap-4 border-b border-[var(--border-main)] pb-6">
                             <div className="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20 shadow-[0_0_20px_rgba(249,115,22,0.1)]">
                                 <Zap className="w-5 h-5 text-orange-400" />
                             </div>
-                            <h2 className="text-xs font-black text-white uppercase tracking-[0.4em]">Autopiloto de Disparo</h2>
+                            <h2 className="text-xs font-black text-[var(--text-main)] uppercase tracking-[0.4em]">Autopiloto de Disparo</h2>
                         </div>
                         <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest leading-loose">
                             Inicialize sequências de distribuição automatizada para seus ativos de mídia em múltiplos nós sociais.
                         </p>
                     </div>
-                    <div className="p-10 rounded-[40px] bg-white/5 border border-white/10 text-center space-y-4 flex flex-col items-center justify-center min-h-[200px]">
+                    <div className="p-10 rounded-[40px] bg-[var(--bg-primary)] border border-white/10 text-center space-y-4 flex flex-col items-center justify-center min-h-[200px]">
                         <Activity className="w-10 h-10 text-gray-700 animate-pulse" />
                         <p className="text-[10px] text-gray-600 font-black uppercase tracking-[0.3em] max-w-xs leading-loose">
                             Configurações de protocolo social detectadas em <br />
-                            <a href="/configuracoes" className="text-accent hover:text-white transition-colors underline decoration-accent/40 underline-offset-8">
+                            <a href="/configuracoes" className="text-accent hover:text-[var(--text-main)] transition-colors underline decoration-accent/40 underline-offset-8">
                                 Parâmetros → Integrações
                             </a>
                         </p>

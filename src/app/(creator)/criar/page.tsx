@@ -266,7 +266,7 @@ export default function CriarPage() {
                     <AlertCircle className="w-16 h-16 text-red-500" />
                 </div>
                 <div className="space-y-4 max-w-sm">
-                    <h2 className="text-4xl font-black text-white tracking-tighter uppercase">Limite de Cota Atingido</h2>
+                    <h2 className="text-4xl font-black text-[var(--text-main)] tracking-tighter uppercase">Limite de Cota Atingido</h2>
                     <p className="text-gray-500 font-medium">Você atingiu o limite de processamento disponível no seu plano atual.</p>
                 </div>
                 <div className="flex gap-4">
@@ -290,7 +290,7 @@ export default function CriarPage() {
                             <Sparkles className="w-3 h-3 text-accent" />
                             <span className="text-[10px] font-black text-accent uppercase tracking-widest">Protocolo Concluído</span>
                         </div>
-                        <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase italic">Otimização Realizada.</h2>
+                        <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-[var(--text-main)] tracking-tighter uppercase italic">Otimização Realizada.</h2>
                         <p className="text-gray-500 font-medium uppercase tracking-[0.2em] text-xs">Seu ativo digital foi gerado com sucesso pelo núcleo AI.</p>
                     </div>
 
@@ -298,12 +298,12 @@ export default function CriarPage() {
                         {/* Video Player */}
                         <div className={cn(
                             "lg:col-span-2 rounded-2xl md:rounded-[48px] overflow-hidden shadow-2xl relative shadow-accent/5 group flex items-center justify-center p-4 md:p-8",
-                            step2.formato === 'stories' ? "bg-black/40 min-h-[70vh]" : "bg-black aspect-video border border-white/5"
+                            step2.formato === 'stories' ? "bg-black/40 min-h-[70vh]" : "bg-black aspect-video border border-[var(--border-main)]"
                         )}>
                             <div className={cn(
                                 "relative shadow-[0_0_100px_rgba(0,0,0,0.5)] bg-black overflow-hidden transition-all duration-500",
                                 step2.formato === 'stories' 
-                                    ? "aspect-[9/16] h-full max-h-[75vh] rounded-[32px] border-[6px] border-white/5" 
+                                    ? "aspect-[9/16] h-full max-h-[75vh] rounded-[32px] border-[6px] border-[var(--border-main)]" 
                                     : "w-full aspect-video rounded-3xl border border-white/10"
                             )}>
                                 <video
@@ -315,7 +315,7 @@ export default function CriarPage() {
                                     className="w-full h-full object-contain"
                                 />
                                 {step2.formato === 'stories' && (
-                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-5 bg-black rounded-b-2xl z-10 border-x border-b border-white/5" />
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-5 bg-black rounded-b-2xl z-10 border-x border-b border-[var(--border-main)]" />
                                 )}
                             </div>
                             {/* Overlay actions — always visible on mobile, hover on desktop */}
@@ -323,7 +323,7 @@ export default function CriarPage() {
                                 <button
                                     onClick={handleFullscreen}
                                     title="Tela cheia"
-                                    className="flex items-center gap-2 bg-black/70 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-2xl border border-white/10 hover:bg-accent hover:border-accent hover:text-black transition-all duration-200"
+                                    className="flex items-center gap-2 bg-black/70 backdrop-blur-md text-[var(--text-main)] text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-2xl border border-white/10 hover:bg-accent hover:border-accent hover:text-black transition-all duration-200"
                                 >
                                     <Maximize className="w-3.5 h-3.5" />
                                     <span className="hidden sm:inline">Tela cheia</span>
@@ -331,7 +331,7 @@ export default function CriarPage() {
                                 <button
                                     onClick={handleDownload}
                                     title="Baixar vídeo"
-                                    className="flex items-center gap-2 bg-black/70 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-2xl border border-white/10 hover:bg-accent hover:border-accent hover:text-black transition-all duration-200"
+                                    className="flex items-center gap-2 bg-black/70 backdrop-blur-md text-[var(--text-main)] text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-2xl border border-white/10 hover:bg-accent hover:border-accent hover:text-black transition-all duration-200"
                                 >
                                     <Download className="w-3.5 h-3.5" />
                                     <span className="hidden sm:inline">Baixar</span>
@@ -341,17 +341,17 @@ export default function CriarPage() {
 
                         {/* Ficha Técnica */}
                         <div className="space-y-6">
-                            <div className="card border-white/5 bg-white/[0.02] p-5 md:p-8 space-y-6 md:space-y-8 rounded-2xl md:rounded-[40px]">
+                            <div className="card border-[var(--border-main)] bg-[var(--bg-primary)] p-5 md:p-8 space-y-6 md:space-y-8 rounded-2xl md:rounded-[40px]">
                                 <div className="space-y-4">
-                                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Ficha Técnica</h3>
+                                    <h3 className="text-xs font-black text-[var(--text-main)] uppercase tracking-widest">Ficha Técnica</h3>
                                     <div className="space-y-4">
-                                        <div className="flex justify-between py-3 border-b border-white/5">
+                                        <div className="flex justify-between py-3 border-b border-[var(--border-main)]">
                                             <span className="text-[10px] text-gray-500 font-bold uppercase">Formato</span>
-                                            <span className="text-[10px] text-white font-black uppercase">{step2.formato}</span>
+                                            <span className="text-[10px] text-[var(--text-main)] font-black uppercase">{step2.formato}</span>
                                         </div>
-                                        <div className="flex justify-between py-3 border-b border-white/5">
+                                        <div className="flex justify-between py-3 border-b border-[var(--border-main)]">
                                             <span className="text-[10px] text-gray-500 font-bold uppercase">Escala</span>
-                                            <span className="text-[10px] text-white font-black uppercase">{step2.duracao} Segundos</span>
+                                            <span className="text-[10px] text-[var(--text-main)] font-black uppercase">{step2.duracao} Segundos</span>
                                         </div>
                                     </div>
                                 </div>
@@ -362,12 +362,12 @@ export default function CriarPage() {
                                     </button>
                                     <button
                                         onClick={handleDownload}
-                                        className="w-full py-4 rounded-2xl border border-white/5 bg-white/[0.02] text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-white hover:border-white/20 transition-all flex items-center justify-center gap-2"
+                                        className="w-full py-4 rounded-2xl border border-[var(--border-main)] bg-[var(--bg-primary)] text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-[var(--text-main)] hover:border-accent/40 transition-all flex items-center justify-center gap-2"
                                     >
                                         <Download className="w-4 h-4" />
                                         Baixar Vídeo
                                     </button>
-                                    <button onClick={() => router.push('/criar')} className="w-full py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors">
+                                    <button onClick={() => router.push('/criar')} className="w-full py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-[var(--text-main)] transition-colors">
                                         Iniciar Novo Protocolo
                                     </button>
                                 </div>
@@ -383,7 +383,7 @@ export default function CriarPage() {
         return (
             <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-16 animate-fade-in p-8 text-center">
                 <div className="relative">
-                    <div className="w-48 h-48 rounded-full border-2 border-white/5 flex items-center justify-center relative">
+                    <div className="w-48 h-48 rounded-full border-2 border-[var(--border-main)] flex items-center justify-center relative">
                         <div className="absolute inset-0 rounded-full border-t-2 border-accent animate-spin" style={{ animationDuration: '2s' }} />
                         <div className="w-32 h-32 rounded-full bg-accent/5 flex items-center justify-center">
                             <Sparkles className="w-12 h-12 text-accent animate-pulse" />
@@ -395,14 +395,14 @@ export default function CriarPage() {
                 </div>
                 
                 <div className="space-y-6 max-w-md">
-                    <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic leading-tight">Sincronizando Matriz Narrativa...</h2>
+                    <h2 className="text-4xl font-black text-[var(--text-main)] tracking-tighter uppercase italic leading-tight">Sincronizando Matriz Narrativa...</h2>
                     <p className="text-gray-500 font-medium uppercase tracking-[0.2em] text-[9px] leading-loose">
                         Nossa IA está analisando a logo, gerando o roteiro e renderizando o vídeo com Veo3.
                         Este processo leva entre 3 e 5 minutos.
                     </p>
                 </div>
 
-                <div className="w-full max-w-sm h-1.5 bg-white/5 rounded-full overflow-hidden">
+                <div className="w-full max-w-sm h-1.5 bg-[var(--bg-primary)] rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-accent transition-all duration-500 ease-out" style={{ width: `${progress}%` }} />
                 </div>
             </div>
@@ -421,11 +421,11 @@ export default function CriarPage() {
                                 ? 'bg-accent text-black shadow-accent scale-110' 
                                 : currentStep > s 
                                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                : 'bg-white/5 text-gray-700 border border-white/10'
+                                : 'bg-[var(--bg-primary)] text-gray-700 border border-white/10'
                         )}>
                             {currentStep > s ? <CheckCircle className="w-5 h-5" /> : `0${s + 1}`}
                         </div>
-                        {s < 2 && <div className={cn("w-12 h-[2px] rounded-full transition-all duration-500", currentStep > s ? 'bg-emerald-500/40' : 'bg-white/5')} />}
+                        {s < 2 && <div className={cn("w-12 h-[2px] rounded-full transition-all duration-500", currentStep > s ? 'bg-emerald-500/40' : 'bg-[var(--bg-primary)]')} />}
                     </div>
                 ))}
             </div>
@@ -448,8 +448,8 @@ export default function CriarPage() {
                                     value={step1.nome_produto}
                                     onChange={(e) => setStep1((p) => ({ ...p, nome_produto: e.target.value }))}
                                     className={cn(
-                                        "w-full bg-dark-card border rounded-2xl md:rounded-[32px] px-5 py-4 md:px-8 md:py-6 text-main font-black uppercase tracking-widest focus:ring-0 transition-all text-sm outline-none",
-                                        step1Errors.nome_produto ? 'border-red-500' : 'border-dark-border focus:border-accent/40'
+                                        "w-full bg-[var(--bg-card)] border rounded-2xl md:rounded-[32px] px-5 py-4 md:px-8 md:py-6 text-main font-black uppercase tracking-widest focus:ring-0 transition-all text-sm outline-none",
+                                        step1Errors.nome_produto ? 'border-red-500' : 'border-[var(--border-main)] focus:border-accent/40'
                                     )}
                                 />
                             </div>
@@ -472,8 +472,8 @@ export default function CriarPage() {
                                     value={step1.descricao_produto}
                                     onChange={(e) => setStep1((p) => ({ ...p, descricao_produto: e.target.value }))}
                                     className={cn(
-                                        "w-full bg-dark-card border rounded-2xl md:rounded-[32px] px-5 py-4 md:px-8 md:py-6 text-main font-medium focus:ring-0 transition-all text-sm leading-relaxed outline-none resize-none",
-                                        step1Errors.descricao_produto ? 'border-red-500' : 'border-dark-border focus:border-accent/40'
+                                        "w-full bg-[var(--bg-card)] border rounded-2xl md:rounded-[32px] px-5 py-4 md:px-8 md:py-6 text-main font-medium focus:ring-0 transition-all text-sm leading-relaxed outline-none resize-none",
+                                        step1Errors.descricao_produto ? 'border-red-500' : 'border-[var(--border-main)] focus:border-accent/40'
                                     )}
                                 />
                             </div>
@@ -509,7 +509,7 @@ export default function CriarPage() {
                                         <h3 className="text-[10px] font-black text-accent uppercase tracking-[0.2em]">Compliance AI Node</h3>
                                     </div>
                                     <div className="space-y-4">
-                                        <p className="text-white font-bold text-lg leading-tight tracking-tight italic">
+                                        <p className="text-[var(--text-main)] font-bold text-lg leading-tight tracking-tight italic">
                                             &quot;Nossa rede neural garante que todos os termos sigam os protocolos da CVM.&quot;
                                         </p>
                                         <div className="flex items-center gap-2">
@@ -522,7 +522,7 @@ export default function CriarPage() {
                         </div>
                     </div>
 
-                    <div className="flex justify-end pt-6 md:pt-12 border-t border-white/5">
+                    <div className="flex justify-end pt-6 md:pt-12 border-t border-[var(--border-main)]">
                         <button onClick={handleNext} className="btn-primary flex items-center gap-3 md:gap-4 px-8 py-4 md:px-12 md:py-6 group bg-accent text-black font-black uppercase tracking-widest text-sm rounded-2xl md:rounded-[24px]">
                             <span>Validar Ativos</span>
                             <ChevronRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
@@ -554,19 +554,19 @@ export default function CriarPage() {
                                                 "flex items-center gap-6 p-8 rounded-[40px] border transition-all text-left group",
                                                 step2.formato === f.id
                                                     ? 'border-accent bg-accent/10 shadow-accent-sm'
-                                                    : 'border-white/5 bg-white/5 hover:border-accent/30 hover:bg-white/10'
+                                                    : 'border-[var(--border-main)] bg-[var(--bg-primary)] hover:border-accent/30 hover:bg-[var(--bg-primary)]'
                                             )}
                                         >
                                             <div className={cn(
                                                 "w-14 h-14 rounded-2xl flex items-center justify-center transition-all",
-                                                step2.formato === f.id ? 'bg-accent text-black' : 'bg-white/5 text-gray-600 group-hover:text-white'
+                                                step2.formato === f.id ? 'bg-accent text-black' : 'bg-[var(--bg-primary)] text-gray-600 group-hover:text-[var(--text-main)]'
                                             )}>
                                                 <f.icon className="w-7 h-7" />
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className={cn(
                                                     "text-sm font-black uppercase tracking-widest",
-                                                    step2.formato === f.id ? 'text-accent' : 'text-gray-400 group-hover:text-white'
+                                                    step2.formato === f.id ? 'text-accent' : 'text-gray-400 group-hover:text-[var(--text-main)]'
                                                 )}>{f.label}</span>
                                                 <span className="text-[9px] text-gray-600 font-bold uppercase mt-2 leading-relaxed">{f.desc}</span>
                                             </div>
@@ -589,7 +589,7 @@ export default function CriarPage() {
                                                     "flex-1 py-5 rounded-2xl border transition-all font-black text-[10px] uppercase tracking-widest",
                                                     step2.duracao === d.value
                                                         ? 'border-accent bg-accent/10 text-accent'
-                                                        : 'border-white/5 bg-white/5 text-gray-600 hover:border-accent/30 hover:text-white'
+                                                        : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-gray-600 hover:border-accent/30 hover:text-[var(--text-main)]'
                                                 )}
                                             >
                                                 {d.label}
@@ -611,7 +611,7 @@ export default function CriarPage() {
                                                     "flex-1 flex flex-col items-center gap-2 py-5 rounded-2xl border transition-all font-black text-[10px] uppercase tracking-widest group",
                                                     step2.tom === t.id
                                                         ? 'border-accent bg-accent/10 text-accent'
-                                                        : 'border-white/5 bg-white/5 text-gray-600 hover:border-accent/30 hover:text-white'
+                                                        : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-gray-600 hover:border-accent/30 hover:text-[var(--text-main)]'
                                                 )}
                                             >
                                                 <t.icon className={cn("w-5 h-5 mb-1", step2.tom === t.id ? 'text-accent' : 'text-gray-700')} />
@@ -634,14 +634,14 @@ export default function CriarPage() {
                                                 "flex items-center gap-6 p-8 rounded-[40px] border transition-all text-left relative overflow-hidden group",
                                                 step2.linha_editorial === l.id
                                                     ? 'border-accent bg-accent/10'
-                                                    : 'border-white/5 bg-white/5 hover:border-accent/30 hover:bg-white/10'
+                                                    : 'border-[var(--border-main)] bg-[var(--bg-primary)] hover:border-accent/30 hover:bg-[var(--bg-primary)]'
                                             )}
                                         >
                                             <l.icon className={cn("w-7 h-7", step2.linha_editorial === l.id ? 'text-accent' : 'text-gray-800')} />
                                             <div className="flex flex-col">
                                                 <span className={cn(
                                                     "text-sm font-black uppercase tracking-widest",
-                                                    step2.linha_editorial === l.id ? 'text-accent' : 'text-gray-400 group-hover:text-white'
+                                                    step2.linha_editorial === l.id ? 'text-accent' : 'text-gray-400 group-hover:text-[var(--text-main)]'
                                                 )}>{l.nome}</span>
                                                 <span className="text-[9px] text-gray-600 font-bold uppercase mt-2 leading-relaxed">{l.desc}</span>
                                             </div>
@@ -655,7 +655,7 @@ export default function CriarPage() {
                         <div className="lg:col-span-2">
                             <div className="sticky top-20 flex flex-col items-center gap-8">
                                 <div className="text-center space-y-2">
-                                     <h4 className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Previsão Social Operacional</h4>
+                                     <h4 className="text-[10px] font-black text-[var(--text-main)] uppercase tracking-[0.3em]">Previsão Social Operacional</h4>
                                      <p className="text-[8px] text-gray-600 font-bold uppercase">Simulação de saída em tempo real</p>
                                 </div>
                                 
@@ -677,7 +677,7 @@ export default function CriarPage() {
                                               </div>
                                           ) : (
                                               <div className="w-full space-y-6 px-4">
-                                                   <div className="w-full aspect-square bg-white/5 rounded-2xl flex items-center justify-center">
+                                                   <div className="w-full aspect-square bg-[var(--bg-primary)] rounded-2xl flex items-center justify-center">
                                                         <Video className="w-12 h-12 text-gray-800" />
                                                    </div>
                                                    <div className="space-y-3">
@@ -706,8 +706,8 @@ export default function CriarPage() {
                         </div>
                     </div>
 
-                    <div className="flex justify-between items-center pt-8 border-t border-white/5">
-                        <button onClick={() => setCurrentStep(0)} className="text-[10px] font-black text-gray-600 uppercase tracking-widest hover:text-white transition-colors">
+                    <div className="flex justify-between items-center pt-8 border-t border-[var(--border-main)]">
+                        <button onClick={() => setCurrentStep(0)} className="text-[10px] font-black text-gray-600 uppercase tracking-widest hover:text-[var(--text-main)] transition-colors">
                             ← Reavaliar Entradas
                         </button>
                         <button onClick={handleNext} className="btn-primary flex items-center gap-4 px-12 py-6 group bg-accent text-black font-black uppercase tracking-widest text-sm rounded-[24px]">
@@ -722,12 +722,12 @@ export default function CriarPage() {
             {currentStep === 2 && (
                 <div className="space-y-8 animate-fade-in pb-20">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div className="md:col-span-2 card border-white/5 bg-white/[0.02] p-10 space-y-10 shadow-2xl rounded-[56px] relative overflow-hidden">
+                        <div className="md:col-span-2 card border-[var(--border-main)] bg-[var(--bg-primary)] p-10 space-y-10 shadow-2xl rounded-[56px] relative overflow-hidden">
                             <div className="absolute top-0 left-0 p-10 opacity-5 pointer-events-none">
                                  <Layout className="w-48 h-48" />
                             </div>
-                            <div className="flex items-center justify-between border-b border-white/5 pb-8">
-                                <h3 className="text-xs font-black text-white uppercase tracking-[0.4em]">Manifesto da Campanha</h3>
+                            <div className="flex items-center justify-between border-b border-[var(--border-main)] pb-8">
+                                <h3 className="text-xs font-black text-[var(--text-main)] uppercase tracking-[0.4em]">Manifesto da Campanha</h3>
                                 <div className="px-4 py-1.5 rounded-full bg-accent/10 border border-accent/20 flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
                                     <span className="text-[9px] font-black text-accent uppercase tracking-widest">Verificado por IA</span>
@@ -737,35 +737,35 @@ export default function CriarPage() {
                             <div className="grid grid-cols-2 gap-x-12 gap-y-10">
                                 <div className="space-y-3">
                                     <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Produto Alvo</p>
-                                    <p className="text-white font-black uppercase text-base tracking-tight">{step1.nome_produto}</p>
+                                    <p className="text-[var(--text-main)] font-black uppercase text-base tracking-tight">{step1.nome_produto}</p>
                                 </div>
                                 <div className="space-y-3">
                                     <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Formato de Saída</p>
-                                    <p className="text-white font-black uppercase text-base tracking-tight">{step2.formato}</p>
+                                    <p className="text-[var(--text-main)] font-black uppercase text-base tracking-tight">{step2.formato}</p>
                                 </div>
                                 <div className="space-y-3">
                                     <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Protocolo Narrativo</p>
-                                    <p className="text-white font-black uppercase text-base tracking-tight">{step2.linha_editorial}</p>
+                                    <p className="text-[var(--text-main)] font-black uppercase text-base tracking-tight">{step2.linha_editorial}</p>
                                 </div>
                                 <div className="space-y-3">
                                     <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Escala Temporal</p>
-                                    <p className="text-white font-black uppercase text-base tracking-tight italic">{step2.duracao} Segundos</p>
+                                    <p className="text-[var(--text-main)] font-black uppercase text-base tracking-tight italic">{step2.duracao} Segundos</p>
                                 </div>
                             </div>
 
-                            <div className="space-y-6 pt-6 border-t border-white/5">
+                            <div className="space-y-6 pt-6 border-t border-[var(--border-main)]">
                                 <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Script Otimizado</p>
-                                <p className="text-gray-400 font-medium text-xs leading-loose bg-white/5 p-8 rounded-[32px] border border-white/5 italic shadow-inner">{step1.descricao_produto}</p>
+                                <p className="text-gray-400 font-medium text-xs leading-loose bg-[var(--bg-primary)] p-8 rounded-[32px] border border-[var(--border-main)] italic shadow-inner">{step1.descricao_produto}</p>
                             </div>
                         </div>
 
                         <div className="space-y-8">
-                            <div className="card border-white/5 bg-white/[0.02] p-8 space-y-8 rounded-[48px] shadow-2xl">
-                                <h4 className="text-[10px] font-black text-white uppercase tracking-[0.3em] text-center mb-4">Deck Visual de Referência</h4>
+                            <div className="card border-[var(--border-main)] bg-[var(--bg-primary)] p-8 space-y-8 rounded-[48px] shadow-2xl">
+                                <h4 className="text-[10px] font-black text-[var(--text-main)] uppercase tracking-[0.3em] text-center mb-4">Deck Visual de Referência</h4>
                                 {step1.imagem_produto_url && (
                                     <div className="space-y-3">
                                         <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest text-center">Ativo Principal</p>
-                                        <div className="aspect-[3/4] rounded-3xl overflow-hidden border border-white/5 relative group shadow-2xl">
+                                        <div className="aspect-[3/4] rounded-3xl overflow-hidden border border-[var(--border-main)] relative group shadow-2xl">
                                             <img src={step1.imagem_produto_url} alt="Product" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
                                         </div>
@@ -774,7 +774,7 @@ export default function CriarPage() {
                                 {step1.logo_empresa_url && (
                                     <div className="space-y-3">
                                         <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest text-center">DNA da Marca</p>
-                                        <div className="h-28 rounded-3xl bg-white/5 border border-white/5 p-6 flex items-center justify-center group hover:bg-white/10 transition-colors">
+                                        <div className="h-28 rounded-3xl bg-[var(--bg-primary)] border border-[var(--border-main)] p-6 flex items-center justify-center group hover:bg-[var(--bg-primary)] transition-colors">
                                             <img src={step1.logo_empresa_url} alt="Logo" className="max-h-full max-w-full object-contain filter brightness-110 group-hover:scale-110 transition-transform duration-500" />
                                         </div>
                                     </div>
@@ -793,8 +793,8 @@ export default function CriarPage() {
                         </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-8 pt-12 border-t border-white/5">
-                        <button onClick={() => setCurrentStep(1)} className="text-[10px] font-black text-gray-600 uppercase tracking-widest hover:text-white transition-colors">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-8 pt-12 border-t border-[var(--border-main)]">
+                        <button onClick={() => setCurrentStep(1)} className="text-[10px] font-black text-gray-600 uppercase tracking-widest hover:text-[var(--text-main)] transition-colors">
                             ← Resetar Protocolo
                         </button>
                         <button
@@ -847,30 +847,30 @@ function FileUploadField({ label, previewUrl, onChange, onClear, required, error
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
                 />
                 <div className={cn(
-                    "h-48 rounded-[40px] border border-dashed flex flex-col items-center justify-center transition-all bg-white/5 group-hover:bg-white/[0.08] shadow-2xl relative overflow-hidden",
+                    "h-48 rounded-[40px] border border-dashed flex flex-col items-center justify-center transition-all bg-[var(--bg-primary)] group-hover:bg-[var(--bg-primary)] shadow-2xl relative overflow-hidden",
                     error ? 'border-red-500/60' : previewUrl ? 'border-accent/40' : 'border-white/10'
                 )}>
                     {previewUrl ? (
                         <div className="relative w-full h-full p-3 group/preview">
                             <img src={previewUrl} alt="Preview" className="w-full h-full object-cover rounded-[32px] transition-transform duration-700 group-hover/preview:scale-110" />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/preview:opacity-100 transition-opacity flex items-center justify-center rounded-[32px]">
-                                <Upload className="w-8 h-8 text-white" />
+                                <Upload className="w-8 h-8 text-[var(--text-main)]" />
                             </div>
                             <button
                                 type="button"
                                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClear(); }}
-                                className="absolute top-6 right-6 w-10 h-10 rounded-2xl bg-black/60 backdrop-blur-md flex items-center justify-center text-white z-30 opacity-0 group-hover/preview:opacity-100 transition-all hover:bg-black hover:scale-110"
+                                className="absolute top-6 right-6 w-10 h-10 rounded-2xl bg-black/60 backdrop-blur-md flex items-center justify-center text-[var(--text-main)] z-30 opacity-0 group-hover/preview:opacity-100 transition-all hover:bg-black hover:scale-110"
                             >
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
                     ) : (
                         <div className="flex flex-col items-center gap-4 text-center">
-                            <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center group-hover:scale-110 group-hover:bg-accent/10 transition-all duration-500 border border-white/5 group-hover:border-accent/20">
+                            <div className="w-14 h-14 rounded-2xl bg-[var(--bg-primary)] flex items-center justify-center group-hover:scale-110 group-hover:bg-accent/10 transition-all duration-500 border border-[var(--border-main)] group-hover:border-accent/20">
                                 <Upload className="w-6 h-6 text-gray-700 group-hover:text-accent transition-colors" />
                             </div>
                             <div>
-                                <span className="text-[11px] font-black text-white uppercase tracking-[0.2em] block mb-2">Upload Ativo</span>
+                                <span className="text-[11px] font-black text-[var(--text-main)] uppercase tracking-[0.2em] block mb-2">Upload Ativo</span>
                                 <span className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">PNG, JPG, WEBP • Max 10MB</span>
                             </div>
                         </div>

@@ -51,7 +51,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function InputDark({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className={cn('w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm', className)}
+      className={cn('w-full bg-[var(--bg-primary)] border border-white/10 text-[var(--text-main)] placeholder-gray-600 px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm', className)}
       {...props}
     />
   )
@@ -59,7 +59,7 @@ function InputDark({ className, ...props }: React.InputHTMLAttributes<HTMLInputE
 
 function CodeBlock({ code }: { code: string }) {
   return (
-    <pre className="bg-black/40 border border-white/5 rounded-xl p-4 text-[11px] text-emerald-400 font-mono overflow-x-auto whitespace-pre-wrap leading-relaxed">
+    <pre className="bg-black/40 border border-[var(--border-main)] rounded-xl p-4 text-[11px] text-emerald-400 font-mono overflow-x-auto whitespace-pre-wrap leading-relaxed">
       {code}
     </pre>
   )
@@ -67,9 +67,9 @@ function CodeBlock({ code }: { code: string }) {
 
 function SectionCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 space-y-5">
+    <div className="bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-2xl p-6 space-y-5">
       <div>
-        <h3 className="text-sm font-bold text-white">{title}</h3>
+        <h3 className="text-sm font-bold text-[var(--text-main)]">{title}</h3>
         {subtitle && <p className="text-[11px] text-gray-500 mt-0.5">{subtitle}</p>}
       </div>
       {children}
@@ -143,9 +143,9 @@ function EndpointModal({
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-md bg-[#0D1526] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-          <h3 className="text-white font-bold text-sm">Novo Endpoint de Webhook</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-main)]">
+          <h3 className="text-[var(--text-main)] font-bold text-sm">Novo Endpoint de Webhook</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-[var(--text-main)] transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -158,10 +158,10 @@ function EndpointModal({
               value={path}
               onChange={e => setPath(e.target.value)}
               placeholder="facebook-leads"
-              className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm"
+              className="w-full bg-[var(--bg-primary)] border border-white/10 text-[var(--text-main)] placeholder-gray-600 px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm"
             />
             {fullUrl && (
-              <div className="bg-black/30 border border-white/5 rounded-lg px-3 py-2">
+              <div className="bg-black/30 border border-[var(--border-main)] rounded-lg px-3 py-2">
                 <p className="text-[10px] text-gray-500 mb-0.5">URL final:</p>
                 <p className="text-[11px] text-emerald-400 font-mono break-all">{fullUrl}</p>
               </div>
@@ -173,7 +173,7 @@ function EndpointModal({
             <select
               value={source}
               onChange={e => setSource(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm appearance-none"
+              className="w-full bg-[var(--bg-primary)] border border-white/10 text-[var(--text-main)] px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm appearance-none"
             >
               {SOURCES.map(s => (
                 <option key={s.value} value={s.value} className="bg-[#0D1526]">{s.label}</option>
@@ -188,15 +188,15 @@ function EndpointModal({
               value={secret}
               onChange={e => setSecret(e.target.value)}
               placeholder="Token de autenticação"
-              className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm"
+              className="w-full bg-[var(--bg-primary)] border border-white/10 text-[var(--text-main)] placeholder-gray-600 px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm"
             />
             <p className="text-[10px] text-gray-600">Envie no header <code className="text-gray-400">x-webhook-secret</code> ou <code className="text-gray-400">authorization: bearer TOKEN</code></p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/5">
-          <button onClick={onClose} className="px-5 py-2.5 text-xs font-bold text-gray-400 hover:text-white border border-white/10 rounded-xl transition-all">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--border-main)]">
+          <button onClick={onClose} className="px-5 py-2.5 text-xs font-bold text-gray-400 hover:text-[var(--text-main)] border border-white/10 rounded-xl transition-all">
             Cancelar
           </button>
           <button onClick={handleCreate} disabled={saving}
@@ -492,8 +492,8 @@ export default function ConfiguracoesPage() {
   if (isLoadingProfile) {
     return (
       <div className="p-8 space-y-4 animate-pulse">
-        <div className="h-8 w-48 bg-white/5 rounded-xl" />
-        <div className="h-4 w-64 bg-white/5 rounded-xl" />
+        <div className="h-8 w-48 bg-[var(--bg-primary)] rounded-xl" />
+        <div className="h-4 w-64 bg-[var(--bg-primary)] rounded-xl" />
       </div>
     )
   }
@@ -502,12 +502,12 @@ export default function ConfiguracoesPage() {
     <div className="p-4 md:p-6 lg:p-10 max-w-5xl mx-auto space-y-6 md:space-y-8 pb-20">
       {/* Header */}
       <div>
-        <h1 className="text-2xl md:text-3xl font-black text-white tracking-tighter">Configurações</h1>
+        <h1 className="text-2xl md:text-3xl font-black text-[var(--text-main)] tracking-tighter">Configurações</h1>
         <p className="text-gray-500 text-sm mt-1">Gerencie suas preferências</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex overflow-x-auto gap-1 border-b border-white/5 pb-0 no-view -mx-4 md:mx-0 px-4 md:px-0">
+      <div className="flex overflow-x-auto gap-1 border-b border-[var(--border-main)] pb-0 no-view -mx-4 md:mx-0 px-4 md:px-0">
         {TABS.map(tab => {
           const Icon = tab.icon
           return (
@@ -518,7 +518,7 @@ export default function ConfiguracoesPage() {
                 'flex items-center gap-2 px-3 md:px-4 py-3 text-[10px] md:text-[11px] font-bold uppercase tracking-wider border-b-2 transition-all -mb-px whitespace-nowrap flex-shrink-0',
                 activeTab === tab.id
                   ? 'border-accent text-accent'
-                  : 'border-transparent text-gray-500 hover:text-white'
+                  : 'border-transparent text-gray-500 hover:text-[var(--text-main)]'
               )}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -549,7 +549,7 @@ export default function ConfiguracoesPage() {
                 <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
               </div>
               <div>
-                <p className="text-white font-bold">{profile.nome || 'Usuário'}</p>
+                <p className="text-[var(--text-main)] font-bold">{profile.nome || 'Usuário'}</p>
                 <p className="text-gray-500 text-xs">{profile.email}</p>
               </div>
             </div>
@@ -621,7 +621,7 @@ export default function ConfiguracoesPage() {
             <>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <h2 className="text-white font-bold">{board.nome}</h2>
+                  <h2 className="text-[var(--text-main)] font-bold">{board.nome}</h2>
                   <span className="text-[10px] bg-accent/10 text-accent border border-accent/20 px-2 py-0.5 rounded-full font-bold uppercase">Padrão</span>
                 </div>
                 <button
@@ -635,7 +635,7 @@ export default function ConfiguracoesPage() {
               <SectionCard title="Estágios" subtitle="Arraste para reordenar os estágios do pipeline">
                 <div className="space-y-2">
                   {board.colunas?.map((col: any) => (
-                    <div key={col.id} className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/5 rounded-xl group">
+                    <div key={col.id} className="flex items-center gap-3 p-3 bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-xl group">
                       <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: col.cor }} />
                       {editingStageId === col.id ? (
                         <input
@@ -643,20 +643,20 @@ export default function ConfiguracoesPage() {
                           value={editingName}
                           onChange={e => setEditingName(e.target.value)}
                           onKeyDown={e => { if (e.key === 'Enter') handleEditStage(col.id); if (e.key === 'Escape') setEditingStageId(null) }}
-                          className="flex-1 bg-white/10 border border-accent/40 text-white text-sm px-3 py-1.5 rounded-lg outline-none"
+                          className="flex-1 bg-[var(--bg-primary)] border border-accent/40 text-[var(--text-main)] text-sm px-3 py-1.5 rounded-lg outline-none"
                         />
                       ) : (
-                        <span className="flex-1 text-sm text-white font-medium">{col.nome}</span>
+                        <span className="flex-1 text-sm text-[var(--text-main)] font-medium">{col.nome}</span>
                       )}
                       <span className="text-[10px] text-gray-600 font-medium hidden sm:block">SLA: 24h</span>
                       {editingStageId === col.id ? (
                         <div className="flex gap-1">
                           <button onClick={() => handleEditStage(col.id)} className="p-1.5 text-emerald-400 hover:bg-emerald-400/10 rounded-lg transition-colors"><Check className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => setEditingStageId(null)} className="p-1.5 text-gray-500 hover:bg-white/5 rounded-lg transition-colors"><X className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => setEditingStageId(null)} className="p-1.5 text-gray-500 hover:bg-[var(--bg-primary)] rounded-lg transition-colors"><X className="w-3.5 h-3.5" /></button>
                         </div>
                       ) : (
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => { setEditingStageId(col.id); setEditingName(col.nome) }} className="p-1.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"><Edit2 className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => { setEditingStageId(col.id); setEditingName(col.nome) }} className="p-1.5 text-gray-400 hover:text-[var(--text-main)] hover:bg-[var(--bg-primary)] rounded-lg transition-all"><Edit2 className="w-3.5 h-3.5" /></button>
                           <button onClick={() => handleDeleteStage(col.id)} className="p-1.5 text-gray-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       )}
@@ -672,10 +672,10 @@ export default function ConfiguracoesPage() {
                         onChange={e => setNewStageName(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') handleAddStage(); if (e.key === 'Escape') { setAddingStage(false); setNewStageName('') } }}
                         placeholder="Nome do estágio..."
-                        className="flex-1 bg-transparent text-white text-sm outline-none placeholder-gray-600"
+                        className="flex-1 bg-transparent text-[var(--text-main)] text-sm outline-none placeholder-gray-600"
                       />
                       <button onClick={handleAddStage} className="p-1.5 text-emerald-400 hover:bg-emerald-400/10 rounded-lg transition-colors"><Check className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => { setAddingStage(false); setNewStageName('') }} className="p-1.5 text-gray-500 hover:bg-white/5 rounded-lg transition-colors"><X className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => { setAddingStage(false); setNewStageName('') }} className="p-1.5 text-gray-500 hover:bg-[var(--bg-primary)] rounded-lg transition-colors"><X className="w-3.5 h-3.5" /></button>
                     </div>
                   )}
                 </div>
@@ -691,7 +691,7 @@ export default function ConfiguracoesPage() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-white font-bold">Integrações</h2>
+              <h2 className="text-[var(--text-main)] font-bold">Integrações</h2>
               <p className="text-gray-500 text-xs mt-0.5">Configure webhooks e APIs externas</p>
             </div>
             <button
@@ -704,8 +704,8 @@ export default function ConfiguracoesPage() {
 
           {/* New integration form */}
           {showNewInteg && (
-            <div className="bg-white/[0.02] border border-accent/20 rounded-2xl p-5 space-y-4">
-              <h3 className="text-sm font-bold text-white">Nova Integração</h3>
+            <div className="bg-[var(--bg-primary)] border border-accent/20 rounded-2xl p-5 space-y-4">
+              <h3 className="text-sm font-bold text-[var(--text-main)]">Nova Integração</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="Nome da Integração">
                   <InputDark value={newInteg.nome} onChange={e => setNewInteg(p => ({ ...p, nome: e.target.value }))} placeholder="Ex: Facebook Leads Ads" />
@@ -716,7 +716,7 @@ export default function ConfiguracoesPage() {
               </div>
               <div className="flex gap-2 justify-end">
                 <button onClick={() => { setShowNewInteg(false); setNewInteg({ nome: '', url: '', tipo: 'webhook' }) }}
-                  className="px-4 py-2 text-xs font-bold text-gray-400 border border-white/10 rounded-xl hover:text-white transition-all">Cancelar</button>
+                  className="px-4 py-2 text-xs font-bold text-gray-400 border border-white/10 rounded-xl hover:text-[var(--text-main)] transition-all">Cancelar</button>
                 <button onClick={handleSaveInteg}
                   className="px-4 py-2 text-xs font-bold bg-accent text-black rounded-xl hover:bg-accent/90 transition-all">Salvar</button>
               </div>
@@ -727,7 +727,7 @@ export default function ConfiguracoesPage() {
           {loadingInteg ? (
             <div className="flex items-center justify-center h-32"><Loader2 className="w-5 h-5 animate-spin text-accent" /></div>
           ) : integracoes.length === 0 ? (
-            <div className="text-center py-16 border border-dashed border-white/5 rounded-2xl">
+            <div className="text-center py-16 border border-dashed border-[var(--border-main)] rounded-2xl">
               <Webhook className="w-8 h-8 text-gray-700 mx-auto mb-3" />
               <p className="text-gray-600 text-sm">Nenhuma integração configurada</p>
               <p className="text-gray-700 text-xs mt-1">Clique em "Nova Integração" para começar</p>
@@ -744,13 +744,13 @@ export default function ConfiguracoesPage() {
                     {/* Integration row */}
                     <div className="flex items-center gap-4 px-5 py-4">
                       <Webhook className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                      <span className="flex-1 text-white text-sm font-semibold">{nome}</span>
+                      <span className="flex-1 text-[var(--text-main)] text-sm font-semibold">{nome}</span>
 
                       <div className="flex items-center gap-2">
                         {/* Toggle */}
                         <button
                           onClick={() => handleToggleInteg(integ)}
-                          className={cn('w-11 h-6 rounded-full transition-all relative flex-shrink-0', integ.ativo ? 'bg-accent' : 'bg-white/10')}
+                          className={cn('w-11 h-6 rounded-full transition-all relative flex-shrink-0', integ.ativo ? 'bg-accent' : 'bg-[var(--border-main)]')}
                         >
                           <span className={cn('absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm transition-all', integ.ativo ? 'left-6' : 'left-1')} />
                         </button>
@@ -758,7 +758,7 @@ export default function ConfiguracoesPage() {
                         {/* + Endpoint */}
                         <button
                           onClick={() => setEndpointModalTipo(integ.tipo)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-white border border-white/10 rounded-lg hover:border-white/20 hover:bg-white/5 transition-all"
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-[var(--text-main)] border border-white/10 rounded-lg hover:border-accent/40 hover:bg-[var(--bg-primary)] transition-all"
                         >
                           <Plus className="w-3 h-3" /> Endpoint
                         </button>
@@ -775,7 +775,7 @@ export default function ConfiguracoesPage() {
                         {endpoints.length > 0 && (
                           <button
                             onClick={() => setExpandedInteg(isExpanded ? null : integ.tipo)}
-                            className="p-1.5 text-gray-500 hover:text-white transition-colors"
+                            className="p-1.5 text-gray-500 hover:text-[var(--text-main)] transition-colors"
                           >
                             <ChevronDown className={cn('w-4 h-4 transition-transform', isExpanded && 'rotate-180')} />
                           </button>
@@ -787,15 +787,15 @@ export default function ConfiguracoesPage() {
                     {(isExpanded || endpoints.length > 0) && endpoints.length > 0 && (
                       <div className="border-t border-white/[0.04]">
                         {endpoints.map(ep => (
-                          <div key={ep.id} className="flex items-center gap-3 px-5 py-3 border-b border-white/[0.03] last:border-0 hover:bg-white/[0.02] transition-colors group">
+                          <div key={ep.id} className="flex items-center gap-3 px-5 py-3 border-b border-[var(--border-main)] last:border-0 hover:bg-[var(--bg-primary)] transition-colors group">
                             <Link2 className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
                             <code className="text-[12px] text-gray-400 font-mono">/{ep.path}</code>
-                            <span className="text-[11px] bg-white/5 border border-white/10 text-gray-500 px-2 py-0.5 rounded-md font-mono">{ep.tag}</span>
+                            <span className="text-[11px] bg-[var(--bg-primary)] border border-white/10 text-gray-500 px-2 py-0.5 rounded-md font-mono">{ep.tag}</span>
                             {ep.source && (
                               <span className="text-[10px] text-accent bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full">{ep.source}</span>
                             )}
                             <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button onClick={() => copyToClipboard(ep.full_url)} className="p-1.5 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-all" title="Copiar URL">
+                              <button onClick={() => copyToClipboard(ep.full_url)} className="p-1.5 text-gray-500 hover:text-[var(--text-main)] hover:bg-[var(--bg-primary)] rounded-lg transition-all" title="Copiar URL">
                                 <Copy className="w-3 h-3" />
                               </button>
                               <button onClick={() => handleDeleteEndpoint(integ.tipo, ep.id)} className="p-1.5 text-gray-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all" title="Excluir endpoint">
@@ -837,17 +837,17 @@ export default function ConfiguracoesPage() {
                 </Field>
                 <Field label="Tom de Comunicação">
                   <select value={agente.tom} onChange={e => setAgente(a => ({ ...a, tom: e.target.value }))}
-                    className="w-full bg-white/5 border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm">
+                    className="w-full bg-[var(--bg-primary)] border border-white/10 text-[var(--text-main)] px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm">
                     <option value="profissional">Profissional</option>
                     <option value="amigavel">Amigável</option>
                     <option value="formal">Formal</option>
                     <option value="direto">Direto ao ponto</option>
                   </select>
                 </Field>
-                <div className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-xl">
-                  <span className="text-sm text-white">Personalidade ativa</span>
+                <div className="flex items-center justify-between p-3 bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-xl">
+                  <span className="text-sm text-[var(--text-main)]">Personalidade ativa</span>
                   <button onClick={() => setAgente(a => ({ ...a, personalidade: !a.personalidade }))}
-                    className={cn('w-10 h-5 rounded-full transition-colors relative', agente.personalidade ? 'bg-accent' : 'bg-white/10')}>
+                    className={cn('w-10 h-5 rounded-full transition-colors relative', agente.personalidade ? 'bg-accent' : 'bg-[var(--border-main)]')}>
                     <span className={cn('absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all', agente.personalidade ? 'left-5' : 'left-0.5')} />
                   </button>
                 </div>
@@ -873,7 +873,7 @@ export default function ConfiguracoesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Field label="Modelo">
                 <select value={agente.modelo} onChange={e => setAgente(a => ({ ...a, modelo: e.target.value }))}
-                  className="w-full bg-white/5 border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm">
+                  className="w-full bg-[var(--bg-primary)] border border-white/10 text-[var(--text-main)] px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm">
                   <option value="gpt-4o-mini">GPT-4o Mini</option>
                   <option value="gpt-4o">GPT-4o</option>
                   <option value="gpt-4.1-mini">GPT-4.1 Mini</option>
@@ -1029,10 +1029,10 @@ Content-Type: application/json
 
           <SectionCard title="📥  Webhook de Callback (Receber Status)" subtitle="Configure esta URL no N8N para receber notificações quando listas finalizarem.">
             <div className="flex items-center gap-2">
-              <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
-                <span className="text-sm text-white font-mono">{callbackUrl}</span>
+              <div className="flex-1 bg-[var(--bg-primary)] border border-white/10 rounded-xl px-4 py-3">
+                <span className="text-sm text-[var(--text-main)] font-mono">{callbackUrl}</span>
               </div>
-              <button onClick={() => copyToClipboard(callbackUrl)} className="p-3 bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-white hover:border-accent/40 transition-all">
+              <button onClick={() => copyToClipboard(callbackUrl)} className="p-3 bg-[var(--bg-primary)] border border-white/10 rounded-xl text-gray-400 hover:text-[var(--text-main)] hover:border-accent/40 transition-all">
                 <Copy className="w-4 h-4" />
               </button>
             </div>
