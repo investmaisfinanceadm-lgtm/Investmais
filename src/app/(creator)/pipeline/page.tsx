@@ -201,11 +201,11 @@ function KanbanCardItem({
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ y: -2, scale: 1.01 }}
       onClick={onClick}
-      className="bg-dark-muted border border-white/5 rounded-xl p-4 cursor-pointer hover:border-white/10 hover:shadow-card transition-all duration-200 group"
+      className="bg-dark-card border border-dark-border shadow-light-card rounded-xl p-4 cursor-pointer hover:border-accent/40 hover:shadow-card transition-all duration-200 group"
     >
       {/* Title & category */}
       <div className="flex items-start justify-between gap-2 mb-3">
-        <p className="text-sm font-semibold text-white leading-snug group-hover:text-accent transition-colors line-clamp-2">
+        <p className="text-sm font-semibold text-main leading-snug group-hover:text-accent transition-colors line-clamp-2">
           {card.title}
         </p>
         <span className={`badge ${catClass} whitespace-nowrap flex-shrink-0 text-[10px]`}>
@@ -228,7 +228,7 @@ function KanbanCardItem({
       <div className="flex items-center justify-between pt-2 border-t border-white/5">
         <div className="flex items-center gap-1.5 min-w-0">
           <Avatar initials={card.responsible.initials} color={card.responsible.color} />
-          <span className="text-[10px] text-gray-500 truncate">{card.responsible.name.split(' ')[0]}</span>
+          <span className="text-[10px] text-muted truncate">{card.responsible.name.split(' ')[0]}</span>
         </div>
         <div className={`flex items-center gap-1 ${overdue ? 'text-red-400' : 'text-gray-500'}`}>
           {overdue ? (
@@ -266,9 +266,9 @@ function KanbanColumnComponent({
               className="w-2.5 h-2.5 rounded-full flex-shrink-0"
               style={{ backgroundColor: column.color, boxShadow: `0 0 8px ${column.color}60` }}
             />
-            <span className="text-sm font-black text-white uppercase tracking-wider">{column.name}</span>
+            <span className="text-sm font-black text-main uppercase tracking-wider">{column.name}</span>
           </div>
-          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/10 text-[10px] font-black text-gray-300">
+          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-dark-muted text-[10px] font-black text-muted">
             {column.cards.length}
           </span>
         </div>

@@ -434,8 +434,8 @@ export default function CriarPage() {
             {currentStep === 0 && (
                 <div className="space-y-8 md:space-y-12 animate-fade-in pb-20">
                     <div className="space-y-3 md:space-y-4">
-                        <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase italic leading-none">Insumos da Campanha</h2>
-                        <p className="text-gray-500 font-medium uppercase tracking-[0.2em] text-xs">Defina o DNA e os ativos base para o processamento de imagem.</p>
+                        <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-main tracking-tighter uppercase italic leading-none">Insumos da Campanha</h2>
+                        <p className="text-muted font-medium uppercase tracking-[0.2em] text-xs">Defina o DNA e os ativos base para o processamento de imagem.</p>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 md:gap-16">
@@ -448,8 +448,8 @@ export default function CriarPage() {
                                     value={step1.nome_produto}
                                     onChange={(e) => setStep1((p) => ({ ...p, nome_produto: e.target.value }))}
                                     className={cn(
-                                        "w-full bg-white/5 border rounded-2xl md:rounded-[32px] px-5 py-4 md:px-8 md:py-6 text-white font-black uppercase tracking-widest focus:ring-0 transition-all text-sm outline-none",
-                                        step1Errors.nome_produto ? 'border-red-500' : 'border-white/5 focus:border-accent/40'
+                                        "w-full bg-dark-card border rounded-2xl md:rounded-[32px] px-5 py-4 md:px-8 md:py-6 text-main font-black uppercase tracking-widest focus:ring-0 transition-all text-sm outline-none",
+                                        step1Errors.nome_produto ? 'border-red-500' : 'border-dark-border focus:border-accent/40'
                                     )}
                                 />
                             </div>
@@ -472,8 +472,8 @@ export default function CriarPage() {
                                     value={step1.descricao_produto}
                                     onChange={(e) => setStep1((p) => ({ ...p, descricao_produto: e.target.value }))}
                                     className={cn(
-                                        "w-full bg-white/5 border rounded-2xl md:rounded-[32px] px-5 py-4 md:px-8 md:py-6 text-white font-medium focus:ring-0 transition-all text-sm leading-relaxed outline-none resize-none",
-                                        step1Errors.descricao_produto ? 'border-red-500' : 'border-white/5 focus:border-accent/40'
+                                        "w-full bg-dark-card border rounded-2xl md:rounded-[32px] px-5 py-4 md:px-8 md:py-6 text-main font-medium focus:ring-0 transition-all text-sm leading-relaxed outline-none resize-none",
+                                        step1Errors.descricao_produto ? 'border-red-500' : 'border-dark-border focus:border-accent/40'
                                     )}
                                 />
                             </div>
@@ -535,8 +535,8 @@ export default function CriarPage() {
             {currentStep === 1 && (
                 <div className="space-y-8 md:space-y-12 animate-fade-in pb-20">
                     <div className="space-y-3 md:space-y-4">
-                        <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase italic leading-none">Matriz de Formatação</h2>
-                        <p className="text-gray-500 font-medium uppercase tracking-[0.2em] text-xs">Ajuste os parâmetros de saída e a frequência narrativa do conteúdo.</p>
+                        <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-main tracking-tighter uppercase italic leading-none">Matriz de Formatação</h2>
+                        <p className="text-muted font-medium uppercase tracking-[0.2em] text-xs">Ajuste os parâmetros de saída e a frequência narrativa do conteúdo.</p>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 md:gap-16">

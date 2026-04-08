@@ -150,7 +150,7 @@ export default function BibliotecaPage() {
 
     return (
         <div className="flex h-screen bg-primary overflow-hidden">
-            <div className="flex-1 flex flex-col min-w-0 bg-[#0A192F]">
+            <div className="flex-1 flex flex-col min-w-0 bg-primary">
                 {/* Header Actions */}
                 <div className="min-h-[60px] md:h-24 border-b border-white/5 flex flex-wrap items-center justify-between gap-3 px-4 md:px-10 py-3 md:py-0 backdrop-blur-md sticky top-0 z-20">
                     <div className="flex items-center gap-4 md:gap-10 flex-1 max-w-4xl min-w-0">
@@ -159,8 +159,8 @@ export default function BibliotecaPage() {
                                 <LayoutGrid className="w-5 h-5 text-accent" />
                             </div>
                             <div className="flex flex-col">
-                                <h1 className="text-xl font-black text-white uppercase tracking-tighter">Acervo Digital</h1>
-                                <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest">Protocolos de Mídia Estúdio AI</p>
+                                <h1 className="text-xl font-black text-main uppercase tracking-tighter">Acervo Digital</h1>
+                                <p className="text-[8px] text-muted font-bold uppercase tracking-widest">Protocolos de Mídia Estúdio AI</p>
                             </div>
                         </div>
 
@@ -171,7 +171,7 @@ export default function BibliotecaPage() {
                                 placeholder="BUSCAR NO ACERVO..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-white/5 border border-white/5 rounded-2xl py-3 pl-12 pr-4 text-[10px] font-black uppercase tracking-widest text-white focus:bg-white/[0.08] focus:border-accent/40 focus:ring-0 transition-all outline-none"
+                                className="w-full bg-dark-card border border-dark-border rounded-2xl py-3 pl-12 pr-4 text-[10px] font-black uppercase tracking-widest text-main focus:bg-dark-muted focus:border-accent/40 focus:ring-0 transition-all outline-none"
                             />
                         </div>
                     </div>
@@ -270,7 +270,7 @@ export default function BibliotecaPage() {
                             {filteredVideos.map((video) => (
                                 <div
                                     key={video.id}
-                                    className="group relative bg-[#0A192F] border border-white/5 rounded-[40px] overflow-hidden hover:border-accent/40 transition-all duration-700 shadow-2xl flex flex-col hover:scale-[1.02] hover:-translate-y-2"
+                                    className="group relative bg-dark-card border border-dark-border shadow-light-card rounded-[40px] overflow-hidden hover:border-accent/40 transition-all duration-700 shadow-2xl flex flex-col hover:scale-[1.02] hover:-translate-y-2"
                                 >
                                     {/* Thumbnail */}
                                     <div 
@@ -327,7 +327,7 @@ export default function BibliotecaPage() {
                                                     </span>
                                                     <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full border border-white/5">{video.duracao}s</span>
                                                 </div>
-                                                <h3 className="text-white font-black uppercase text-sm tracking-tighter truncate group-hover:text-accent transition-colors duration-500 italic">
+                                                <h3 className="text-main font-black uppercase text-sm tracking-tighter truncate group-hover:text-accent transition-colors duration-500 italic">
                                                     {video.nome_produto}
                                                 </h3>
                                             </div>

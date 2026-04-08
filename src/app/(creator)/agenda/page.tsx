@@ -139,18 +139,18 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
                         <Calendar className="w-3 h-3 text-accent" />
                         <span className="text-[10px] font-black text-accent uppercase tracking-widest">Sincronização de Protocolo</span>
                     </div>
-                    <h1 className="text-4xl font-black text-white uppercase tracking-tighter italic">Operações de <br /><span className="text-transparent bg-clip-text bg-gradient-accent">Estratégia</span></h1>
-                    <p className="text-gray-500 font-medium uppercase tracking-widest text-[10px]">Inicialize a arquitetura de conteúdo via Notion Engine</p>
+                    <h1 className="text-4xl font-black text-main uppercase tracking-tighter italic">Operações de <br /><span className="text-transparent bg-clip-text bg-gradient-accent">Estratégia</span></h1>
+                    <p className="text-muted font-medium uppercase tracking-widest text-[10px]">Inicialize a arquitetura de conteúdo via Notion Engine</p>
                 </div>
 
-                <div className="card text-center p-12 border-white/5 bg-white/[0.02] space-y-10 shadow-2xl rounded-[48px]">
-                    <div className="w-24 h-24 rounded-[32px] bg-white/5 border border-white/10 flex items-center justify-center mx-auto shadow-lg relative">
+                <div className="card text-center p-12 border-dark-border bg-dark-card shadow-light-card space-y-10 shadow-2xl rounded-[48px]">
+                    <div className="w-24 h-24 rounded-[32px] bg-dark-muted border border-dark-border flex items-center justify-center mx-auto shadow-lg relative">
                          <Calendar className="w-10 h-10 text-gray-500" />
                          <div className="absolute -inset-2 rounded-[40px] border border-accent/10 animate-pulse" />
                     </div>
                     <div className="space-y-4">
-                        <h2 className="text-2xl font-black text-white uppercase tracking-tighter leading-none italic">Sincronizar Banco <br />de Dados Externo</h2>
-                        <p className="text-gray-500 font-medium text-[10px] leading-loose uppercase tracking-[0.2em] max-w-xs mx-auto">
+                        <h2 className="text-2xl font-black text-main uppercase tracking-tighter leading-none italic">Sincronizar Banco <br />de Dados Externo</h2>
+                        <p className="text-muted font-medium text-[10px] leading-loose uppercase tracking-[0.2em] max-w-xs mx-auto">
                             Integre com o Notion para gerenciar fluxos de trabalho, aprovações e agendamentos em sua rede corporativa.
                         </p>
                     </div>
@@ -200,7 +200,7 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
                         <Activity className="w-3 h-3 text-accent" />
                         <span className="text-[10px] font-black text-accent uppercase tracking-widest">Hub de Operações Ativo</span>
                     </div>
-                    <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter leading-none uppercase italic">Inteligência de <br /><span className="text-transparent bg-clip-text bg-gradient-accent">Conteúdo</span></h1>
+                    <h1 className="text-3xl md:text-5xl font-black text-main tracking-tighter leading-none uppercase italic">Inteligência de <br /><span className="text-transparent bg-clip-text bg-gradient-accent">Conteúdo</span></h1>
                 </div>
                 <div className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -210,15 +210,15 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                 {/* Content Hub */}
-                <div className="card space-y-8 border-white/5 bg-white/[0.02] p-10 shadow-2xl relative overflow-hidden flex flex-col rounded-[48px]">
+                <div className="card space-y-8 border-dark-border bg-dark-card shadow-light-card p-10 shadow-2xl relative overflow-hidden flex flex-col rounded-[48px]">
                     <div className="absolute top-0 right-0 p-8 opacity-5">
                         <Calendar className="w-32 h-32" />
                     </div>
-                    <div className="flex items-center gap-4 border-b border-white/5 pb-6">
+                    <div className="flex items-center gap-4 border-b border-dark-border pb-6">
                         <div className="w-10 h-10 rounded-2xl bg-accent/10 flex items-center justify-center border border-accent/20 shadow-accent">
                             <Calendar className="w-5 h-5 text-accent" />
                         </div>
-                        <h2 className="text-xs font-black text-white uppercase tracking-[0.4em]">Comando de Pauta Hub</h2>
+                        <h2 className="text-xs font-black text-main uppercase tracking-[0.4em]">Comando de Pauta Hub</h2>
                     </div>
 
                     <div className="space-y-3 flex-1 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
@@ -229,8 +229,8 @@ Gap identificado em planejamento de ativos de longo prazo, lógica comparativa d
                                 <div key={post.id} className={cn("flex items-center gap-4 p-5 rounded-2xl border transition-all group hover:scale-[1.02]", config.bg)}>
                                     <Icon className={cn("w-4 h-4", config.color)} />
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-[10px] text-white font-black uppercase tracking-widest truncate">{post.titulo}</p>
-                                        <p className="text-[8px] text-gray-600 font-bold uppercase tracking-tight mt-1">{post.data} • REPOSITÓRIO CORE</p>
+                                        <p className="text-[10px] text-main font-black uppercase tracking-widest truncate">{post.titulo}</p>
+                                        <p className="text-[8px] text-muted font-bold uppercase tracking-tight mt-1">{post.data} • REPOSITÓRIO CORE</p>
                                     </div>
                                     <span className={cn("text-[9px] font-black tracking-widest", config.color)}>
                                         {config.label}

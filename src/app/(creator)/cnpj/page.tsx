@@ -62,8 +62,8 @@ function DataRow({ icon, label, value }: { icon: React.ReactNode; label: string;
     <div className="flex items-start gap-3 p-3 rounded-xl bg-dark-muted border border-dark-border group hover:border-accent/20 transition-colors">
       <div className="text-gray-500 mt-0.5 shrink-0">{icon}</div>
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider">{label}</p>
-        <p className="text-sm text-white font-medium mt-0.5 truncate">{value}</p>
+        <p className="text-[10px] font-black text-muted uppercase tracking-wider">{label}</p>
+        <p className="text-sm text-main font-medium mt-0.5 truncate">{value}</p>
       </div>
       <button onClick={() => { navigator.clipboard.writeText(value).catch(() => {}); setCopied(true); setTimeout(() => setCopied(false), 1500) }}
         className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-white transition-all shrink-0">
@@ -123,8 +123,8 @@ function GoogleTab() {
 
   return (
     <div className="space-y-6">
-      <div className="card p-6 rounded-2xl space-y-5">
-        <h2 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+      <div className="card p-6 rounded-2xl space-y-5 bg-dark-card border border-dark-border shadow-light-card">
+        <h2 className="text-sm font-black text-main uppercase tracking-wider flex items-center gap-2">
           <Search className="w-4 h-4 text-accent" />
           Buscar Leads no Google
         </h2>
@@ -179,19 +179,19 @@ function GoogleTab() {
           { label: 'Conversões', value: googleLeads.filter(l => l.status_funil === 'cliente').length.toString(), color: 'text-white' },
           { label: 'Na Semana', value: googleLeads.filter(l => (new Date().getTime() - new Date(l.created_at).getTime()) / (1000 * 3600 * 24) < 7).length.toString(), color: 'text-white' },
         ].map(s => (
-          <div key={s.label} className="card p-5 rounded-2xl text-center">
-            <p className={`text-3xl font-black ${s.color}`}>{s.value}</p>
-            <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-1">{s.label}</p>
+          <div key={s.label} className="card p-5 rounded-2xl text-center bg-dark-card border border-dark-border shadow-light-card">
+            <p className={`text-3xl font-black ${s.color === 'text-white' ? 'text-main' : s.color}`}>{s.value}</p>
+            <p className="text-[10px] text-muted uppercase tracking-wider mt-1">{s.label}</p>
           </div>
         ))}
       </div>
 
       {/* Últimas Buscas */}
-      <div className="card rounded-2xl overflow-hidden">
+      <div className="card rounded-2xl overflow-hidden bg-dark-card border border-dark-border shadow-light-card">
         <div className="px-6 py-4 border-b border-dark-border flex items-center justify-between">
             <div className="flex items-center gap-2">
                <Clock className="w-4 h-4 text-gray-500" />
-               <h3 className="text-sm font-black text-white uppercase tracking-wider">Últimos Leads Extraídos</h3>
+               <h3 className="text-sm font-black text-main uppercase tracking-wider">Últimos Leads Extraídos</h3>
             </div>
             <button onClick={() => window.location.reload()} className="text-[10px] text-gray-500 flex items-center gap-1 hover:text-white uppercase font-black"><RefreshCw className="w-3 h-3"/> Atualizar</button>
         </div>
@@ -270,7 +270,7 @@ function CNPJTab() {
     return true
   })
 
-  const estadosDisponiveis = [...new Set(leads.map(l => l.estado).filter(Boolean))] as string[]
+  const estadosDisponiveis = [...new Set(leads.map(l => l.estado).filter(Boolean)) as any] as string[]
 
   return (
     <div className="space-y-6">
@@ -479,8 +479,8 @@ export default function BuscaLeadsPage() {
     <div className="p-4 md:p-8 lg:p-12 space-y-6 md:space-y-8 max-w-7xl mx-auto animate-fade-in pb-20">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-3xl md:text-4xl font-black text-white tracking-tighter">Busca de Leads</h1>
-        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">
+        <h1 className="text-3xl md:text-4xl font-black text-main tracking-tighter">Busca de Leads</h1>
+        <p className="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">
           Encontre leads para alavancar seu negócio
         </p>
       </div>
