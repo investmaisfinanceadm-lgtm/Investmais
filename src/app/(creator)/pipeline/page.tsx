@@ -201,7 +201,7 @@ function KanbanCardItem({
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ y: -2, scale: 1.01 }}
       onClick={onClick}
-      className="bg-dark-card border border-dark-border shadow-light-card rounded-xl p-4 cursor-pointer hover:border-accent/40 hover:shadow-card transition-all duration-200 group"
+      className="bg-[var(--bg-card)] border border-[var(--border-main)] shadow-light-card rounded-xl p-4 cursor-pointer hover:border-accent/40 hover:shadow-card transition-all duration-200 group"
     >
       {/* Title & category */}
       <div className="flex items-start justify-between gap-2 mb-3">
@@ -228,9 +228,9 @@ function KanbanCardItem({
       <div className="flex items-center justify-between pt-2 border-t border-white/5">
         <div className="flex items-center gap-1.5 min-w-0">
           <Avatar initials={card.responsible.initials} color={card.responsible.color} />
-          <span className="text-[10px] text-muted truncate">{card.responsible.name.split(' ')[0]}</span>
+          <span className="text-[10px] text-[var(--text-muted)] truncate">{card.responsible.name.split(' ')[0]}</span>
         </div>
-        <div className={`flex items-center gap-1 ${overdue ? 'text-red-400' : 'text-gray-500'}`}>
+        <div className={`flex items-center gap-1 ${overdue ? 'text-red-400' : 'text-[var(--text-support)]'}`}>
           {overdue ? (
             <AlertCircle className="w-3 h-3 flex-shrink-0" />
           ) : (
@@ -259,7 +259,7 @@ function KanbanColumnComponent({
   return (
     <div className="flex-shrink-0 w-72 flex flex-col gap-3">
       {/* Column header */}
-      <div className="bg-dark-card border border-white/5 rounded-2xl p-4">
+      <div className="bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl p-4 shadow-sm">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <span
@@ -268,7 +268,7 @@ function KanbanColumnComponent({
             />
             <span className="text-sm font-black text-main uppercase tracking-wider">{column.name}</span>
           </div>
-          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-dark-muted text-[10px] font-black text-muted">
+          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--bg-primary)] text-[10px] font-black text-[var(--text-muted)]">
             {column.cards.length}
           </span>
         </div>
@@ -285,10 +285,10 @@ function KanbanColumnComponent({
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center py-10 border border-dashed border-white/10 rounded-xl text-gray-600"
+              className="flex flex-col items-center justify-center py-10 border border-dashed border-[var(--border-main)] rounded-xl text-[var(--text-support)]"
             >
               <LayoutGrid className="w-8 h-8 mb-2 opacity-30" />
-              <p className="text-xs font-medium">Nenhum card</p>
+              <p className="text-xs font-black uppercase tracking-widest">Vazio</p>
             </motion.div>
           ) : (
             column.cards.map((card) => (

@@ -5,28 +5,43 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  /* Default Dark Mode */
-  --color-primary:     #06091A;   
-  --color-accent:      #2563EB;   
-  --color-gold:        #DAAF37;
-  --color-dark-card:   #0D1526;   
-  --color-dark-border: #1A2845;   
-  --color-dark-muted:  #0A1020;   
-  --text-main:         #ffffff;
-  --text-muted:        #6b7280;
+  /* Default Dark Mode & Common Colors */
+  --color-primary-base: #06091A;
+  --color-accent:       #2563EB;
+  --color-gold:         #DAAF37;
+  
+  /* Backgrounds */
+  --bg-primary:         #06091A;
+  --bg-muted:           #0A1020;
+  
+  /* Cards */
+  --bg-card:            #0D1526;
+  --bg-card-dark:       #1E293B;
+  --border-main:        #1A2845;
+  
+  /* Text */
+  --text-main:          #FFFFFF;
+  --text-muted:         #94A3B8;
+  --text-support:       #475569;
+  
+  /* Shadows */
+  --shadow-card:        none;
 }
 
 @layer base {
   html.light {
-    --color-primary:     #F8FAFC; /* Fundo suave mais profissional */
-    --color-accent:      #2563EB; 
-    --color-gold:        #B48A14; 
-    --color-dark-card:   #FFFFFF; /* Branco puro nos cards */
-    --color-dark-border: #E2E8F0; /* Borda visível mas elegante */
-    --color-dark-muted:  #06091A; /* Sidebar permanece escura */
-    --text-main:         #0F172A; /* Máximo contraste (Quase preto) */
-    --text-muted:        #475569; /* Cinza médio escuro para labels */
-    --text-support:      #64748B; /* Cinza para textos menores */
+    --bg-primary:         #F1F5F9;
+    --bg-muted:           #06091A; /* Sidebar remains dark */
+    
+    --bg-card:            #FFFFFF;
+    --bg-card-dark:       #1E293B;
+    --border-main:        #E2E8F0;
+    
+    --text-main:          #0F172A;
+    --text-muted:         #475569;
+    --text-support:       #64748B;
+    
+    --shadow-card:        0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06);
   }
 }
 
@@ -45,7 +60,7 @@ body {
 }
 
 body {
-  background-color: var(--color-primary);
+  background-color: var(--bg-primary);
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -53,8 +68,8 @@ body {
 
 /* ── Scrollbar ──────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track  { background: var(--color-dark-muted); }
-::-webkit-scrollbar-thumb  { background: var(--color-dark-border); border-radius: 4px; }
+::-webkit-scrollbar-track  { background: var(--bg-muted); }
+::-webkit-scrollbar-thumb  { background: var(--border-main); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
 
 /* ── Component utilities ────────────────────────────────────────── */
@@ -65,8 +80,8 @@ body {
   }
 
   .btn-secondary {
-    background-color: var(--color-dark-card);
-    border: 1px solid var(--color-dark-border);
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-main);
     color: var(--text-muted);
     @apply font-medium px-6 py-3 rounded-xl hover:border-accent/40 hover:text-accent transition-all duration-200;
   }
@@ -82,14 +97,10 @@ body {
 
   /* Cards com visual premium em ambos os modos */
   .card {
-    background-color: var(--color-dark-card);
-    border: 1px solid var(--color-dark-border);
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-main);
+    box-shadow: var(--shadow-card);
     @apply rounded-2xl p-6 transition-all duration-300;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06);
-  }
-
-  html:not(.light) .card {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   }
 
   .card-hover:hover {
@@ -98,8 +109,8 @@ body {
   }
 
   .input-field {
-    background-color: var(--color-dark-muted);
-    border: 1px solid var(--color-dark-border);
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-main);
     color: var(--text-main);
     @apply w-full placeholder-slate-400 px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 focus:ring-1 focus:ring-accent/20 transition-all duration-200;
   }
@@ -125,17 +136,17 @@ body {
 
   /* ── Tables ── */
   .table-header {
-    background-color: var(--color-dark-muted);
+    background-color: var(--bg-primary);
     @apply text-[10px] font-black text-gray-500 uppercase tracking-widest px-4 py-3 text-left;
   }
   .table-cell { color: var(--text-main); @apply px-4 py-4 text-sm; }
-  .table-row  { border-bottom: 1px solid var(--color-dark-border); @apply hover:bg-accent/[0.02] transition-colors; }
+  .table-row  { border-bottom: 1px solid var(--border-main); @apply hover:bg-accent/[0.02] transition-colors; }
 
   /* ── Misc ── */
   .section-title    { color: var(--text-main); @apply text-2xl font-black mb-1; }
   .section-subtitle { color: var(--text-muted); @apply text-sm; }
   .metric-card      { @apply card flex flex-col gap-2; }
-  .divider          { border-top: 1px solid var(--color-dark-border); @apply my-6; }
+  .divider          { border-top: 1px solid var(--border-main); @apply my-6; }
 
   /* ── Progress ── */
   .progress-bar  { @apply h-2 rounded-full overflow-hidden; background: rgba(255,255,255,0.06); }

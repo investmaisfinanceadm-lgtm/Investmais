@@ -479,7 +479,7 @@ function AddContactModal({ onClose, onAdd }: { onClose: () => void; onAdd: (cont
         exit={{ opacity: 0 }}
       />
       <motion.div
-        className="relative w-full max-w-lg bg-dark-card border border-white/5 rounded-3xl p-8 shadow-2xl overflow-y-auto max-h-[90vh]"
+        className="relative w-full max-w-lg bg-[var(--bg-card)] border border-[var(--border-main)] rounded-3xl p-8 shadow-2xl overflow-y-auto max-h-[90vh]"
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -624,7 +624,7 @@ function ScrapeLeadsModal({ onClose }: { onClose: () => void }) {
         exit={{ opacity: 0 }}
       />
       <motion.div
-        className="relative w-full max-w-lg bg-[#0f1117] border border-white/5 rounded-3xl p-8 shadow-[0_0_80px_rgba(0,0,0,0.8)]"
+        className="relative w-full max-w-lg bg-[var(--bg-card)] border border-[var(--border-main)] rounded-3xl p-8 shadow-[0_0_80px_rgba(0,0,0,0.1)]"
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -652,11 +652,11 @@ function ScrapeLeadsModal({ onClose }: { onClose: () => void }) {
            <div className="grid grid-cols-2 gap-4">
                <div>
                  <label className="label">Cidade *</label>
-                 <input value={cidade} onChange={e => setCidade(e.target.value)} className="input-field bg-[#161B22]" placeholder="Ex: São Paulo" />
+                 <input value={cidade} onChange={e => setCidade(e.target.value)} className="input-field bg-[var(--bg-primary)]" placeholder="Ex: São Paulo" />
                </div>
                <div>
                   <label className="label">Estado (Sigla) *</label>
-                  <input value={estado} onChange={e => setEstado(e.target.value.toUpperCase())} maxLength={2} className="input-field bg-[#161B22]" placeholder="Ex: SP" />
+                  <input value={estado} onChange={e => setEstado(e.target.value.toUpperCase())} maxLength={2} className="input-field" placeholder="Ex: SP" />
                </div>
            </div>
 
@@ -734,20 +734,20 @@ function ContactDetailModal({
         onClick={onClose}
       />
       <motion.div
-        className="relative w-full sm:max-w-3xl bg-dark-card border border-white/5 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
+        className="relative w-full sm:max-w-3xl bg-[var(--bg-card)] border border-[var(--border-main)] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
         initial={{ opacity: 0, y: 60 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 60 }}
         transition={{ type: 'spring', stiffness: 280, damping: 28 }}
       >
         {/* Modal Header */}
-        <div className="p-6 border-b border-white/5 shrink-0">
+        <div className="p-6 border-b border-[var(--border-main)] shrink-0">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-4">
               <ContactAvatar contact={contact} size="lg" />
               <div>
-                <h2 className="text-xl font-black text-white">{contact.nome}</h2>
-                <p className="text-sm text-gray-400">{contact.cargo} · {contact.empresa}</p>
+                <h2 className="text-xl font-black text-[var(--text-main)]">{contact.nome}</h2>
+                <p className="text-sm text-[var(--text-muted)]">{contact.cargo} · {contact.empresa}</p>
                 <div className="flex items-center gap-2 mt-2 flex-wrap">
                   <span className={cn('badge', statusConfig.classes)}>{statusConfig.label}</span>
                   {contact.tags.map((tag) => (
@@ -771,7 +771,7 @@ function ContactDetailModal({
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 mt-6 bg-dark-muted rounded-xl p-1">
+          <div className="flex gap-1 mt-6 bg-[var(--bg-primary)] rounded-xl p-1">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
@@ -779,8 +779,8 @@ function ContactDetailModal({
                 className={cn(
                   'flex-1 py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all',
                   activeTab === tab.key
-                    ? 'bg-accent/10 text-accent border border-accent/20'
-                    : 'text-gray-500 hover:text-white'
+                    ? 'bg-[var(--bg-card)] text-accent border border-[var(--border-main)]'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 )}
               >
                 {tab.label}
@@ -801,8 +801,8 @@ function ContactDetailModal({
                 className="space-y-6"
               >
                 {/* Funil Progress */}
-                <div className="bg-dark-muted rounded-2xl p-5 border border-white/5">
-                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Estágio no Funil</p>
+                <div className="bg-[var(--bg-primary)] rounded-2xl p-5 border border-[var(--border-main)]">
+                  <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-4">Estágio no Funil</p>
                   {contact.status === 'inativo' ? (
                     <div className="flex items-center gap-2">
                       <span className="badge bg-red-500/10 text-red-400 border border-red-500/20">Inativo</span>
@@ -827,7 +827,7 @@ function ContactDetailModal({
                                 'flex-1 py-2 px-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-center transition-all border',
                                 isActive && 'bg-accent/10 text-accent border-accent/30 shadow-accent/10 shadow-md',
                                 isPast && 'bg-accent/5 text-accent/50 border-accent/10',
-                                !isActive && !isPast && 'bg-white/5 text-gray-600 border-white/5 hover:border-white/10 hover:text-gray-400'
+                                !isActive && !isPast && 'bg-[var(--bg-card)] text-[var(--text-muted)] border-[var(--border-main)] hover:border-white/10 hover:text-[var(--text-main)]'
                               )}
                             >
                               {isPast && <CheckCircle2 className="w-3 h-3 inline mr-1" />}
@@ -835,7 +835,7 @@ function ContactDetailModal({
                               {stage.label}
                             </button>
                             {idx < FUNIL_STAGES.length - 1 && (
-                              <ArrowRight className={cn('w-3 h-3 shrink-0', isActive || isPast ? 'text-accent/40' : 'text-gray-700')} />
+                              <ArrowRight className={cn('w-3 h-3 shrink-0', isActive || isPast ? 'text-accent/40' : 'text-[var(--text-muted)]')} />
                             )}
                           </div>
                         )
@@ -847,7 +847,7 @@ function ContactDetailModal({
                 {/* Two columns data */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-4">
-                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Dados Pessoais</p>
+                    <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Dados Pessoais</p>
                     <DataRow icon={<Mail className="w-4 h-4" />} label="Email" value={contact.email} />
                     <DataRow icon={<Phone className="w-4 h-4" />} label="Telefone" value={contact.telefone} />
                     <DataRow icon={<Briefcase className="w-4 h-4" />} label="Cargo" value={contact.cargo} />
@@ -858,19 +858,19 @@ function ContactDetailModal({
                     />
                   </div>
                   <div className="space-y-4">
-                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Dados da Empresa</p>
+                    <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Dados da Empresa</p>
                     <DataRow icon={<Building2 className="w-4 h-4" />} label="Empresa" value={contact.empresa} />
                     {contact.cnpj && (
                       <DataRow icon={<FileText className="w-4 h-4" />} label="CNPJ" value={contact.cnpj} />
                     )}
                     <div>
-                      <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1 flex items-center gap-1">
+                      <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1 flex items-center gap-1">
                         <Tag className="w-3 h-3" /> Tags
                       </p>
                       <div className="flex flex-wrap gap-1">
                         {contact.tags.length > 0 ? contact.tags.map((tag) => (
                           <span key={tag} className="badge badge-accent text-[10px]">{tag}</span>
-                        )) : <span className="text-gray-600 text-xs">—</span>}
+                        )) : <span className="text-[var(--text-muted)] text-xs">—</span>}
                       </div>
                     </div>
                   </div>
@@ -878,21 +878,21 @@ function ContactDetailModal({
 
                 {/* Notes */}
                 {contact.notas && (
-                  <div className="bg-dark-muted rounded-xl p-4 border border-white/5">
-                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Notas</p>
-                    <p className="text-sm text-gray-300 leading-relaxed">{contact.notas}</p>
+                  <div className="bg-[var(--bg-primary)] rounded-xl p-4 border border-[var(--border-main)]">
+                    <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-2">Notas</p>
+                    <p className="text-sm text-[var(--text-main)] leading-relaxed">{contact.notas}</p>
                   </div>
                 )}
 
                 {/* Meta */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-dark-muted rounded-xl p-4 border border-white/5 text-center">
-                    <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Criado em</p>
-                    <p className="text-sm font-bold text-white">{safeFormat(contact.createdAt, 'dd/MM/yyyy')}</p>
+                  <div className="bg-[var(--bg-primary)] rounded-xl p-4 border border-[var(--border-main)] text-center">
+                    <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mb-1">Criado em</p>
+                    <p className="text-sm font-bold text-[var(--text-main)]">{safeFormat(contact.createdAt, 'dd/MM/yyyy')}</p>
                   </div>
-                  <div className="bg-dark-muted rounded-xl p-4 border border-white/5 text-center">
-                    <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Última Atividade</p>
-                    <p className="text-sm font-bold text-white">
+                  <div className="bg-[var(--bg-primary)] rounded-xl p-4 border border-[var(--border-main)] text-center">
+                    <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mb-1">Última Atividade</p>
+                    <p className="text-sm font-bold text-[var(--text-main)]">
                       {safeDistance(contact.lastActivity)}
                     </p>
                   </div>
@@ -924,7 +924,7 @@ function ContactDetailModal({
                       exit={{ opacity: 0, height: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="bg-dark-muted rounded-2xl p-5 border border-accent/10 space-y-4">
+                      <div className="bg-[var(--bg-primary)] rounded-2xl p-5 border border-accent/10 space-y-4">
                         <p className="text-xs font-black text-accent uppercase tracking-widest">Nova Atividade</p>
                         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                           {(['phone', 'email', 'message', 'meeting', 'note'] as ActivityType[]).map((t) => (
@@ -933,7 +933,7 @@ function ContactDetailModal({
                               onClick={() => setActivityType(t)}
                               className={cn(
                                 'py-2 px-2 rounded-xl text-[10px] font-bold uppercase tracking-wider flex flex-col items-center gap-1 border transition-all',
-                                activityType === t ? getActivityColor(t) + ' border-opacity-100' : 'border-white/5 text-gray-500 hover:text-gray-300'
+                                activityType === t ? getActivityColor(t) + ' border-opacity-100' : 'border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
                               )}
                             >
                               {getActivityIcon(t)}
@@ -963,10 +963,10 @@ function ContactDetailModal({
 
                 {/* Timeline */}
                 <div className="relative">
-                  <div className="absolute left-5 top-0 bottom-0 w-px bg-dark-border" />
+                  <div className="absolute left-5 top-0 bottom-0 w-px bg-[var(--border-main)]" />
                   <div className="space-y-4">
                     {contact.activities.length === 0 && (
-                      <p className="text-gray-600 text-sm text-center py-8">Nenhuma atividade registrada ainda.</p>
+                      <p className="text-[var(--text-muted)] text-sm text-center py-8">Nenhuma atividade registrada ainda.</p>
                     )}
                     {contact.activities.map((activity, idx) => (
                       <motion.div
@@ -979,9 +979,9 @@ function ContactDetailModal({
                         <div className={cn('w-8 h-8 rounded-full flex items-center justify-center border shrink-0 z-10', getActivityColor(activity.type))}>
                           {getActivityIcon(activity.type)}
                         </div>
-                        <div className="flex-1 bg-dark-muted rounded-xl p-4 border border-white/5">
-                          <p className="text-sm text-gray-200">{activity.description}</p>
-                          <p className="text-[10px] text-gray-600 mt-1 font-semibold uppercase tracking-wider">
+                        <div className="flex-1 bg-[var(--bg-primary)] rounded-xl p-4 border border-[var(--border-main)]">
+                          <p className="text-sm text-[var(--text-main)]">{activity.description}</p>
+                          <p className="text-[10px] text-[var(--text-muted)] mt-1 font-semibold uppercase tracking-wider">
                             {safeFormat(activity.date, "dd 'de' MMMM 'de' yyyy")}
                           </p>
                         </div>
@@ -1002,14 +1002,14 @@ function ContactDetailModal({
               >
                 {contact.cnpj ? (
                   <div className="space-y-4">
-                    <div className="bg-dark-muted rounded-2xl p-6 border border-white/5">
+                    <div className="bg-[var(--bg-primary)] rounded-2xl p-6 border border-[var(--border-main)]">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
                           <Building2 className="w-5 h-5 text-accent" />
                         </div>
                         <div>
-                          <p className="text-xs font-black text-white uppercase tracking-wider">{contact.empresa}</p>
-                          <p className="text-xs text-gray-500">{contact.cnpj}</p>
+                          <p className="text-xs font-black text-[var(--text-main)] uppercase tracking-wider">{contact.empresa}</p>
+                          <p className="text-xs text-[var(--text-muted)]">{contact.cnpj}</p>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
@@ -1021,16 +1021,16 @@ function ContactDetailModal({
                     </div>
                     <div className="flex items-center gap-2 p-4 rounded-xl bg-accent/5 border border-accent/10">
                       <CheckCircle2 className="w-4 h-4 text-accent shrink-0" />
-                      <p className="text-xs text-gray-400">CNPJ vinculado e validado no cadastro do contato.</p>
+                      <p className="text-xs text-[var(--text-muted)]">CNPJ vinculado e validado no cadastro do contato.</p>
                     </div>
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <div className="w-16 h-16 rounded-2xl bg-dark-muted border border-white/5 flex items-center justify-center mx-auto mb-4">
-                      <Building2 className="w-8 h-8 text-gray-600" />
+                    <div className="w-16 h-16 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-main)] flex items-center justify-center mx-auto mb-4">
+                      <Building2 className="w-8 h-8 text-[var(--text-muted)]" />
                     </div>
-                    <p className="text-gray-500 text-sm font-medium">Nenhum CNPJ vinculado</p>
-                    <p className="text-gray-700 text-xs mt-1">Este contato não possui CNPJ cadastrado.</p>
+                    <p className="text-[var(--text-muted)] text-sm font-medium">Nenhum CNPJ vinculado</p>
+                    <p className="text-[var(--text-support)] text-xs mt-1">Este contato não possui CNPJ cadastrado.</p>
                   </div>
                 )}
               </motion.div>
@@ -1045,10 +1045,10 @@ function ContactDetailModal({
 function DataRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div>
-      <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-0.5 flex items-center gap-1">
-        <span className="text-gray-600">{icon}</span> {label}
+      <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-0.5 flex items-center gap-1">
+        <span className="text-[var(--text-muted)]">{icon}</span> {label}
       </p>
-      <p className="text-sm text-gray-200 font-medium">{value}</p>
+      <p className="text-sm text-[var(--text-main)] font-medium">{value}</p>
     </div>
   )
 }
@@ -1287,49 +1287,40 @@ export default function CRMPage() {
   ]
 
   return (
-    <div className="p-4 md:p-8 space-y-8 md:space-y-12 max-w-7xl mx-auto animate-fade-in pb-20 bg-primary">
+    <div className="p-4 md:p-8 space-y-8 md:space-y-12 max-w-7xl mx-auto animate-fade-in pb-20">
 
       {/* ── Header ── */}
-      <div className="flex flex-col gap-4 md:gap-6 pb-6 md:pb-8 border-b border-white/5">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
-          <div className="space-y-2 md:space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20">
-              <Activity className="w-3 h-3 text-accent" />
-              <span className="text-[10px] font-black text-accent uppercase tracking-widest">Gestão de Relacionamentos</span>
+      <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-[var(--border-main)]">
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-accent/10 flex items-center justify-center border border-accent/20">
+              <Users className="w-4 h-4 text-accent" />
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center">
-                <Users className="w-5 h-5 text-accent" />
-              </div>
-              <h1 className="text-3xl md:text-4xl font-black text-white tracking-tighter">CRM</h1>
-            </div>
-            <p className="text-gray-500 font-medium tracking-wide uppercase text-[10px]">
-              Central de Relacionamentos · {contacts.length} Contatos Ativos
-            </p>
+            <h1 className="text-3xl font-black text-[var(--text-main)] tracking-tighter uppercase">CRM de Contatos</h1>
           </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <button onClick={() => setIsScrapeOpen(true)} className="flex items-center gap-2 text-sm font-black uppercase tracking-widest py-2.5 px-5 rounded-xl border border-accent text-accent hover:bg-accent/10 transition-colors">
-              <Globe className="w-4 h-4" />
-              Prospectar Leads
-            </button>
-            <button onClick={() => setIsCsvOpen(true)} className="btn-secondary flex items-center gap-2 text-sm py-2.5 px-5">
-              <Upload className="w-4 h-4" />
-              Importar CSV
-            </button>
-            <button
-              onClick={() => setIsAddOpen(true)}
-              className="btn-primary flex items-center gap-2 text-sm py-2.5 px-5"
-            >
-              <Plus className="w-4 h-4" />
-              Novo Contato
-            </button>
-          </div>
+          <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Gerencie seus relacionamentos e pipeline de vendas</p>
         </div>
-
-        {/* Search + Filters + View Toggle */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <button onClick={() => setIsScrapeOpen(true)} className="flex items-center gap-2 text-sm font-black uppercase tracking-widest py-2.5 px-5 rounded-xl border border-accent text-accent hover:bg-accent/10 transition-colors">
+            <Globe className="w-4 h-4" />
+            Prospectar Leads
+          </button>
+          <button onClick={() => setIsCsvOpen(true)} className="btn-secondary flex items-center gap-2 text-sm py-2.5 px-5">
+            <Upload className="w-4 h-4" />
+            Importar CSV
+          </button>
+          <button
+            onClick={() => setIsAddOpen(true)}
+            className="btn-primary flex items-center gap-2 text-sm py-2.5 px-5"
+          >
+            <Plus className="w-4 h-4" />
+            Novo Contato
+          </button>
+        </div>
+      {/* Search + Filters + View Toggle */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="relative flex-1 w-full sm:max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
             <input
               type="text"
               placeholder="Buscar por nome, empresa, email..."
@@ -1338,37 +1329,37 @@ export default function CRMPage() {
               className="input-field pl-10 py-2.5 text-sm"
             />
           </div>
-          <div className="flex items-center gap-2 bg-dark-card border border-white/5 rounded-xl p-1">
+          <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-[var(--border-main)] rounded-xl p-1 shadow-sm">
             {filterTabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveFilter(tab.key)}
                 className={cn(
                   'px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5',
-                  activeFilter === tab.key ? 'sidebar-item-active' : 'text-gray-500 hover:text-white'
+                  activeFilter === tab.key ? 'bg-accent text-white shadow-md' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 )}
               >
                 {tab.label}
                 <span className={cn(
                   'text-[10px] px-1.5 py-0.5 rounded-full',
-                  activeFilter === tab.key ? 'bg-accent/20 text-accent' : 'bg-white/5 text-gray-600'
+                  activeFilter === tab.key ? 'bg-white/20 text-white' : 'bg-[var(--bg-primary)] text-[var(--text-muted)]'
                 )}>
                   {tab.count}
                 </span>
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-1 bg-dark-muted border border-white/5 rounded-xl p-1 ml-auto">
+          <div className="flex items-center gap-1 bg-[var(--bg-card)] border border-[var(--border-main)] rounded-xl p-1 ml-auto">
             <button
               onClick={() => setViewMode('list')}
-              className={cn('p-2 rounded-lg transition-all', viewMode === 'list' ? 'bg-accent/10 text-accent' : 'text-gray-500 hover:text-white')}
+              className={cn('p-2 rounded-lg transition-all', viewMode === 'list' ? 'bg-accent/10 text-accent' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]')}
               title="Visualização em lista"
             >
               <LayoutList className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={cn('p-2 rounded-lg transition-all', viewMode === 'grid' ? 'bg-accent/10 text-accent' : 'text-gray-500 hover:text-white')}
+              className={cn('p-2 rounded-lg transition-all', viewMode === 'grid' ? 'bg-accent/10 text-accent' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]')}
               title="Visualização em grade"
             >
               <LayoutGrid className="w-4 h-4" />
@@ -1420,17 +1411,17 @@ export default function CRMPage() {
       {/* ── Contact List / Grid ── */}
       {filteredContacts.length === 0 ? (
         <div className="text-center py-20">
-          <div className="w-16 h-16 rounded-2xl bg-dark-card border border-white/5 flex items-center justify-center mx-auto mb-4">
-            <Users className="w-8 h-8 text-gray-600" />
+          <div className="w-16 h-16 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-main)] flex items-center justify-center mx-auto mb-4">
+            <Users className="w-8 h-8 text-[var(--text-support)]" />
           </div>
-          <p className="text-gray-500 font-semibold">Nenhum contato encontrado</p>
-          <p className="text-gray-700 text-sm mt-1">Tente ajustar os filtros ou a busca</p>
+          <p className="text-[var(--text-muted)] font-semibold">Nenhum contato encontrado</p>
+          <p className="text-[var(--text-support)] text-sm mt-1">Tente ajustar os filtros ou a busca</p>
         </div>
       ) : viewMode === 'list' ? (
         /* ── List View ── */
-        <div className="bg-dark-card border border-white/5 rounded-2xl overflow-hidden">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl overflow-hidden shadow-sm">
           {/* Table header */}
-          <div className="hidden md:grid grid-cols-[2.5fr_2fr_1.5fr_1fr_1fr_auto] gap-4 px-5 py-3 border-b border-white/5 bg-dark-muted/50">
+          <div className="hidden md:grid grid-cols-[2.5fr_2fr_1.5fr_1fr_1fr_auto] gap-4 px-5 py-3 border-b border-[var(--border-main)] bg-[var(--bg-primary)]">
             <span className="table-header">Contato</span>
             <span className="table-header">Email / Telefone</span>
             <span className="table-header">Status</span>
@@ -1439,7 +1430,7 @@ export default function CRMPage() {
             <span className="table-header">Ações</span>
           </div>
 
-          <div className="divide-y divide-white/[0.04]">
+          <div className="divide-y divide-[var(--border-main)]">
             {filteredContacts.map((contact, idx) => {
               const statusConfig = getStatusConfig(contact.status)
               return (
@@ -1455,15 +1446,15 @@ export default function CRMPage() {
                   <div className="flex items-center gap-3">
                     <ContactAvatar contact={contact} size="md" />
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-white truncate">{contact.nome}</p>
-                      <p className="text-xs text-gray-500 truncate">{contact.empresa}</p>
+                      <p className="text-sm font-semibold text-[var(--text-main)] truncate">{contact.nome}</p>
+                      <p className="text-xs text-[var(--text-muted)] truncate">{contact.empresa}</p>
                     </div>
                   </div>
 
                   {/* Email / phone */}
                   <div className="min-w-0">
-                    <p className="text-sm text-gray-300 truncate">{contact.email}</p>
-                    <p className="text-xs text-gray-500">{contact.telefone}</p>
+                    <p className="text-sm text-[var(--text-main)] truncate">{contact.email}</p>
+                    <p className="text-xs text-[var(--text-muted)]">{contact.telefone}</p>
                   </div>
 
                   {/* Status */}
@@ -1472,13 +1463,13 @@ export default function CRMPage() {
                   </div>
 
                   {/* Canal */}
-                  <div className="flex items-center gap-1.5 text-gray-400 text-xs">
+                  <div className="flex items-center gap-1.5 text-[var(--text-muted)] text-xs">
                     {getCanalIcon(contact.canal)}
                     <span>{contact.canal}</span>
                   </div>
 
                   {/* Last activity */}
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-[var(--text-muted)]">
                     {safeDistance(contact.lastActivity)}
                   </div>
 
@@ -1486,7 +1477,7 @@ export default function CRMPage() {
                   <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => openDetail(contact)}
-                      className="p-1.5 rounded-lg text-gray-500 hover:text-accent hover:bg-accent/10 transition-all"
+                      className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-accent hover:bg-accent/10 transition-all"
                       title="Ver detalhes"
                     >
                       <Eye className="w-4 h-4" />
@@ -1500,7 +1491,7 @@ export default function CRMPage() {
                     </button>
                     <button
                       onClick={() => handleDelete(contact.id)}
-                      className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-400/10 transition-all"
+                      className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-400/10 transition-all"
                       title="Excluir"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -1522,7 +1513,7 @@ export default function CRMPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.04 }}
-                className="card-hover group border-white/5 p-5 rounded-2xl cursor-pointer flex flex-col gap-4"
+                className="card card-hover group p-5 rounded-2xl cursor-pointer flex flex-col gap-4"
                 onClick={() => openDetail(contact)}
               >
                 <div className="flex items-start justify-between">
@@ -1531,21 +1522,21 @@ export default function CRMPage() {
                 </div>
 
                 <div>
-                  <p className="font-bold text-white text-sm">{contact.nome}</p>
-                  <p className="text-xs text-gray-500">{contact.cargo}</p>
-                  <p className="text-xs text-gray-600 mt-0.5">{contact.empresa}</p>
+                  <p className="font-bold text-[var(--text-main)] text-sm">{contact.nome}</p>
+                  <p className="text-xs text-[var(--text-muted)]">{contact.cargo}</p>
+                  <p className="text-xs text-[var(--text-support)] mt-0.5 font-medium">{contact.empresa}</p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
                     <Mail className="w-3 h-3 shrink-0" />
                     <span className="truncate">{contact.email}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
                     <Phone className="w-3 h-3 shrink-0" />
                     <span>{contact.telefone}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
                     {getCanalIcon(contact.canal)}
                     <span>{contact.canal}</span>
                   </div>
@@ -1589,9 +1580,9 @@ export default function CRMPage() {
       )}
 
       {/* ── Footer info ── */}
-      <div className="flex items-center justify-between px-1 text-[11px] text-gray-700 font-semibold uppercase tracking-widest">
+      <div className="flex items-center justify-between px-1 text-[11px] text-[var(--text-muted)] font-black uppercase tracking-[0.2em] border-t border-[var(--border-main)] pt-6">
         <span>Mostrando {filteredContacts.length} de {contacts.length} contatos</span>
-        <span>CRM · Investmais</span>
+        <span className="text-accent italic">CRM · Investmais</span>
       </div>
 
       {/* ── Modals ── */}
