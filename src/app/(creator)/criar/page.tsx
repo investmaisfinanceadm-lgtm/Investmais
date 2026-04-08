@@ -521,7 +521,7 @@ export default function CriarPage() {
 
             {/* Step 2 — Configuração Modular */}
             {currentStep === 1 && (
-                <div className="animate-fade-in pb-24">
+                <div className="animate-fade-in pb-10">
                     {/* Header */}
                     <div className="mb-8">
                         <h2 className="text-2xl md:text-3xl font-black text-main tracking-tighter uppercase italic leading-none mb-2">Matriz de Formatação</h2>
@@ -607,20 +607,16 @@ export default function CriarPage() {
                                 ))}
                             </div>
                         </div>
-                    </div>
-
-                    {/* Fixed footer */}
-                    <div className="fixed bottom-0 left-0 lg:left-72 right-0 z-40 bg-[var(--bg-card)] border-t border-[#E2E8F0] px-8 py-4 flex items-center gap-8">
-                        <button
-                            onClick={() => setCurrentStep(0)}
-                            className="text-[10px] font-bold text-[#475569] uppercase tracking-widest hover:text-[var(--text-main)] transition-colors whitespace-nowrap flex-shrink-0"
-                        >
-                            ← Reavaliar Entradas
-                        </button>
-                        <div className="flex-1 flex justify-center">
+                        <div className="flex items-center gap-4 pt-2">
+                            <button
+                                onClick={() => setCurrentStep(0)}
+                                className="text-[10px] font-bold text-[#475569] uppercase tracking-widest hover:text-[var(--text-main)] transition-colors whitespace-nowrap flex-shrink-0"
+                            >
+                                ← Reavaliar Entradas
+                            </button>
                             <button
                                 onClick={handleNext}
-                                className="btn-primary w-[280px] flex items-center justify-center gap-3 py-3.5 bg-accent text-white font-black uppercase tracking-widest text-xs rounded-2xl group"
+                                className="btn-primary flex-1 flex items-center justify-center gap-3 py-3.5 bg-accent text-white font-black uppercase tracking-widest text-xs rounded-2xl group"
                             >
                                 <span>Validar Parâmetros</span>
                                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
