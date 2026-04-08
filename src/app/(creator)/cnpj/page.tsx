@@ -77,6 +77,36 @@ function DataRow({ icon, label, value }: { icon: React.ReactNode; label: string;
 const NICHOS = ['Beleza e Estética', 'Saúde e Medicina', 'Agronegócio', 'Contabilidade e Finanças', 'Engenharia e Construção', 'Educação', 'Alimentação e Gastronomia', 'Tecnologia', 'Jurídico', 'Imobiliário']
 const ESTADOS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO']
 
+const CIDADES_POR_ESTADO: Record<string, string[]> = {
+  'AC': ['Rio Branco', 'Cruzeiro do Sul', 'Sena Madureira', 'Tarauacá', 'Feijó', 'Brasileia', 'Epitaciolândia'],
+  'AL': ['Maceió', 'Arapiraca', 'Palmeira dos Índios', 'Rio Largo', 'Penedo', 'União dos Palmares', 'São Miguel dos Campos', 'Santana do Ipanema', 'Delmiro Gouveia'],
+  'AP': ['Macapá', 'Santana', 'Laranjal do Jari', 'Oiapoque', 'Mazagão', 'Porto Grande'],
+  'AM': ['Manaus', 'Parintins', 'Itacoatiara', 'Manacapuru', 'Coari', 'Tefé', 'Tabatinga', 'Maués', 'Humaitá', 'Lábrea'],
+  'BA': ['Salvador', 'Feira de Santana', 'Vitória da Conquista', 'Camaçari', 'Juazeiro', 'Itabuna', 'Lauro de Freitas', 'Ilhéus', 'Jequié', 'Alagoinhas', 'Barreiras', 'Teixeira de Freitas', 'Porto Seguro', 'Simões Filho', 'Paulo Afonso', 'Eunápolis', 'Santo Antônio de Jesus'],
+  'CE': ['Fortaleza', 'Caucaia', 'Juazeiro do Norte', 'Maracanaú', 'Sobral', 'Crato', 'Itapipoca', 'Maranguape', 'Iguatu', 'Quixadá', 'Pacatuba', 'Canindé', 'Russas', 'Tianguá'],
+  'DF': ['Brasília', 'Taguatinga', 'Ceilândia', 'Samambaia', 'Planaltina', 'Gama', 'Sobradinho', 'Águas Claras', 'Recanto das Emas', 'Guará', 'Riacho Fundo', 'Núcleo Bandeirante'],
+  'ES': ['Vitória', 'Vila Velha', 'Serra', 'Cariacica', 'Linhares', 'São Mateus', 'Cachoeiro de Itapemirim', 'Colatina', 'Guarapari', 'Aracruz', 'Viana', 'Nova Venécia'],
+  'GO': ['Goiânia', 'Aparecida de Goiânia', 'Anápolis', 'Rio Verde', 'Luziânia', 'Águas Lindas de Goiás', 'Valparaíso de Goiás', 'Trindade', 'Formosa', 'Novo Gama', 'Itumbiara', 'Senador Canedo', 'Catalão', 'Jataí', 'Planaltina', 'Goianésia'],
+  'MA': ['São Luís', 'Imperatriz', 'Timon', 'Caxias', 'Codó', 'Paço do Lumiar', 'Açailândia', 'Bacabal', 'Balsas', 'Santa Inês', 'Chapadinha', 'Zé Doca'],
+  'MT': ['Cuiabá', 'Várzea Grande', 'Rondonópolis', 'Sinop', 'Tangará da Serra', 'Cáceres', 'Sorriso', 'Lucas do Rio Verde', 'Primavera do Leste', 'Barra do Garças', 'Alta Floresta'],
+  'MS': ['Campo Grande', 'Dourados', 'Três Lagoas', 'Corumbá', 'Ponta Porã', 'Naviraí', 'Nova Andradina', 'Aquidauana', 'Sidrolândia', 'Maracaju'],
+  'MG': ['Belo Horizonte', 'Uberlândia', 'Contagem', 'Juiz de Fora', 'Betim', 'Montes Claros', 'Ribeirão das Neves', 'Uberaba', 'Governador Valadares', 'Ipatinga', 'Santa Luzia', 'Sete Lagoas', 'Divinópolis', 'Varginha', 'Pouso Alegre', 'Patos de Minas', 'Teófilo Otoni', 'Poços de Caldas', 'Barbacena', 'Sabará', 'Itabira', 'Muriaé'],
+  'PA': ['Belém', 'Ananindeua', 'Santarém', 'Marabá', 'Parauapebas', 'Castanhal', 'Abaetetuba', 'Cametá', 'Altamira', 'Itaituba', 'Tucuruí', 'Redenção', 'Breves', 'Paragominas'],
+  'PB': ['João Pessoa', 'Campina Grande', 'Santa Rita', 'Patos', 'Bayeux', 'Sousa', 'Cajazeiras', 'Cabedelo', 'Guarabira', 'Pombal'],
+  'PR': ['Curitiba', 'Londrina', 'Maringá', 'Ponta Grossa', 'Cascavel', 'São José dos Pinhais', 'Foz do Iguaçu', 'Colombo', 'Guarapuava', 'Paranaguá', 'Araucária', 'Toledo', 'Apucarana', 'Pinhais', 'Campo Largo', 'Almirante Tamandaré', 'Umuarama', 'Campo Mourão', 'Sarandi', 'Francisco Beltrão'],
+  'PE': ['Recife', 'Olinda', 'Caruaru', 'Petrolina', 'Jaboatão dos Guararapes', 'Paulista', 'Cabo de Santo Agostinho', 'Camaragibe', 'Garanhuns', 'Vitória de Santo Antão', 'Igarassu', 'Santa Cruz do Capibaribe', 'Araripina', 'Gravatá'],
+  'PI': ['Teresina', 'Parnaíba', 'Picos', 'Piripiri', 'Floriano', 'Campo Maior', 'Barras', 'Oeiras', 'São Raimundo Nonato'],
+  'RJ': ['Rio de Janeiro', 'São Gonçalo', 'Duque de Caxias', 'Nova Iguaçu', 'Niterói', 'Belford Roxo', 'Campos dos Goytacazes', 'São João de Meriti', 'Petrópolis', 'Volta Redonda', 'Macaé', 'Itaboraí', 'Magé', 'Mesquita', 'Nilópolis', 'Cabo Frio', 'Angra dos Reis', 'Nova Friburgo', 'Teresópolis', 'Queimados', 'Resende'],
+  'RN': ['Natal', 'Mossoró', 'Parnamirim', 'São Gonçalo do Amarante', 'Macaíba', 'Caicó', 'Assu', 'Currais Novos', 'Santa Cruz', 'Nova Cruz'],
+  'RS': ['Porto Alegre', 'Caxias do Sul', 'Pelotas', 'Canoas', 'Santa Maria', 'Gravataí', 'Viamão', 'Novo Hamburgo', 'São Leopoldo', 'Rio Grande', 'Alvorada', 'Passo Fundo', 'Sapucaia do Sul', 'Uruguaiana', 'Santa Cruz do Sul', 'Cachoeirinha', 'Bagé', 'Bento Gonçalves', 'Erechim', 'Guaíba', 'Lajeado', 'Sapiranga'],
+  'RO': ['Porto Velho', 'Ji-Paraná', 'Ariquemes', 'Vilhena', 'Cacoal', 'Rolim de Moura', 'Jaru', 'Guajará-Mirim'],
+  'RR': ['Boa Vista', 'Rorainópolis', 'Caracaraí', 'Mucajaí'],
+  'SC': ['Florianópolis', 'Joinville', 'Blumenau', 'São José', 'Criciúma', 'Chapecó', 'Itajaí', 'Lages', 'Jaraguá do Sul', 'Palhoça', 'Balneário Camboriú', 'Biguaçu', 'Brusque', 'Tubarão', 'São Bento do Sul', 'Caçador', 'Concórdia'],
+  'SP': ['São Paulo', 'Guarulhos', 'Campinas', 'São Bernardo do Campo', 'Santo André', 'São José dos Campos', 'Osasco', 'Ribeirão Preto', 'Sorocaba', 'Mauá', 'Santos', 'Mogi das Cruzes', 'Diadema', 'Jundiaí', 'Piracicaba', 'Carapicuíba', 'Bauru', 'São Vicente', 'Itaquaquecetuba', 'Franca', 'Guarujá', 'Limeira', 'Taubaté', 'Praia Grande', 'Suzano', 'Taboão da Serra', 'Sumaré', 'São Carlos', 'São José do Rio Preto', 'Marília', 'Americana', 'Araraquara', 'Cotia', 'Barueri', 'Hortolândia', 'Presidente Prudente', 'São João da Boa Vista'],
+  'SE': ['Aracaju', 'Nossa Senhora do Socorro', 'Lagarto', 'Itabaiana', 'São Cristóvão', 'Estância', 'Simão Dias'],
+  'TO': ['Palmas', 'Araguaína', 'Gurupi', 'Porto Nacional', 'Paraíso do Tocantins', 'Araguatins', 'Colinas do Tocantins'],
+}
+
 function GoogleTab() {
   const [estado, setEstado] = useState('')
   const [cidade, setCidade] = useState('')
@@ -96,6 +126,10 @@ function GoogleTab() {
       })
       .catch(() => {})
   }, [])
+
+  useEffect(() => {
+    setCidade('')
+  }, [estado])
 
   const handleBuscar = async () => {
     if (!estado || !cidade || !nicho) return
@@ -142,10 +176,15 @@ function GoogleTab() {
           </div>
           <div className="space-y-1.5">
             <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">Cidade</label>
-            <input value={cidade} onChange={e => setCidade(e.target.value)}
-              placeholder={estado ? 'Digite a cidade' : 'Selecione o estado primeiro'}
-              disabled={!estado}
-              className="input-field text-sm disabled:opacity-40" />
+            <div className="relative">
+              <select value={cidade} onChange={e => setCidade(e.target.value)}
+                disabled={!estado}
+                className="input-field appearance-none pr-8 text-sm disabled:opacity-40">
+                <option value="">{estado ? 'Selecione a Cidade' : 'Selecione o estado primeiro'}</option>
+                {(CIDADES_POR_ESTADO[estado] ?? []).map(c => <option key={c} value={c} className="text-gray-900 bg-white">{c}</option>)}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
+            </div>
           </div>
           <div className="space-y-1.5">
             <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">Nicho de Mercado</label>
