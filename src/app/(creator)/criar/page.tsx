@@ -399,9 +399,9 @@ export default function CriarPage() {
     }
 
     return (
-        <div className="p-4 md:p-8 lg:p-16 max-w-7xl mx-auto">
+        <div className="p-4 md:p-6 lg:p-10 max-w-7xl mx-auto">
             {/* Step Header */}
-            <div className="flex items-center gap-3 md:gap-4 mb-8 md:mb-16">
+            <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
                 {[0, 1, 2].map((s) => (
                     <div key={s} className="flex items-center gap-4 group">
                         <div className={cn(
@@ -522,16 +522,16 @@ export default function CriarPage() {
 
             {/* Step 2 — Configuração Modular */}
             {currentStep === 1 && (
-                <div className="space-y-8 md:space-y-12 animate-fade-in pb-20">
-                    <div className="space-y-3 md:space-y-4">
+                <div className="space-y-5 md:space-y-6 animate-fade-in pb-10">
+                    <div className="space-y-2">
                         <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-main tracking-tighter uppercase italic leading-none">Matriz de Formatação</h2>
                         <p className="text-muted font-medium uppercase tracking-[0.2em] text-xs">Ajuste os parâmetros de saída e a frequência narrativa do conteúdo.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 md:gap-16">
-                        <div className="lg:col-span-3 space-y-8 md:space-y-12">
+                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 md:gap-10">
+                        <div className="lg:col-span-3 space-y-5 md:space-y-7">
                             {/* Formato */}
-                            <div className="space-y-8">
+                            <div className="space-y-4">
                                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Arquitetura de Saída (Formato) *</label>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {FORMATOS.map((f) => (
@@ -540,17 +540,17 @@ export default function CriarPage() {
                                             type="button"
                                             onClick={() => setStep2((p) => ({ ...p, formato: f.id as any }))}
                                             className={cn(
-                                                "flex items-center gap-6 p-8 rounded-[40px] border transition-all text-left group",
+                                                "flex items-center gap-4 p-5 rounded-[32px] border transition-all text-left group",
                                                 step2.formato === f.id
                                                     ? 'border-accent bg-accent/10 shadow-accent-sm'
                                                     : 'border-[var(--border-main)] bg-[var(--bg-primary)] hover:border-accent/30 hover:bg-[var(--bg-primary)]'
                                             )}
                                         >
                                             <div className={cn(
-                                                "w-14 h-14 rounded-2xl flex items-center justify-center transition-all",
+                                                "w-10 h-10 rounded-2xl flex items-center justify-center transition-all flex-shrink-0",
                                                 step2.formato === f.id ? 'bg-accent text-black' : 'bg-[var(--bg-primary)] text-gray-600 group-hover:text-[var(--text-main)]'
                                             )}>
-                                                <f.icon className="w-7 h-7" />
+                                                <f.icon className="w-5 h-5" />
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className={cn(
@@ -564,9 +564,9 @@ export default function CriarPage() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 pt-2 md:pt-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                                 {/* Duração */}
-                                <div className="space-y-8">
+                                <div className="space-y-4">
                                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Matriz Temporal (Duração)</label>
                                     <div className="flex gap-4">
                                         {DURACOES.map((d) => (
@@ -575,7 +575,7 @@ export default function CriarPage() {
                                                 type="button"
                                                 onClick={() => setStep2((p) => ({ ...p, duracao: d.value }))}
                                                 className={cn(
-                                                    "flex-1 py-5 rounded-2xl border transition-all font-black text-[10px] uppercase tracking-widest",
+                                                    "flex-1 py-3 rounded-2xl border transition-all font-black text-[10px] uppercase tracking-widest",
                                                     step2.duracao === d.value
                                                         ? 'border-accent bg-accent/10 text-accent'
                                                         : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-gray-600 hover:border-accent/30 hover:text-[var(--text-main)]'
@@ -588,7 +588,7 @@ export default function CriarPage() {
                                 </div>
 
                                 {/* Tom */}
-                                <div className="space-y-8">
+                                <div className="space-y-4">
                                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Frequência de Comunicação (Tom) *</label>
                                     <div className="flex gap-4">
                                         {TONS.map((t) => (
@@ -597,7 +597,7 @@ export default function CriarPage() {
                                                 type="button"
                                                 onClick={() => setStep2((p) => ({ ...p, tom: t.id }))}
                                                 className={cn(
-                                                    "flex-1 flex flex-col items-center gap-2 py-5 rounded-2xl border transition-all font-black text-[10px] uppercase tracking-widest group",
+                                                    "flex-1 flex flex-col items-center gap-2 py-3 rounded-2xl border transition-all font-black text-[10px] uppercase tracking-widest group",
                                                     step2.tom === t.id
                                                         ? 'border-accent bg-accent/10 text-accent'
                                                         : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-gray-600 hover:border-accent/30 hover:text-[var(--text-main)]'
