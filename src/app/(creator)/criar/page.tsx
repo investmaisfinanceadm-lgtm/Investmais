@@ -500,7 +500,7 @@ export default function CriarPage() {
 
                         <div className="lg:col-span-2">
                             <div className="sticky top-20">
-                                <div className="card-hover border-accent/20 bg-[#0D2447] p-10 rounded-[48px] space-y-8 shadow-2xl relative overflow-hidden group">
+                                <div className="card-hover border border-accent/20 bg-[var(--bg-card)] p-10 rounded-[48px] space-y-8 shadow-2xl relative overflow-hidden group">
                                     <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:rotate-[30deg] transition-transform duration-700">
                                         <Sparkles className="w-24 h-24 text-accent" />
                                     </div>
@@ -698,7 +698,7 @@ export default function CriarPage() {
                                      {/* Scanline effect */}
                                      <div className="absolute inset-x-0 h-1 top-0 bg-accent/20 blur-sm pointer-events-none animate-scanline" />
                                 </div>
-                                <div className="px-6 py-3 rounded-full bg-[#0D2447] border border-accent/20 inline-flex items-center gap-3">
+                                <div className="px-6 py-3 rounded-full bg-accent/10 border border-accent/20 inline-flex items-center gap-3">
                                      <Layout className="w-3 h-3 text-accent" />
                                      <span className="text-[9px] font-black text-accent uppercase tracking-widest">Layout: {step2.formato}</span>
                                 </div>

@@ -283,8 +283,8 @@ export default function BibliotecaPage() {
                                                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-70 group-hover:opacity-100" 
                                             />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-[var(--bg-primary)]">
-                                                <Video className="w-12 h-12 text-gray-800 animate-pulse" />
+                                            <div className="w-full h-full flex items-center justify-center bg-slate-900">
+                                                <Video className="w-12 h-12 text-gray-500 animate-pulse" />
                                             </div>
                                         )}
                                         
@@ -325,9 +325,9 @@ export default function BibliotecaPage() {
                                                     )}>
                                                         {getStatusLabel(video.status)}
                                                     </span>
-                                                    <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest bg-[var(--bg-primary)] px-3 py-1 rounded-full border border-[var(--border-main)]">{video.duracao}s</span>
+                                                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest bg-black/40 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10">{video.duracao}s</span>
                                                 </div>
-                                                <h3 className="text-main font-black uppercase text-sm tracking-tighter truncate group-hover:text-accent transition-colors duration-500 italic">
+                                                <h3 className="text-white font-black uppercase text-sm tracking-tighter truncate group-hover:text-accent transition-colors duration-500 italic">
                                                     {video.nome_produto}
                                                 </h3>
                                             </div>

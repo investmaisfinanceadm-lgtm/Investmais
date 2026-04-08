@@ -141,7 +141,7 @@ function EndpointModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-[#0D1526] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-md bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-main)]">
           <h3 className="text-[var(--text-main)] font-bold text-sm">Novo Endpoint de Webhook</h3>
@@ -176,7 +176,7 @@ function EndpointModal({
               className="w-full bg-[var(--bg-primary)] border border-white/10 text-[var(--text-main)] px-4 py-3 rounded-xl focus:outline-none focus:border-accent/60 transition-all text-sm appearance-none"
             >
               {SOURCES.map(s => (
-                <option key={s.value} value={s.value} className="bg-[#0D1526]">{s.label}</option>
+                <option key={s.value} value={s.value} className="bg-[var(--bg-card)]">{s.label}</option>
               ))}
             </select>
             <p className="text-[10px] text-gray-600">Identifica a origem dos leads nos relatórios UTM</p>
@@ -740,7 +740,7 @@ export default function ConfiguracoesPage() {
                 const nome = integ.configuracoes?.nome || integ.tipo
 
                 return (
-                  <div key={integ.tipo} className="bg-[#0D1526] border border-white/[0.06] rounded-2xl overflow-hidden">
+                  <div key={integ.tipo} className="bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-2xl overflow-hidden">
                     {/* Integration row */}
                     <div className="flex items-center gap-4 px-5 py-4">
                       <Webhook className="w-4 h-4 text-gray-500 flex-shrink-0" />
