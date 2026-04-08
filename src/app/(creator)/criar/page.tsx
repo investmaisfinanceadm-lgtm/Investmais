@@ -563,50 +563,48 @@ export default function CriarPage() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-6">
-                            {/* Duração */}
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Matriz Temporal (Duração)</label>
-                                <div className="flex gap-3">
-                                    {DURACOES.map((d) => (
-                                        <button
-                                            key={d.value}
-                                            type="button"
-                                            onClick={() => setStep2((p) => ({ ...p, duracao: d.value }))}
-                                            className={cn(
-                                                "flex-1 h-12 rounded-xl border transition-all font-black text-[10px] uppercase tracking-widest",
-                                                step2.duracao === d.value
-                                                    ? 'border-accent bg-accent/10 text-accent'
-                                                    : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-gray-600 hover:border-accent/30 hover:text-[var(--text-main)]'
-                                            )}
-                                        >
-                                            {d.label}
-                                        </button>
-                                    ))}
-                                </div>
+                        {/* Duração */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Matriz Temporal (Duração)</label>
+                            <div className="flex gap-3">
+                                {DURACOES.map((d) => (
+                                    <button
+                                        key={d.value}
+                                        type="button"
+                                        onClick={() => setStep2((p) => ({ ...p, duracao: d.value }))}
+                                        className={cn(
+                                            "flex-1 h-12 rounded-xl border transition-all font-black text-[10px] uppercase tracking-widest",
+                                            step2.duracao === d.value
+                                                ? 'border-accent bg-accent/10 text-accent'
+                                                : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-gray-600 hover:border-accent/30 hover:text-[var(--text-main)]'
+                                        )}
+                                    >
+                                        {d.label}
+                                    </button>
+                                ))}
                             </div>
+                        </div>
 
-                            {/* Tom */}
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Frequência de Comunicação (Tom) *</label>
-                                <div className="flex gap-3">
-                                    {TONS.map((t) => (
-                                        <button
-                                            key={t.id}
-                                            type="button"
-                                            onClick={() => setStep2((p) => ({ ...p, tom: t.id }))}
-                                            className={cn(
-                                                "flex-1 flex flex-col items-center justify-center gap-1.5 h-12 rounded-xl border transition-all font-black text-[10px] uppercase tracking-widest group",
-                                                step2.tom === t.id
-                                                    ? 'border-accent bg-accent/10 text-accent'
-                                                    : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-gray-600 hover:border-accent/30 hover:text-[var(--text-main)]'
-                                            )}
-                                        >
-                                            <t.icon className={cn("w-4 h-4", step2.tom === t.id ? 'text-accent' : 'text-gray-700')} />
-                                            {t.nome}
-                                        </button>
-                                    ))}
-                                </div>
+                        {/* Tom */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Frequência de Comunicação (Tom) *</label>
+                            <div className="flex gap-3">
+                                {TONS.map((t) => (
+                                    <button
+                                        key={t.id}
+                                        type="button"
+                                        onClick={() => setStep2((p) => ({ ...p, tom: t.id }))}
+                                        className={cn(
+                                            "flex-1 flex flex-col items-center justify-center gap-1.5 h-12 rounded-xl border transition-all font-black text-[10px] uppercase tracking-widest group",
+                                            step2.tom === t.id
+                                                ? 'border-accent bg-accent/10 text-accent'
+                                                : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-gray-600 hover:border-accent/30 hover:text-[var(--text-main)]'
+                                        )}
+                                    >
+                                        <t.icon className={cn("w-4 h-4", step2.tom === t.id ? 'text-accent' : 'text-gray-700')} />
+                                        {t.nome}
+                                    </button>
+                                ))}
                             </div>
                         </div>
                     </div>
