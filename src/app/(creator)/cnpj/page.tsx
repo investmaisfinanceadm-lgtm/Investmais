@@ -108,100 +108,96 @@ const CIDADES_POR_ESTADO: Record<string, string[]> = {
   'TO': ['Palmas', 'Araguaína', 'Gurupi', 'Porto Nacional', 'Paraíso do Tocantins', 'Araguatins', 'Colinas do Tocantins'],
 }
 
+const PAGE_SIZE = 10
+const POLL_INTERVAL = 3000
+const POLL_TIMEOUT = 30000
+
 function GoogleTab() {
   const [estado, setEstado] = useState('')
   const [cidade, setCidade] = useState('')
   const [nicho, setNicho] = useState('')
   const [loading, setLoading] = useState(false)
-  const [buscaStatus, setBuscaStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [googleLeads, setGoogleLeads] = useState<any[]>([])
-  const [countdown, setCountdown] = useState<number | null>(null)
-  const [selectedSession, setSelectedSession] = useState<string | null>(null)
+  const [polling, setPolling] = useState(false)
+  const [pollingMsg, setPollingMsg] = useState<string | null>(null)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
-  const fetchGoogleLeads = useCallback(async () => {
+  // Sorted leads: most recent first
+  const sortedLeads = useMemo(
+    () => [...googleLeads].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+    [googleLeads]
+  )
+
+  const fetchGoogleLeads = useCallback(async (): Promise<any[]> => {
     try {
       const d = await fetch('/api/creator/crm').then(r => r.json())
       if (Array.isArray(d)) {
         const leadsGoogle = d.filter((c: any) => c.canal_origem?.toLowerCase() === 'google' || c.canal?.toLowerCase() === 'google')
         setGoogleLeads(leadsGoogle)
+        return leadsGoogle
       }
     } catch {}
+    return []
   }, [])
 
   useEffect(() => { fetchGoogleLeads() }, [fetchGoogleLeads])
-
   useEffect(() => { setCidade('') }, [estado])
 
-  // Countdown: tick every second, fetch at 0
+  // Polling: after successful search, poll every 3s until new leads appear or 30s timeout
   useEffect(() => {
-    if (countdown === null) return
-    if (countdown === 0) {
-      fetchGoogleLeads()
-      setCountdown(null)
-      return
+    if (!polling) return
+    const startCount = googleLeads.length
+    const deadline = Date.now() + POLL_TIMEOUT
+    let timerId: ReturnType<typeof setTimeout>
+
+    const tick = async () => {
+      if (Date.now() >= deadline) {
+        setPolling(false)
+        setPollingMsg('Aguardando resultados...')
+        setTimeout(() => setPollingMsg(null), 4000)
+        return
+      }
+      const fresh = await fetchGoogleLeads()
+      if (fresh.length > startCount) {
+        setPolling(false)
+        setPollingMsg(null)
+        setVisibleCount(PAGE_SIZE) // reset pagination to show top
+        toast.success(`${fresh.length - startCount} novo(s) lead(s) adicionado(s)!`)
+      } else {
+        timerId = setTimeout(tick, POLL_INTERVAL)
+      }
     }
-    const t = setTimeout(() => setCountdown(c => c !== null ? c - 1 : null), 1000)
-    return () => clearTimeout(t)
-  }, [countdown, fetchGoogleLeads])
+
+    timerId = setTimeout(tick, POLL_INTERVAL)
+    return () => clearTimeout(timerId)
+  }, [polling]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleBuscar = async () => {
     if (!estado || !cidade || !nicho) return
     setLoading(true)
-    setBuscaStatus('idle')
     try {
       const res = await fetch('/api/creator/crm/scrape', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ estado, cidade, nicho }),
       })
-      setBuscaStatus(res.ok ? 'success' : 'error')
       if (res.ok) {
-        toast.success('Busca iniciada! Os leads serão adicionados em breve.')
-        setCountdown(10)
+        toast.success('Busca iniciada! Monitorando novos leads...')
+        setPolling(true)
+        setPollingMsg(null)
       } else {
         toast.error(`Erro ao iniciar busca (${res.status})`)
       }
     } catch {
-      setBuscaStatus('error')
       toast.error('Não foi possível conectar ao webhook')
     } finally {
       setLoading(false)
     }
   }
 
-  // Group leads into sessions: consecutive leads within 10min = same session
-  const sessions = useMemo(() => {
-    if (googleLeads.length === 0) return []
-    const sorted = [...googleLeads].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-    const groups: { key: string; label: string; firstDate: Date; leads: any[] }[] = []
-    for (const lead of sorted) {
-      const t = new Date(lead.created_at).getTime()
-      const last = groups[groups.length - 1]
-      const lastTime = last ? new Date(last.leads[last.leads.length - 1].created_at).getTime() : 0
-      if (last && t - lastTime < 10 * 60 * 1000) {
-        last.leads.push(lead)
-      } else {
-        const d = new Date(lead.created_at)
-        const parts = [lead.nicho || lead.cidade || lead.estado || 'Busca', format(d, "dd/MM HH:mm")].filter(Boolean)
-        const key = `${d.toISOString().slice(0, 16)}-${lead.cidade || ''}-${lead.estado || ''}`
-        groups.push({ key, label: parts.join(' • '), firstDate: d, leads: [lead] })
-      }
-    }
-    return groups.reverse()
-  }, [googleLeads])
-
-  // Auto-select most recent session
-  useEffect(() => {
-    if (sessions.length > 0 && selectedSession === null) setSelectedSession(sessions[0].key)
-  }, [sessions, selectedSession])
-
-  const displayedLeads = useMemo(() => {
-    if (!selectedSession || sessions.length === 0) return googleLeads
-    return sessions.find(s => s.key === selectedSession)?.leads ?? googleLeads
-  }, [selectedSession, sessions, googleLeads])
-
   return (
     <div className="space-y-6">
+      {/* Search form */}
       <div className="card card-hover p-6 rounded-2xl space-y-5">
         <h2 className="text-sm font-black text-[var(--text-main)] uppercase tracking-wider flex items-center gap-2">
           <Search className="w-4 h-4 text-accent" />
@@ -243,33 +239,20 @@ function GoogleTab() {
             </div>
           </div>
         </div>
-        <button onClick={handleBuscar} disabled={loading || !estado || !cidade || !nicho}
+        <button onClick={handleBuscar} disabled={loading || polling || !estado || !cidade || !nicho}
           className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-sm font-black uppercase tracking-wider disabled:opacity-40">
-          {loading ? <><RefreshCw className="w-4 h-4 animate-spin" />Buscando...</> : <><Search className="w-4 h-4" />Buscar Leads no Google</>}
+          {loading
+            ? <><RefreshCw className="w-4 h-4 animate-spin" />Enviando...</>
+            : polling
+            ? <><RefreshCw className="w-4 h-4 animate-spin" />Monitorando novos leads...</>
+            : <><Search className="w-4 h-4" />Buscar Leads no Google</>}
         </button>
-        {buscaStatus === 'success' && countdown === null && (
-          <p className="flex items-center gap-2 text-accent text-[11px]">
-            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-            Busca enviada com sucesso! Os leads serão adicionados ao CRM em instantes.
+        {pollingMsg && (
+          <p className="text-[11px] text-[var(--text-muted)] flex items-center gap-2">
+            <Clock className="w-3.5 h-3.5 shrink-0" /> {pollingMsg}
           </p>
         )}
       </div>
-
-      {/* Countdown bar */}
-      {countdown !== null && (
-        <div className="card p-4 rounded-2xl border border-accent/30 bg-accent/5 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-accent uppercase tracking-wider flex items-center gap-2">
-              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-              Atualizando resultados em {countdown}s...
-            </span>
-            <button onClick={() => setCountdown(null)} className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)] uppercase font-bold transition-colors">Cancelar</button>
-          </div>
-          <div className="h-1.5 bg-[var(--border-main)] rounded-full overflow-hidden">
-            <div className="h-full bg-accent rounded-full transition-all duration-1000 ease-linear" style={{ width: `${(countdown / 10) * 100}%` }} />
-          </div>
-        </div>
-      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -286,49 +269,26 @@ function GoogleTab() {
         ))}
       </div>
 
-      {/* Últimas Buscas */}
+      {/* Lead list */}
       <div className="card card-hover rounded-2xl overflow-hidden shadow-sm">
         <div className="px-6 py-4 border-b border-[var(--border-main)] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-[var(--text-muted)]" />
             <h3 className="text-sm font-black text-[var(--text-main)] uppercase tracking-wider">Últimos Leads Extraídos</h3>
           </div>
-          <button onClick={fetchGoogleLeads} className="text-[10px] text-[var(--text-muted)] flex items-center gap-1 hover:text-[var(--text-main)] uppercase font-black transition-colors">
-            <RefreshCw className="w-3 h-3" /> Atualizar
-          </button>
+          {polling && <span className="text-[10px] text-accent flex items-center gap-1.5 font-black uppercase"><RefreshCw className="w-3 h-3 animate-spin" />Monitorando</span>}
         </div>
 
-        {/* Session chips */}
-        {sessions.length > 1 && (
-          <div className="px-6 py-3 border-b border-[var(--border-main)] flex gap-2 overflow-x-auto no-scrollbar">
-            {sessions.slice(0, 10).map(s => (
-              <button key={s.key} onClick={() => setSelectedSession(s.key)}
-                className={cn(
-                  'flex-shrink-0 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all whitespace-nowrap',
-                  selectedSession === s.key
-                    ? 'bg-accent/10 border-accent/30 text-accent'
-                    : 'border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)] bg-[var(--bg-primary)]'
-                )}>
-                {s.label} <span className="opacity-60">({s.leads.length})</span>
-              </button>
-            ))}
-          </div>
-        )}
-
         <div className="divide-y divide-[var(--border-main)]">
-          {displayedLeads.length === 0 ? (
+          {sortedLeads.length === 0 ? (
             <p className="text-sm text-[var(--text-muted)] text-center py-6">Nenhum lead extraído do Google Maps até o momento.</p>
           ) : (
-            displayedLeads.slice(0, 20).map((b, i) => (
-              <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-[var(--bg-primary)] transition-colors">
-                <div className="flex flex-col gap-0.5 min-w-0">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <span className="text-sm font-semibold text-[var(--text-main)] truncate max-w-[200px] md:max-w-[300px]">{b.nome}</span>
-                    <span className="text-sm text-accent font-black tracking-tight whitespace-nowrap">{b.telefone || 'Sem número'}</span>
-                  </div>
-                  {b.email && (
-                    <span className="text-[11px] text-[var(--text-muted)] font-medium truncate">{b.email}</span>
-                  )}
+            sortedLeads.slice(0, visibleCount).map((b, i) => (
+              <div key={b.id ?? i} className="flex items-center justify-between px-6 py-4 hover:bg-[var(--bg-primary)] transition-colors">
+                <div className="flex items-center gap-3 flex-wrap min-w-0">
+                  <span className="text-sm font-semibold text-[var(--text-main)] truncate max-w-[160px] md:max-w-[260px]">{b.nome}</span>
+                  <span className="text-sm text-accent font-black tracking-tight whitespace-nowrap">{b.telefone || 'Sem número'}</span>
+                  {b.email && <span className="text-[11px] text-[#64748B] font-medium truncate hidden sm:block">{b.email}</span>}
                 </div>
                 <div className="flex flex-col items-end ml-4 shrink-0">
                   <span className="text-xs text-[var(--text-muted)] font-black uppercase tracking-wider">{b.status_funil || 'lead'}</span>
@@ -338,6 +298,23 @@ function GoogleTab() {
             ))
           )}
         </div>
+
+        {/* Pagination footer */}
+        {sortedLeads.length > 0 && (
+          <div className="px-6 py-4 border-t border-[var(--border-main)] flex items-center justify-between">
+            <span className="text-[11px] text-[var(--text-muted)] font-medium">
+              Exibindo {Math.min(visibleCount, sortedLeads.length)} de {sortedLeads.length} leads
+            </span>
+            {visibleCount < sortedLeads.length && (
+              <button
+                onClick={() => setVisibleCount(v => v + PAGE_SIZE)}
+                className="text-[11px] font-black text-accent uppercase tracking-wider hover:underline transition-colors"
+              >
+                Ver mais leads →
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
