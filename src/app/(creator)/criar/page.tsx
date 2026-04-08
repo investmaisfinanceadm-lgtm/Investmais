@@ -521,59 +521,60 @@ export default function CriarPage() {
 
             {/* Step 2 — Configuração Modular */}
             {currentStep === 1 && (
-                <div className="animate-fade-in pb-28">
-                    <div className="space-y-2 mb-6">
-                        <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-main tracking-tighter uppercase italic leading-none">Matriz de Formatação</h2>
-                        <p className="text-muted font-medium uppercase tracking-[0.2em] text-xs">Ajuste os parâmetros de saída e a frequência narrativa do conteúdo.</p>
+                <div className="animate-fade-in pb-24">
+                    {/* Header */}
+                    <div className="mb-8">
+                        <h2 className="text-2xl md:text-3xl font-black text-main tracking-tighter uppercase italic leading-none mb-2">Matriz de Formatação</h2>
+                        <p className="text-muted font-medium uppercase tracking-[0.2em] text-[10px] mt-3">Ajuste os parâmetros de saída e a frequência narrativa do conteúdo.</p>
                     </div>
 
-                    <div className="max-w-[680px] space-y-6">
+                    <div className="max-w-[700px] mx-auto space-y-7">
                         {/* Formato */}
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Arquitetura de Saída (Formato) *</label>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="max-w-[400px]">
                                 {FORMATOS.map((f) => (
                                     <button
                                         key={f.id}
                                         type="button"
                                         onClick={() => setStep2((p) => ({ ...p, formato: f.id as any }))}
                                         className={cn(
-                                            "flex items-center gap-4 p-5 rounded-[32px] border transition-all text-left group",
+                                            "w-full flex items-center gap-4 px-5 py-4 rounded-2xl border transition-all text-left group",
                                             step2.formato === f.id
                                                 ? 'border-accent bg-accent/10 shadow-accent-sm'
                                                 : 'border-[var(--border-main)] bg-[var(--bg-primary)] hover:border-accent/30 hover:bg-[var(--bg-primary)]'
                                         )}
                                     >
                                         <div className={cn(
-                                            "w-10 h-10 rounded-2xl flex items-center justify-center transition-all flex-shrink-0",
+                                            "w-9 h-9 rounded-xl flex items-center justify-center transition-all flex-shrink-0",
                                             step2.formato === f.id ? 'bg-accent text-black' : 'bg-[var(--bg-primary)] text-gray-600 group-hover:text-[var(--text-main)]'
                                         )}>
-                                            <f.icon className="w-5 h-5" />
+                                            <f.icon className="w-4 h-4" />
                                         </div>
                                         <div className="flex flex-col">
                                             <span className={cn(
-                                                "text-sm font-black uppercase tracking-widest",
+                                                "text-xs font-black uppercase tracking-widest",
                                                 step2.formato === f.id ? 'text-accent' : 'text-gray-400 group-hover:text-[var(--text-main)]'
                                             )}>{f.label}</span>
-                                            <span className="text-[9px] text-gray-600 font-bold uppercase mt-2 leading-relaxed">{f.desc}</span>
+                                            <span className="text-[9px] text-gray-500 font-bold uppercase mt-0.5">{f.desc}</span>
                                         </div>
                                     </button>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 md:gap-8">
+                        <div className="grid grid-cols-2 gap-6">
                             {/* Duração */}
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Matriz Temporal (Duração)</label>
-                                <div className="flex gap-4">
+                                <div className="flex gap-3">
                                     {DURACOES.map((d) => (
                                         <button
                                             key={d.value}
                                             type="button"
                                             onClick={() => setStep2((p) => ({ ...p, duracao: d.value }))}
                                             className={cn(
-                                                "flex-1 py-3 rounded-2xl border transition-all font-black text-[10px] uppercase tracking-widest",
+                                                "flex-1 h-12 rounded-xl border transition-all font-black text-[10px] uppercase tracking-widest",
                                                 step2.duracao === d.value
                                                     ? 'border-accent bg-accent/10 text-accent'
                                                     : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-gray-600 hover:border-accent/30 hover:text-[var(--text-main)]'
@@ -586,22 +587,22 @@ export default function CriarPage() {
                             </div>
 
                             {/* Tom */}
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Frequência de Comunicação (Tom) *</label>
-                                <div className="flex gap-4">
+                                <div className="flex gap-3">
                                     {TONS.map((t) => (
                                         <button
                                             key={t.id}
                                             type="button"
                                             onClick={() => setStep2((p) => ({ ...p, tom: t.id }))}
                                             className={cn(
-                                                "flex-1 flex flex-col items-center gap-2 py-3 rounded-2xl border transition-all font-black text-[10px] uppercase tracking-widest group",
+                                                "flex-1 flex flex-col items-center justify-center gap-1.5 h-12 rounded-xl border transition-all font-black text-[10px] uppercase tracking-widest group",
                                                 step2.tom === t.id
                                                     ? 'border-accent bg-accent/10 text-accent'
                                                     : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-gray-600 hover:border-accent/30 hover:text-[var(--text-main)]'
                                             )}
                                         >
-                                            <t.icon className={cn("w-5 h-5 mb-1", step2.tom === t.id ? 'text-accent' : 'text-gray-700')} />
+                                            <t.icon className={cn("w-4 h-4", step2.tom === t.id ? 'text-accent' : 'text-gray-700')} />
                                             {t.nome}
                                         </button>
                                     ))}
@@ -611,20 +612,20 @@ export default function CriarPage() {
                     </div>
 
                     {/* Fixed footer */}
-                    <div className="fixed bottom-0 left-0 lg:left-72 right-0 z-40 bg-[var(--bg-primary)] border-t border-[var(--border-main)] px-6 py-4 flex items-center gap-6">
+                    <div className="fixed bottom-0 left-0 lg:left-72 right-0 z-40 bg-[var(--bg-card)] border-t border-[#E2E8F0] px-8 py-4 flex items-center gap-8">
                         <button
                             onClick={() => setCurrentStep(0)}
-                            className="text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-[var(--text-main)] transition-colors whitespace-nowrap flex-shrink-0"
+                            className="text-[10px] font-bold text-[#475569] uppercase tracking-widest hover:text-[var(--text-main)] transition-colors whitespace-nowrap flex-shrink-0"
                         >
                             ← Reavaliar Entradas
                         </button>
                         <div className="flex-1 flex justify-center">
                             <button
                                 onClick={handleNext}
-                                className="btn-primary w-full max-w-[400px] flex items-center justify-center gap-3 py-4 bg-accent text-white font-black uppercase tracking-widest text-xs rounded-2xl group"
+                                className="btn-primary w-[280px] flex items-center justify-center gap-3 py-3.5 bg-accent text-white font-black uppercase tracking-widest text-xs rounded-2xl group"
                             >
                                 <span>Validar Parâmetros</span>
-                                <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </button>
                         </div>
                     </div>
