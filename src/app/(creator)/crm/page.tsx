@@ -408,7 +408,7 @@ function MetricCard({
 }) {
   return (
     <div
-      className="card card-hover group border-dark-border bg-dark-card p-8 rounded-[32px] relative overflow-hidden shadow-light-card"
+      className="card card-hover group p-8 rounded-[32px] relative overflow-hidden"
       style={{ animationDelay: `${delay}s` }}
     >
       <div className="flex items-center justify-between mb-6">
@@ -417,9 +417,9 @@ function MetricCard({
         </div>
       </div>
       <div>
-        <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-1">{label}</p>
-        <p className="text-3xl font-black text-main leading-none mb-2">{value}</p>
-        {sub && <p className="text-[10px] text-muted font-semibold uppercase tracking-widest">{sub}</p>}
+        <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-1">{label}</p>
+        <p className="text-3xl font-black text-[var(--text-main)] leading-none mb-2">{value}</p>
+        {sub && <p className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-widest">{sub}</p>}
       </div>
     </div>
   )

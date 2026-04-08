@@ -206,12 +206,12 @@ export function CreatorSidebar() {
     return (
         <>
             {/* Desktop Sidebar */}
-            <aside className="hidden lg:flex flex-col w-72 bg-[var(--color-dark-muted)] border-r border-[var(--color-dark-border)] h-screen sticky top-0 flex-shrink-0 z-50">
+            <aside className="hidden lg:flex flex-col w-72 sidebar-fixed-dark border-r border-[var(--color-dark-border)] h-screen sticky top-0 flex-shrink-0 z-50">
                 <SidebarContent />
             </aside>
 
             {/* Mobile Header */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-[var(--color-dark-muted)]/80 backdrop-blur-2xl border-b border-[var(--color-dark-border)]">
+            <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 sidebar-fixed-dark border-b border-[var(--color-dark-border)]">
                 <div className="flex items-center gap-3">
                     <div className="w-9 h-9 flex-shrink-0">
                         <img src="/logo.png" alt="InvestMais Finance" className="h-9 w-auto object-contain" />
@@ -245,7 +245,7 @@ export function CreatorSidebar() {
             {/* Mobile Sidebar */}
             <aside
                 className={cn(
-                    'lg:hidden fixed top-0 left-0 h-full w-[80vw] max-w-[320px] bg-[var(--color-dark-muted)] border-r border-[var(--color-dark-border)] z-[70] transition-transform duration-500 ease-in-out',
+                    'lg:hidden fixed top-0 left-0 h-full w-[80vw] max-w-[320px] sidebar-fixed-dark border-r border-[var(--color-dark-border)] z-[70] transition-transform duration-500 ease-in-out',
                     mobileOpen ? 'translate-x-0' : '-translate-x-full'
                 )}
             >
