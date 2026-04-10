@@ -161,8 +161,8 @@ function SectionTitle({ title }: { title: string }) {
 
 function DetailField({ icon, label, value, children }: { icon: React.ReactNode; label: string; value?: string; children?: React.ReactNode }) {
   return (
-    <div className="space-y-1 group">
-      <div className="flex items-center gap-2 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider group-hover:text-accent transition-colors">
+    <div className="space-y-1.5 group">
+      <div className="flex items-center gap-2 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-wider group-hover:text-accent transition-colors">
         {icon}
         {label}
       </div>
@@ -279,7 +279,7 @@ export function LeadDetailModal({
                     <h2 className="text-2xl font-black text-[var(--text-main)] tracking-tight mb-1">
                       {readOnly && contact.empresa ? contact.empresa : contact.nome}
                     </h2>
-                    <div className="flex items-center gap-2 text-[var(--text-muted)] text-sm font-medium">
+                    <div className="flex items-center gap-2 text-[var(--text-muted)] text-sm font-semibold opacity-90">
                        <Building2 className="w-4 h-4" />
                        {(readOnly && contact.empresa) ? contact.nome : (contact.empresa + (contact.cargo ? ` · ${contact.cargo}` : ''))}
                     </div>
@@ -287,7 +287,7 @@ export function LeadDetailModal({
                        <span className={cn('px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider', statusConfig.classes)}>
                           {statusConfig.label}
                        </span>
-                       <span className="px-3 py-1 rounded-full bg-[var(--bg-primary)] border border-[var(--border-main)] text-[var(--text-muted)] text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                       <span className="px-3 py-1 rounded-full bg-[var(--bg-primary)] border border-[var(--border-main)] text-[var(--text-muted)] text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5">
                           {getCanalIcon(contact.canal)} {contact.canal}
                        </span>
                     </div>
@@ -311,7 +311,7 @@ export function LeadDetailModal({
                    key={tab}
                    onClick={() => setActiveTab(tab)}
                    className={cn(
-                     'px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] transition-all relative',
+                     'px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-[0.1em] transition-all relative',
                      activeTab === tab ? 'bg-[var(--bg-card)] text-accent border border-[var(--border-main)]' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                    )}
                  >
@@ -330,7 +330,7 @@ export function LeadDetailModal({
                 {/* Pipeline */}
                 {!simpleMode && !readOnly && (
                    <div className="bg-[var(--bg-primary)] rounded-[24px] p-6 border border-[var(--border-main)]">
-                      <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-4">Estágio no Funil</p>
+                      <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-4">Estágio no Funil</p>
                       <div className="flex items-center gap-1.5">
                          {FUNIL_STAGES.map((s, idx) => {
                             const currentIdx = FUNIL_STAGES.findIndex(fs => fs.key === contact.status)

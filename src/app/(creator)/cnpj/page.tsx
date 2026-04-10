@@ -72,7 +72,7 @@ function DataRow({ icon, label, value }: { icon: React.ReactNode; label: string;
     <div className="flex items-start gap-3 p-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-main)] group hover:border-accent/20 transition-colors">
       <div className="text-[var(--text-muted)] mt-0.5 shrink-0">{icon}</div>
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">{label}</p>
+        <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-wider">{label}</p>
         <p className="text-sm text-[var(--text-main)] font-medium mt-0.5 truncate">{value}</p>
       </div>
       <button onClick={() => { navigator.clipboard.writeText(value).catch(() => {}); setCopied(true); setTimeout(() => setCopied(false), 1500) }}
@@ -88,12 +88,129 @@ const NICHOS = ['Beleza e Estética', 'Saúde e Medicina', 'Agronegócio', 'Cont
 const ESTADOS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO']
 
 // ─── City Selector Component ──────────────────────────────────────────────────
+interface SearchableSelectProps {
+  label?: string
+  value: string
+  onChange: (v: string) => void
+  options: string[]
+  placeholder: string
+  icon: any
+  disabled?: boolean
+  loading?: boolean
+  mini?: boolean
+}
+
+function SearchableSelect({ 
+  label, value, onChange, options, placeholder, icon: Icon, disabled, loading, mini 
+}: SearchableSelectProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const filtered = useMemo(() => {
+    if (!searchTerm) return options
+    const normalizedSearch = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    return options.filter(o => 
+      o.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(normalizedSearch)
+    )
+  }, [options, searchTerm])
+
+  return (
+    <div className={cn("relative", !mini && "space-y-1.5")}>
+      {label && <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-wider">{label}</label>}
+      <div className="relative">
+        <div 
+          onClick={() => !disabled && !loading && setIsOpen(!isOpen)}
+          className={cn(
+            "input-field flex items-center justify-between cursor-pointer group transition-all duration-300",
+            mini ? "py-1.5 px-3 text-xs min-h-0 bg-[var(--bg-primary)]" : "py-3 px-4 text-sm",
+            disabled && "opacity-40 cursor-not-allowed",
+            isOpen && "border-accent/60 ring-2 ring-accent/10 shadow-lg shadow-accent/5"
+          )}
+        >
+          <div className="flex items-center gap-2 truncate flex-1 min-w-0">
+            {!mini && <Icon className={cn("w-3.5 h-3.5 shrink-0", value ? "text-accent" : "text-[var(--text-support)]")} />}
+            <span className={cn("truncate font-semibold", !value && "text-[var(--text-support)]")}>
+              {loading ? (
+                <span className="flex items-center gap-2 italic text-accent animate-pulse">
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" /> {mini ? '' : 'Carregando...'}
+                </span>
+              ) : value || placeholder}
+            </span>
+          </div>
+          <ChevronDown className={cn("w-3.5 h-3.5 transition-all duration-300 text-[var(--text-support)] group-hover:text-accent", isOpen && "rotate-180 text-accent")} />
+        </div>
+
+        <AnimatePresence>
+          {isOpen && (
+            <div className="fixed inset-0 z-[120] flex items-start justify-center pt-20 px-4 sm:relative sm:inset-auto sm:p-0">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsOpen(false)}
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[-1] sm:hidden"
+              />
+              
+              <motion.div 
+                 initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                 animate={{ opacity: 1, y: 0, scale: 1 }}
+                 exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                 className={cn(
+                   "w-full bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl shadow-2xl overflow-hidden glass z-[130] sm:absolute sm:top-full sm:mt-2",
+                   mini ? "max-w-[200px] sm:right-0" : "max-w-md sm:left-0 sm:right-0"
+                 )}
+              >
+                <div className="p-3 border-b border-[var(--border-main)] bg-[var(--bg-primary)]/50">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-accent" />
+                    <input 
+                      autoFocus
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Buscar..."
+                      className="w-full bg-[var(--bg-card)] text-sm px-10 py-1.5 rounded-xl border border-[var(--border-main)] focus:outline-none focus:border-accent/60 focus:ring-4 focus:ring-accent/10 transition-all placeholder:text-[var(--text-support)]"
+                    />
+                  </div>
+                </div>
+                <div className="max-h-[200px] overflow-y-auto custom-scrollbar py-1">
+                  {filtered.length === 0 ? (
+                    <div className="px-6 py-4 text-center text-xs text-[var(--text-muted)]">
+                      Nenhum resultado
+                    </div>
+                  ) : (
+                    filtered.map(o => (
+                      <div 
+                        key={o}
+                        onClick={() => {
+                          onChange(o)
+                          setIsOpen(false)
+                          setSearchTerm('')
+                        }}
+                        className={cn(
+                          "px-4 py-2.5 text-xs cursor-pointer hover:bg-accent/10 hover:text-accent transition-all flex items-center justify-between group",
+                          value === o && "bg-accent/[0.08] text-accent font-bold"
+                        )}
+                      >
+                        <span className="truncate">{o}</span>
+                        {value === o && <div className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_8px_rgba(37,99,235,0.6)]" />}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
+
 function CitySelector({ uf, value, onChange }: { uf: string, value: string, onChange: (v: string) => void }) {
   const [cidades, setCidades] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
-  const [isOpen, setIsOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     if (!uf) {
@@ -121,115 +238,20 @@ function CitySelector({ uf, value, onChange }: { uf: string, value: string, onCh
     }
 
     fetchCidades()
-    onChange('') // Reset city when UF changes
+    onChange('')
   }, [uf, onChange])
 
-  const filtered = useMemo(() => {
-    if (!searchTerm) return cidades
-    const normalizedSearch = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    return cidades.filter(c => 
-      c.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(normalizedSearch)
-    )
-  }, [cidades, searchTerm])
-
   return (
-    <div className="relative">
-      <div 
-        onClick={() => !loading && uf && setIsOpen(!isOpen)}
-        className={cn(
-          "input-field flex items-center justify-between cursor-pointer group transition-all duration-300",
-          !uf && "opacity-40 cursor-not-allowed",
-          isOpen && "border-accent/60 ring-2 ring-accent/10 shadow-lg shadow-accent/5",
-          error && "border-red-500/50"
-        )}
-      >
-        <div className="flex items-center gap-2 truncate flex-1 min-w-0">
-          <MapPin className={cn("w-3.5 h-3.5 shrink-0", value ? "text-accent" : "text-[var(--text-support)]")} />
-          <span className={cn("text-sm truncate font-medium", !value && "text-[var(--text-support)]")}>
-            {loading ? (
-              <span className="flex items-center gap-2 italic text-accent animate-pulse">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Carregando cidades...
-              </span>
-            ) : error ? (
-              <span className="text-red-400">Erro ao carregar cidades. Tente novamente.</span>
-            ) : value || (uf ? "Selecione a Cidade" : "Selecione o estado")}
-          </span>
-        </div>
-        <ChevronDown className={cn("w-3.5 h-3.5 transition-all duration-300 text-[var(--text-support)] group-hover:text-accent", isOpen && "rotate-180 text-accent")} />
-      </div>
-
-      <AnimatePresence>
-        {isOpen && (
-          <div className="fixed inset-0 z-[60] flex items-start justify-center pt-20 px-4 sm:relative sm:inset-auto sm:p-0">
-             {/* Mobile Backdrop */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsOpen(false)}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[-1] sm:hidden"
-            />
-            
-            <motion.div 
-               initial={{ opacity: 0, y: 8, scale: 0.95 }}
-               animate={{ opacity: 1, y: 0, scale: 1 }}
-               exit={{ opacity: 0, y: 8, scale: 0.95 }}
-               className="w-full max-w-md bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl shadow-2xl overflow-hidden glass z-[70] sm:absolute sm:top-full sm:left-0 sm:right-0 sm:mt-2"
-            >
-              <div className="p-3 border-b border-[var(--border-main)] bg-[var(--bg-primary)]/50">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-accent" />
-                  <input 
-                    autoFocus
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Buscar por nome da cidade..."
-                    className="w-full bg-[var(--bg-card)] text-sm px-10 py-2.5 rounded-xl border border-[var(--border-main)] focus:outline-none focus:border-accent/60 focus:ring-4 focus:ring-accent/10 transition-all placeholder:text-[var(--text-support)]"
-                  />
-                </div>
-              </div>
-              <div className="max-h-[300px] overflow-y-auto custom-scrollbar py-2">
-                {filtered.length === 0 ? (
-                  <div className="px-6 py-8 text-center">
-                    <Search className="w-8 h-8 text-[var(--text-support)] mx-auto mb-2 opacity-20" />
-                    <p className="text-xs text-[var(--text-support)] font-black uppercase tracking-widest">
-                      Nenhuma cidade encontrada
-                    </p>
-                  </div>
-                ) : (
-                  filtered.map(c => (
-                    <div 
-                      key={c}
-                      onClick={() => {
-                        onChange(c)
-                        setIsOpen(false)
-                        setSearchTerm('')
-                      }}
-                      className={cn(
-                        "px-6 py-3 text-sm cursor-pointer hover:bg-accent/10 hover:text-accent transition-all flex items-center justify-between group",
-                        value === c && "bg-accent/[0.08] text-accent font-bold"
-                      )}
-                    >
-                      <span className="truncate">{c}</span>
-                      {value === c && <div className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_8px_rgba(37,99,235,0.6)]" />}
-                    </div>
-                  ))
-                )}
-              </div>
-              <div className="p-2 bg-[var(--bg-primary)]/30 border-t border-[var(--border-main)] sm:hidden">
-                <button 
-                  onClick={() => setIsOpen(false)}
-                  className="w-full py-2 text-xs font-black uppercase tracking-wider text-[var(--text-muted)] hover:text-[var(--text-main)]"
-                >
-                  Fechar
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-    </div>
+    <SearchableSelect
+      label="Cidade"
+      value={value}
+      onChange={onChange}
+      options={cidades}
+      placeholder={uf ? "Selecione a Cidade" : "Selecione o estado"}
+      icon={MapPin}
+      disabled={!uf}
+      loading={loading}
+    />
   )
 }
 
@@ -376,32 +398,23 @@ function GoogleTab() {
           Buscar Leads no Google
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">Estado</label>
-            <div className="relative">
-              <select value={estado} onChange={e => setEstado(e.target.value)}
-                className="input-field appearance-none pr-8 text-sm">
-                <option value="">Selecione o Estado</option>
-                {ESTADOS.map(e => <option key={e} value={e} className="text-gray-900 bg-white">{e}</option>)}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
-            </div>
-          </div>
-          <div className="space-y-1.5 focus-within:z-10 relative">
-            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">Cidade</label>
-            <CitySelector uf={estado} value={cidade} onChange={setCidade} />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">Nicho de Mercado</label>
-            <div className="relative">
-              <select value={nicho} onChange={e => setNicho(e.target.value)}
-                className="input-field appearance-none pr-8 text-sm">
-                <option value="">Selecione o Nicho</option>
-                {NICHOS.map(n => <option key={n} value={n} className="text-gray-900 bg-white">{n}</option>)}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
-            </div>
-          </div>
+          <SearchableSelect
+            label="Estado"
+            value={estado}
+            onChange={setEstado}
+            options={ESTADOS}
+            placeholder="Selecione o Estado"
+            icon={MapPin}
+          />
+          <CitySelector uf={estado} value={cidade} onChange={setCidade} />
+          <SearchableSelect
+            label="Nicho de Mercado"
+            value={nicho}
+            onChange={setNicho}
+            options={NICHOS}
+            placeholder="Selecione o Nicho"
+            icon={Briefcase}
+          />
         </div>
         <button onClick={handleBuscar} disabled={loading || polling || !estado || !cidade || !nicho}
           className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-sm font-black uppercase tracking-wider disabled:opacity-40">
@@ -697,7 +710,7 @@ function CNPJTab() {
               </div>
               {result.socios.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+                  <p className="text-[11px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
                     <Users className="w-3 h-3" />Quadro Societário
                   </p>
                   {result.socios.map((s, i) => (
@@ -738,24 +751,22 @@ function CNPJTab() {
           </div>
           <div className="flex items-center gap-2">
             <Filter className="w-3.5 h-3.5 text-[var(--text-muted)]" />
-            <div className="relative">
-              <select value={filterEstado} onChange={e => setFilterEstado(e.target.value)}
-                className="text-xs bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-lg px-3 py-1.5 text-[var(--text-main)] appearance-none pr-6">
-                <option value="" className="text-gray-900 bg-white">Todos os Estados</option>
-                {estadosDisponiveis.map(e => <option key={e} value={e} className="text-gray-900 bg-white">{e}</option>)}
-              </select>
-              <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)] pointer-events-none" />
-            </div>
-            <div className="relative">
-              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-                className="text-xs bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-lg px-3 py-1.5 text-[var(--text-main)] appearance-none pr-6">
-                <option value="" className="text-gray-900 bg-white">Todos os Status</option>
-                <option value="ATIVA" className="text-gray-900 bg-white">Ativa</option>
-                <option value="INATIVA" className="text-gray-900 bg-white">Inativa</option>
-                <option value="SUSPENSA" className="text-gray-900 bg-white">Suspensa</option>
-              </select>
-              <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)] pointer-events-none" />
-            </div>
+            <SearchableSelect
+              mini
+              value={filterEstado}
+              onChange={setFilterEstado}
+              options={estadosDisponiveis}
+              placeholder="Todos os Estados"
+              icon={MapPin}
+            />
+            <SearchableSelect
+              mini
+              value={filterStatus}
+              onChange={setFilterStatus}
+              options={['ATIVA', 'INATIVA', 'SUSPENSA']}
+              placeholder="Todos os Status"
+              icon={Building2}
+            />
           </div>
         </div>
         {loadingLeads ? (
