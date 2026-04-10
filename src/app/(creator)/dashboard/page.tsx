@@ -188,7 +188,7 @@ export default function DashboardPage() {
                             <h3 className="text-2xl font-black text-[var(--text-main)]">{isLoading ? '—' : stats ? ((stats.conversoes / (stats.totalLeads || 1)) * 100).toFixed(1) : 0}%</h3>
                         </div>
                     </div>
-                    <div className="h-1.5 w-full bg-accent/5 rounded-full overflow-hidden mt-2 border border-[var(--color-dark-border)]">
+                    <div className="h-1.5 w-full bg-accent/5 rounded-full overflow-hidden mt-2 border border-[var(--border-main)]">
                         <div 
                             className="h-full bg-blue-500 transition-all duration-1000" 
                             style={{ width: stats ? `${(stats.conversoes / (stats.totalLeads || 1)) * 100}%` : '0%' }} 
@@ -210,18 +210,40 @@ export default function DashboardPage() {
                         <p className="text-[11px] text-[var(--text-muted)] font-bold uppercase tracking-widest">Aquisição de novos leads por período</p>
                     </div>
                     <div className="flex gap-4">
-                         <div className="relative">
-                            <select 
-                                value={chartScale}
-                                onChange={(e) => setChartScale(Number(e.target.value) as 7 | 30 | 90)}
-                                className="appearance-none bg-[var(--color-dark-muted)] border border-[var(--color-dark-border)] hover:border-accent/40 px-6 py-3 pl-4 pr-10 rounded-2xl text-[9px] font-black text-[var(--text-main)] uppercase tracking-widest cursor-pointer outline-none transition-colors"
-                            >
-                                <option className="bg-[var(--color-dark-muted)] text-[var(--text-main)]" value={7}>Escala: Últimos 7 Dias</option>
-                                <option className="bg-[var(--color-dark-muted)] text-[var(--text-main)]" value={30}>Escala: Últimos 30 Dias</option>
-                                <option className="bg-[var(--color-dark-muted)] text-[var(--text-main)]" value={90}>Escala: Últimos 90 Dias</option>
-                            </select>
-                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
-                         </div>
+                        <div className="relative group/scale">
+                        <button 
+                            onClick={(e) => {
+                                const dropdown = e.currentTarget.nextElementSibling;
+                                dropdown?.classList.toggle('hidden');
+                            }}
+                            className="flex items-center gap-3 bg-[var(--bg-primary)] border border-[var(--border-main)] hover:border-accent/40 px-5 py-2.5 rounded-2xl text-[9px] font-black text-[var(--text-main)] uppercase tracking-widest cursor-pointer outline-none transition-all duration-300 hover:shadow-lg hover:shadow-accent/5 group/btn"
+                        >
+                            <span className="text-accent group-hover/btn:scale-110 transition-transform">Escala:</span>
+                            <span>{chartScale === 7 ? 'Últimos 7 Dias' : chartScale === 30 ? 'Últimos 30 Dias' : 'Últimos 90 Dias'}</span>
+                            <ChevronDown className="w-3 h-3 text-[var(--text-muted)] transition-transform group-hover/btn:translate-y-0.5" />
+                        </button>
+                        
+                        <div className="hidden absolute top-full right-0 mt-2 w-48 bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+                            {[7, 30, 90].map((val) => (
+                                <button
+                                    key={val}
+                                    onClick={() => {
+                                        setChartScale(val as 7 | 30 | 90);
+                                        document.querySelectorAll('.group\\/scale > div').forEach(d => d.classList.add('hidden'));
+                                    }}
+                                    className={cn(
+                                        "w-full px-5 py-3 text-[9px] font-black uppercase tracking-widest text-left transition-all duration-200 flex items-center justify-between group/item",
+                                        chartScale === val 
+                                            ? "bg-accent/10 text-accent font-black" 
+                                            : "text-[var(--text-muted)] hover:bg-[var(--bg-primary)] hover:text-[var(--text-main)]"
+                                    )}
+                                >
+                                    <span>Últimos {val} Dias</span>
+                                    {chartScale === val && <div className="w-1 h-1 rounded-full bg-accent" />}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                     </div>
                 </div>
 
@@ -252,7 +274,7 @@ export default function DashboardPage() {
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-dark-border)" opacity={0.5} />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-main)" opacity={0.5} />
                                     <XAxis 
                                         dataKey="day" 
                                         axisLine={false} 
@@ -269,7 +291,7 @@ export default function DashboardPage() {
                                     />
                                     <Tooltip 
                                         cursor={{ fill: 'var(--color-accent)', opacity: 0.05 }}
-                                        contentStyle={{ backgroundColor: 'var(--color-dark-card)', border: '1px solid var(--color-dark-border)', borderRadius: '12px', color: 'var(--text-main)', fontSize: '11px', fontWeight: 700, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
+                                        contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-main)', borderRadius: '12px', color: 'var(--text-main)', fontSize: '11px', fontWeight: 700, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
                                         itemStyle={{ fontWeight: 800, color: '#2563EB' }}
                                         labelStyle={{ color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.1em' }}
                                     />
@@ -299,7 +321,7 @@ export default function DashboardPage() {
                                                     <span className="text-[var(--text-support)]">{item.name}</span>
                                                     <span className="text-[var(--text-main)]">{item.value}</span>
                                                 </div>
-                                                <div className="h-1.5 w-full bg-accent/5 rounded-full overflow-hidden border border-[var(--color-dark-border)]">
+                                                <div className="h-1.5 w-full bg-accent/5 rounded-full overflow-hidden border border-[var(--border-main)]">
                                                     <div 
                                                         className="h-full bg-accent transition-all duration-1000" 
                                                         style={{ 
@@ -353,7 +375,7 @@ export default function DashboardPage() {
                         <div className="space-y-4">
                             {stats.contatosRecentes.map((contato) => (
                                 <div key={contato.id} className="card card-hover flex items-center gap-4 md:gap-6 p-4 md:p-6 transition-all">
-                                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-[var(--color-dark-border)] flex items-center justify-center flex-shrink-0 group-hover:border-accent/30 transition-all bg-[var(--color-dark-muted)] overflow-hidden">
+                                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-[var(--border-main)] flex items-center justify-center flex-shrink-0 group-hover:border-accent/30 transition-all bg-[var(--bg-muted)] overflow-hidden">
                                         <div className="w-full h-full bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center text-accent font-black text-xs uppercase">
                                             {contato.nome.substring(0, 2)}
                                         </div>
@@ -425,7 +447,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Pro Tip Card - ENHANCED */}
-                    <div className="bg-gradient-to-br from-accent/10 to-transparent p-6 md:p-10 rounded-[32px] md:rounded-[48px] border border-[var(--color-dark-border)] space-y-4 md:space-y-6 shadow-2xl relative overflow-hidden group">
+                    <div className="bg-gradient-to-br from-accent/10 to-transparent p-6 md:p-10 rounded-[32px] md:rounded-[48px] border border-[var(--border-main)] space-y-4 md:space-y-6 shadow-2xl relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:rotate-12 group-hover:scale-125 transition-all duration-700">
                             <TrendingUp className="w-24 h-24 text-accent" />
                         </div>
