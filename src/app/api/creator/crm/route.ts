@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     const { 
       nome, email, telefone, empresa, cargo, canal_origem, 
       status_funil, tags, notas,
-      cidade, estado, endereco, site, nicho 
+      cidade, estado, endereco, site, nicho, cnpj
     } = data
 
     let contact;
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
           status_funil: status_funil || 'lead',
           tags: tags || [],
           notas: notas || '',
-          cidade, estado, endereco, site, nicho,
+          cidade, estado, endereco, site, nicho, cnpj,
         },
       })
     } catch (err: any) {

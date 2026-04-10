@@ -391,6 +391,9 @@ export function LeadDetailModal({
                                    </a>
                                 ) : <span className="text-[var(--text-support)] font-medium italic text-sm">Não informado</span>}
                             </DetailField>
+                            {contact.cnpj && (
+                              <DetailField icon={<FileText className="w-4 h-4" />} label="CNPJ" value={contact.cnpj} />
+                            )}
                             <DetailField icon={<Tag className="w-4 h-4" />} label="Nicho / Segmento" value={contact.nicho} />
                         </div>
                     </div>

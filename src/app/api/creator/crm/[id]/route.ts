@@ -29,7 +29,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     const data = await req.json()
     const { 
       status_funil, notas, tags, activity,
-      cidade, estado, endereco, site, nicho
+      cidade, estado, endereco, site, nicho, cnpj
     } = data
 
     // Se houver uma nova atividade para registrar
@@ -57,6 +57,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
           endereco: endereco !== undefined ? endereco : undefined,
           site: site !== undefined ? site : undefined,
           nicho: nicho !== undefined ? nicho : undefined,
+          cnpj: cnpj !== undefined ? cnpj : undefined,
           updated_at: new Date(),
         },
         include: { atividades: { orderBy: { data: 'desc' } } }

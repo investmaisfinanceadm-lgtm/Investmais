@@ -457,6 +457,7 @@ function GoogleTab() {
                   <span className="text-[var(--text-support)]">•</span>
                   <span className="text-sm text-accent font-black tracking-tight whitespace-nowrap">{b.telefone || 'Sem número'}</span>
                   {b.email && <span className="text-[11px] text-[#64748B] font-medium truncate hidden sm:block">{b.email}</span>}
+                  {b.cnpj && <span className="text-[10px] bg-[var(--bg-primary)] px-2 py-0.5 rounded border border-[var(--border-main)] text-[var(--text-muted)] font-mono">{b.cnpj}</span>}
                 </div>
 
                 <div className="flex items-center gap-4">
