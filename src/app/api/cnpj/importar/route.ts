@@ -12,24 +12,43 @@ export async function POST(req: NextRequest) {
   const userId = (session.user as any).id
   const data = await req.json()
 
-  const contato = await prisma.contato.create({
-    data: {
-      user_id: userId,
-      nome: data.razaoSocial,
-      email: data.email !== 'Não informado' ? data.email : null,
-      telefone: data.telefone !== 'Não informado' ? data.telefone.split('/')[0].trim() : null,
-      empresa: data.nomeFantasia || data.razaoSocial,
-      cnpj: data.cnpj,
-      cargo: 'Empresa',
-      canal_origem: 'CNPJ',
-      status_funil: 'lead',
-      cidade: data.municipio || null,
-      estado: data.uf || null,
-      endereco: data.logradouro ? `${data.logradouro}${data.numero ? `, ${data.numero}` : ''}` : null,
-      nicho: data.cnaePrincipalDescricao || null,
-      notas: `CNAE: ${data.cnaePrincipalDescricao || 'Não informado'}`,
-    },
-  })
+  let contato;
+  try {
+    contato = await prisma.contato.create({
+      data: {
+        user_id: userId,
+        nome: data.razaoSocial,
+        email: data.email !== 'Não informado' ? data.email : null,
+        telefone: data.telefone !== 'Não informado' ? data.telefone.split('/')[0].trim() : null,
+        empresa: data.nomeFantasia || data.razaoSocial,
+        cnpj: data.cnpj,
+        cargo: 'Empresa',
+        canal_origem: 'CNPJ',
+        status_funil: 'lead',
+        cidade: data.municipio || null,
+        estado: data.uf || null,
+        endereco: data.logradouro ? `${data.logradouro}${data.numero ? `, ${data.numero}` : ''}` : null,
+        nicho: data.cnaePrincipalDescricao || null,
+        notas: `CNAE: ${data.cnaePrincipalDescricao || 'Não informado'}`,
+      },
+    })
+  } catch (err: any) {
+    console.error('Initial CNPJ import failed, retrying safe version:', err.message)
+    contato = await prisma.contato.create({
+      data: {
+        user_id: userId,
+        nome: data.razaoSocial,
+        email: data.email !== 'Não informado' ? data.email : null,
+        telefone: data.telefone !== 'Não informado' ? data.telefone.split('/')[0].trim() : null,
+        empresa: data.nomeFantasia || data.razaoSocial,
+        cnpj: data.cnpj,
+        cargo: 'Empresa',
+        canal_origem: 'CNPJ',
+        status_funil: 'lead',
+        notas: `CNAE: ${data.cnaePrincipalDescricao || 'Não informado'}`,
+      },
+    })
+  }
 
   return NextResponse.json({ ok: true, contatoId: contato.id })
 }

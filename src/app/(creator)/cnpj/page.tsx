@@ -306,28 +306,43 @@ function GoogleTab() {
     const startCount = googleLeads.length
     const deadline = Date.now() + POLL_TIMEOUT
     let timerId: ReturnType<typeof setTimeout>
+    let isMounted = true
 
     const tick = async () => {
+      if (!isMounted) return
+      
       if (Date.now() >= deadline) {
         setPolling(false)
-        setPollingMsg('Aguardando resultados...')
-        setTimeout(() => setPollingMsg(null), 4000)
+        setPollingMsg('Tempo limite atingido. Verifique o painel do Google ou tente novamente.')
+        toast.error('A busca demorou demais para retornar resultados.')
+        setTimeout(() => isMounted && setPollingMsg(null), 8000)
         return
       }
-      const fresh = await fetchGoogleLeads()
-      if (fresh.length > startCount) {
-        setPolling(false)
-        setPollingMsg(null)
-        setVisibleCount(PAGE_SIZE) // reset pagination to show top
-        toast.success(`${fresh.length - startCount} novo(s) lead(s) adicionado(s)!`)
-      } else {
+
+      try {
+        const fresh = await fetchGoogleLeads()
+        if (fresh.length > startCount) {
+          setPolling(false)
+          setPollingMsg(null)
+          setVisibleCount(PAGE_SIZE) // reset pagination to show top
+          toast.success(`${fresh.length - startCount} novo(s) lead(s) adicionado(s)!`)
+          return
+        }
+      } catch (err) {
+        console.error('Polling tick error:', err)
+      }
+
+      if (isMounted) {
         timerId = setTimeout(tick, POLL_INTERVAL)
       }
     }
 
     timerId = setTimeout(tick, POLL_INTERVAL)
-    return () => clearTimeout(timerId)
-  }, [polling]) // eslint-disable-line react-hooks/exhaustive-deps
+    return () => {
+      isMounted = false
+      clearTimeout(timerId)
+    }
+  }, [polling, googleLeads.length, fetchGoogleLeads])
 
   const handleBuscar = async () => {
     if (!estado || !cidade || !nicho) return

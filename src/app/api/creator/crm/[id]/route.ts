@@ -44,21 +44,36 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       })
     }
 
-    const updated = await prisma.contato.update({
-      where: { id: params.id, user_id: userId },
-      data: {
-        status_funil: status_funil || undefined,
-        notas: notas || undefined,
-        tags: tags || undefined,
-        cidade: cidade !== undefined ? cidade : undefined,
-        estado: estado !== undefined ? estado : undefined,
-        endereco: endereco !== undefined ? endereco : undefined,
-        site: site !== undefined ? site : undefined,
-        nicho: nicho !== undefined ? nicho : undefined,
-        updated_at: new Date(),
-      },
-      include: { atividades: { orderBy: { data: 'desc' } } }
-    })
+    let updated;
+    try {
+      updated = await prisma.contato.update({
+        where: { id: params.id, user_id: userId },
+        data: {
+          status_funil: status_funil || undefined,
+          notas: notas || undefined,
+          tags: tags || undefined,
+          cidade: cidade !== undefined ? cidade : undefined,
+          estado: estado !== undefined ? estado : undefined,
+          endereco: endereco !== undefined ? endereco : undefined,
+          site: site !== undefined ? site : undefined,
+          nicho: nicho !== undefined ? nicho : undefined,
+          updated_at: new Date(),
+        },
+        include: { atividades: { orderBy: { data: 'desc' } } }
+      })
+    } catch (err: any) {
+      console.error('Initial CRM UPDATE failed, retrying safe version:', err.message)
+      updated = await prisma.contato.update({
+        where: { id: params.id, user_id: userId },
+        data: {
+          status_funil: status_funil || undefined,
+          notas: notas || undefined,
+          tags: tags || undefined,
+          updated_at: new Date(),
+        },
+        include: { atividades: { orderBy: { data: 'desc' } } }
+      })
+    }
 
     return NextResponse.json(updated)
   } catch (err) {

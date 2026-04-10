@@ -1,0 +1,256 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Profile {
+  id            String    @id @default(uuid())
+  nome          String
+  email         String    @unique
+  password      String
+  avatar_url    String?
+  perfil        Role      @default(criador)
+  status        Status    @default(ativo)
+  cota_mensal   Int       @default(10)
+  cota_usada    Int       @default(0)
+  last_activity DateTime?
+  created_at    DateTime  @default(now())
+
+  videos           Video[]
+  pastas           Pasta[]
+  integracoes      Integracao[]
+  notificacoes     Notificacao[]
+  reset_tokens     PasswordResetToken[]
+  pipeline_boards  PipelineBoard[]
+  contatos         Contato[]
+  consultas_cnpj   ConsultaCNPJ[]
+  listas_disparo   ListaDisparo[]
+
+  @@map("profiles")
+}
+
+enum Role {
+  admin
+  criador
+}
+
+enum Status {
+  ativo
+  inativo
+}
+
+model Video {
+  id                 String      @id @default(uuid())
+  user_id            String
+  nome_produto       String
+  descricao_produto  String
+  imagem_produto_url String?
+  logo_empresa_url   String?
+  formato            String
+  linha_editorial    String
+  duracao            Int
+  tom                String
+  status             VideoStatus @default(processando)
+  video_url          String?
+  pasta_id           String?
+  nano_banana_job_id String?
+  created_at         DateTime    @default(now())
+
+  user  Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  pasta Pasta?  @relation(fields: [pasta_id], references: [id])
+
+  @@map("videos")
+}
+
+enum VideoStatus {
+  processando
+  concluido
+  erro
+}
+
+model Pasta {
+  id         String   @id @default(uuid())
+  user_id    String
+  nome       String
+  created_at DateTime @default(now())
+
+  user   Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  videos Video[]
+
+  @@map("pastas")
+}
+
+model Integracao {
+  id            String   @id @default(uuid())
+  user_id       String
+  tipo          String
+  token_acesso  String?
+  configuracoes Json?
+  ativo         Boolean  @default(false)
+  created_at    DateTime @default(now())
+
+  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, tipo])
+  @@map("integracoes")
+}
+
+model Notificacao {
+  id         String   @id @default(uuid())
+  user_id    String
+  mensagem   String
+  lida       Boolean  @default(false)
+  tipo       String
+  created_at DateTime @default(now())
+
+  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("notificacoes")
+}
+
+model PasswordResetToken {
+  id         String   @id @default(uuid())
+  user_id    String
+  token      String   @unique
+  expires_at DateTime
+  used       Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
+
+model PipelineBoard {
+  id         String           @id @default(uuid())
+  user_id    String
+  nome       String
+  descricao  String?
+  created_at DateTime         @default(now())
+  user       Profile          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  colunas    PipelineColuna[]
+
+  @@map("pipeline_boards")
+}
+
+model PipelineColuna {
+  id         String        @id @default(uuid())
+  board_id   String
+  nome       String
+  ordem      Int           @default(0)
+  cor        String        @default("#30CB7B")
+  created_at DateTime      @default(now())
+  board      PipelineBoard @relation(fields: [board_id], references: [id], onDelete: Cascade)
+  cards      PipelineCard[]
+
+  @@map("pipeline_colunas")
+}
+
+model PipelineCard {
+  id            String         @id @default(uuid())
+  coluna_id     String
+  titulo        String
+  descricao     String?
+  responsavel   String?
+  valor         Float?
+  vencimento    DateTime?
+  prioridade    String         @default("media")
+  categoria     String?
+  ordem         Int            @default(0)
+  historico     Json?
+  created_at    DateTime       @default(now())
+  coluna        PipelineColuna @relation(fields: [coluna_id], references: [id], onDelete: Cascade)
+
+  @@map("pipeline_cards")
+}
+
+model Contato {
+  id              String        @id @default(uuid())
+  user_id         String
+  nome            String
+  email           String?
+  telefone        String?
+  empresa         String?
+  cargo           String?
+  cnpj            String?
+  canal_origem    String?
+  status_funil    String        @default("lead")
+  tags            String[]
+  notas           String?
+  avatar_url      String?
+  cidade          String?
+  estado          String?
+  endereco        String?
+  site            String?
+  nicho           String?
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+  user            Profile       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  atividades      AtividadeCRM[]
+
+  @@map("contatos")
+}
+
+model AtividadeCRM {
+  id          String   @id @default(uuid())
+  contato_id  String
+  tipo        String
+  descricao   String
+  data        DateTime @default(now())
+  contato     Contato  @relation(fields: [contato_id], references: [id], onDelete: Cascade)
+
+  @@map("atividades_crm")
+}
+
+model ConsultaCNPJ {
+  id              String   @id @default(uuid())
+  user_id         String
+  cnpj            String
+  razao_social    String?
+  nome_fantasia   String?
+  situacao        String?
+  dados           Json?
+  created_at      DateTime @default(now())
+  user            Profile  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("consultas_cnpj")
+}
+
+// Tabela espelho da leads_cnpj do Supabase (alimentada pelo n8n e pela API de consulta CNPJ)
+model LeadCNPJ {
+  id             String   @id @default(uuid())
+  cnpj           String
+  nome           String?
+  telefone       String?
+  email          String?
+  situacao       String?
+  cidade         String?
+  estado         String?
+  endereco       String?
+  cnae_descricao String?
+  cnae_codigo    String?
+  user_id        String   // UUID do usuário (sem FK — compatível com o n8n que gera UUID avulso)
+  created_at     DateTime @default(now())
+
+  @@index([cnpj])
+  @@index([user_id])
+  @@map("leads_cnpj")
+}
+
+model ListaDisparo {
+  id         String   @id @default(uuid())
+  user_id    String
+  nome       String
+  telefones  String[]
+  status     String   @default("nova") // nova | em_progresso | concluida
+  total      Int      @default(0)
+  enviados   Int      @default(0)
+  created_at DateTime @default(now())
+  user       Profile  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("listas_disparo")
+}
