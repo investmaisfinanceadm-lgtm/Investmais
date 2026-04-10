@@ -221,7 +221,7 @@ html.light .shadow-light-card { box-shadow: 0 2px 8px rgba(0,0,0,0.08) !importan
 
 .custom-scrollbar::-webkit-scrollbar       { height: 4px; width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-dark-border); border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border-main); border-radius: 4px; }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
 
 .no-view::-webkit-scrollbar { display: none; }

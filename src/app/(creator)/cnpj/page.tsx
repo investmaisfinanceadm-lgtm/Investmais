@@ -107,10 +107,11 @@ function SearchableSelect({
   const [searchTerm, setSearchTerm] = useState('')
 
   const filtered = useMemo(() => {
+    if (!Array.isArray(options)) return []
     if (!searchTerm) return options
     const normalizedSearch = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     return options.filter(o => 
-      o.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(normalizedSearch)
+      String(o || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(normalizedSearch)
     )
   }, [options, searchTerm])
 
@@ -128,7 +129,7 @@ function SearchableSelect({
           )}
         >
           <div className="flex items-center gap-2 truncate flex-1 min-w-0">
-            {!mini && <Icon className={cn("w-3.5 h-3.5 shrink-0", value ? "text-accent" : "text-[var(--text-support)]")} />}
+            {!mini && Icon && <Icon className={cn("w-3.5 h-3.5 shrink-0", value ? "text-accent" : "text-[var(--text-support)]")} />}
             <span className={cn("truncate font-semibold", !value && "text-[var(--text-support)]")}>
               {loading ? (
                 <span className="flex items-center gap-2 italic text-accent animate-pulse">
@@ -142,8 +143,9 @@ function SearchableSelect({
 
         <AnimatePresence>
           {isOpen && (
-            <div className="fixed inset-0 z-[120] flex items-start justify-center pt-20 px-4 sm:relative sm:inset-auto sm:p-0">
+            <div key="dropdown-wrapper" className="fixed inset-0 z-[120] flex items-start justify-center pt-20 px-4 sm:relative sm:inset-auto sm:p-0">
               <motion.div 
+                key="backdrop"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -152,6 +154,7 @@ function SearchableSelect({
               />
               
               <motion.div 
+                 key="dropdown-content"
                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
                  animate={{ opacity: 1, y: 0, scale: 1 }}
                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
@@ -273,9 +276,12 @@ function GoogleTab() {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
 
-  // Sorted leads: most recent first
   const sortedLeads = useMemo(
-    () => [...googleLeads].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+    () => [...googleLeads].sort((a, b) => {
+      const dateA = new Date(a?.created_at || 0).getTime()
+      const dateB = new Date(b?.created_at || 0).getTime()
+      return dateB - dateA
+    }),
     [googleLeads]
   )
 
@@ -487,7 +493,14 @@ function GoogleTab() {
 
                   <div className="flex flex-col items-end shrink-0 min-w-[80px]">
                     <span className="text-xs text-[var(--text-muted)] font-black uppercase tracking-wider">{b.status || 'lead'}</span>
-                    <span className="text-[10px] text-[var(--text-support)] font-medium">{format(new Date(b.createdAt || new Date()), "dd/MM/yy 'às' HH:mm")}</span>
+                    <span className="text-[10px] text-[var(--text-support)] font-medium">
+                      {(() => {
+                        try {
+                          const d = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt)
+                          return isNaN(d.getTime()) ? '—' : format(d, "dd/MM/yy 'às' HH:mm")
+                        } catch { return '—' }
+                      })()}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -613,7 +626,10 @@ function CNPJTab() {
     return true
   })
 
-  const estadosDisponiveis = [...new Set(leads.map(l => l.estado).filter(Boolean)) as any] as string[]
+  const estadosDisponiveis = useMemo(() => {
+    if (!Array.isArray(leads)) return []
+    return [...new Set(leads.map(l => l?.estado).filter(Boolean))] as string[]
+  }, [leads])
 
   return (
     <div className="space-y-6">
