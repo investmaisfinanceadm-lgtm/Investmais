@@ -182,6 +182,11 @@ model Contato {
   tags            String[]
   notas           String?
   avatar_url      String?
+  cidade          String?
+  estado          String?
+  endereco        String?
+  site            String?
+  nicho           String?
   created_at      DateTime      @default(now())
   updated_at      DateTime      @updatedAt
   user            Profile       @relation(fields: [user_id], references: [id], onDelete: Cascade)

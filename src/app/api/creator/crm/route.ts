@@ -29,7 +29,11 @@ export async function POST(req: Request) {
     const userId = (session.user as any).id
 
     const data = await req.json()
-    const { nome, email, telefone, empresa, cargo, canal_origem, status_funil, tags, notas } = data
+    const { 
+      nome, email, telefone, empresa, cargo, canal_origem, 
+      status_funil, tags, notas,
+      cidade, estado, endereco, site, nicho 
+    } = data
 
     const contact = await prisma.contato.create({
       data: {
@@ -43,6 +47,11 @@ export async function POST(req: Request) {
         status_funil: status_funil || 'lead',
         tags: tags || [],
         notas: notas || '',
+        cidade,
+        estado,
+        endereco,
+        site,
+        nicho,
       },
     })
 

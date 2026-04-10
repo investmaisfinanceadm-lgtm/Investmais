@@ -37,42 +37,29 @@ import {
   CheckCircle2,
   Circle,
   ArrowRight,
+  Copy,
+  ExternalLink,
+  MapPin,
+  MessageCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type FunilStatus = 'lead' | 'qualificado' | 'proposta' | 'cliente' | 'inativo'
-type Canal = 'Instagram' | 'Site' | 'Indicação' | 'LinkedIn' | 'WhatsApp' | 'Google'
-type ActivityType = 'phone' | 'email' | 'message' | 'meeting' | 'note'
+import { 
+  LeadDetailModal, 
+  Contact, 
+  FunilStatus, 
+  Canal, 
+  ActivityType, 
+  ContactActivity 
+} from '@/components/crm/LeadDetailModal'
+
 type ViewMode = 'list' | 'grid'
 type FilterTab = 'todos' | 'leads' | 'clientes' | 'inativos'
 type DetailTab = 'visao-geral' | 'atividades' | 'cnpj'
 
-interface ContactActivity {
-  id: string
-  type: ActivityType
-  description: string
-  date: Date
-}
-
-interface Contact {
-  id: string
-  nome: string
-  empresa: string
-  email: string
-  telefone: string
-  cargo: string
-  canal: Canal
-  status: FunilStatus
-  tags: string[]
-  cnpj?: string
-  notas: string
-  createdAt: Date
-  lastActivity: Date
-  activities: ContactActivity[]
-}
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
@@ -271,106 +258,8 @@ const MOCK_CONTACTS: Contact[] = [
 
 // ─── Helper Functions ─────────────────────────────────────────────────────────
 
-function getInitials(name: string): string {
-  return (name || '')
-    .split(' ')
-    .map((n) => n[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase() || '??'
-}
+// Helper functions moved to shared component
 
-function safeFormat(date: Date | string | null | undefined, fmt: string): string {
-  try {
-    if (!date) return '—'
-    const d = date instanceof Date ? date : new Date(date)
-    if (isNaN(d.getTime())) return '—'
-    return format(d, fmt, { locale: ptBR })
-  } catch { return '—' }
-}
-
-function safeDistance(date: Date | string | null | undefined): string {
-  try {
-    if (!date) return '—'
-    const d = date instanceof Date ? date : new Date(date)
-    if (isNaN(d.getTime())) return '—'
-    return formatDistanceToNow(d, { locale: ptBR, addSuffix: true })
-  } catch { return '—' }
-}
-
-const AVATAR_COLORS = [
-  'bg-accent/20 text-accent',
-  'bg-blue-500/20 text-blue-400',
-  'bg-purple-500/20 text-purple-400',
-  'bg-amber-500/20 text-amber-400',
-  'bg-rose-500/20 text-rose-400',
-  'bg-cyan-500/20 text-cyan-400',
-  'bg-orange-500/20 text-orange-400',
-  'bg-indigo-500/20 text-indigo-400',
-]
-
-function getAvatarColor(id: string): string {
-  const index = parseInt(id, 10) % AVATAR_COLORS.length
-  return AVATAR_COLORS[index] ?? AVATAR_COLORS[0]
-}
-
-function getStatusConfig(status: FunilStatus | undefined | null) {
-  switch (status) {
-    case 'lead':
-      return { label: 'Lead', classes: 'bg-gray-500/10 text-gray-400 border border-gray-500/20' }
-    case 'qualificado':
-      return { label: 'Qualificado', classes: 'bg-blue-500/10 text-blue-400 border border-blue-500/20' }
-    case 'proposta':
-      return { label: 'Proposta', classes: 'bg-amber-500/10 text-amber-400 border border-amber-500/20' }
-    case 'cliente':
-      return { label: 'Cliente', classes: 'bg-accent/10 text-accent border border-accent/20' }
-    case 'inativo':
-      return { label: 'Inativo', classes: 'bg-red-500/10 text-red-400 border border-red-500/20' }
-    default:
-      return { label: 'Lead', classes: 'bg-gray-500/10 text-gray-400 border border-gray-500/20' }
-  }
-}
-
-function getCanalIcon(canal: Canal | undefined | null) {
-  switch (canal) {
-    case 'Instagram': return <Instagram className="w-3 h-3" />
-    case 'LinkedIn': return <Linkedin className="w-3 h-3" />
-    case 'Site': return <Globe className="w-3 h-3" />
-    case 'WhatsApp': return <MessageSquare className="w-3 h-3" />
-    case 'Indicação': return <UserCheck className="w-3 h-3" />
-    default: return <Globe className="w-3 h-3" />
-  }
-}
-
-function getActivityIcon(type: ActivityType | undefined | null) {
-  switch (type) {
-    case 'phone': return <Phone className="w-4 h-4" />
-    case 'email': return <Mail className="w-4 h-4" />
-    case 'message': return <MessageSquare className="w-4 h-4" />
-    case 'meeting': return <Calendar className="w-4 h-4" />
-    case 'note': return <FileText className="w-4 h-4" />
-    default: return <MessageSquare className="w-4 h-4" />
-  }
-}
-
-function getActivityColor(type: ActivityType | undefined | null) {
-  switch (type) {
-    case 'phone': return 'bg-accent/10 text-accent border-accent/20'
-    case 'email': return 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-    case 'message': return 'bg-purple-500/10 text-purple-400 border-purple-500/20'
-    case 'meeting': return 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-    case 'note': return 'bg-gray-500/10 text-gray-400 border-gray-500/20'
-    default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20'
-  }
-}
-
-const FUNIL_STAGES: { key: FunilStatus; label: string }[] = [
-  { key: 'lead', label: 'Lead' },
-  { key: 'qualificado', label: 'Qualificado' },
-  { key: 'proposta', label: 'Proposta' },
-  { key: 'cliente', label: 'Cliente' },
-]
 
 // ─── Zod Schema ───────────────────────────────────────────────────────────────
 
@@ -674,384 +563,17 @@ function ScrapeLeadsModal({ onClose }: { onClose: () => void }) {
 
 // ─── Contact Detail Modal ─────────────────────────────────────────────────────
 
-function ContactDetailModal({
-  contact,
-  onClose,
-  onUpdate,
-  onDelete,
-}: {
-  contact: Contact
-  onClose: () => void
-  onUpdate: (updated: Contact) => void
-  onDelete: (id: string) => void
-}) {
-  const [activeTab, setActiveTab] = useState<DetailTab>('visao-geral')
-  const [isAddingActivity, setIsAddingActivity] = useState(false)
-  const [activityDesc, setActivityDesc] = useState('')
-  const [activityType, setActivityType] = useState<ActivityType>('note')
-
-  const statusConfig = getStatusConfig(contact.status)
-  const stageIndex = FUNIL_STAGES.findIndex((s) => s.key === contact.status)
-  const isInFunil = stageIndex !== -1
-
-  function updateStatus(newStatus: FunilStatus) {
-    onUpdate({ ...contact, status: newStatus, lastActivity: new Date() })
-  }
-
-  function addActivity() {
-    if (!activityDesc.trim()) return
-    const newActivity: ContactActivity = {
-      id: 'new-' + Date.now(), // Temporary ID until saved
-      type: activityType,
-      description: activityDesc,
-      date: new Date(),
-    }
-    const updated: Contact = {
-      ...contact,
-      activities: [newActivity, ...contact.activities],
-      lastActivity: new Date(),
-    }
-    onUpdate(updated)
-    setActivityDesc('')
-    setIsAddingActivity(false)
-  }
-
-  const tabs: { key: DetailTab; label: string }[] = [
-    { key: 'visao-geral', label: 'Visão Geral' },
-    { key: 'atividades', label: 'Atividades' },
-    { key: 'cnpj', label: 'CNPJ Vinculado' },
-  ]
-
+// Using shared components from '@/components/crm/LeadDetailModal'
+function ContactAvatar({ contact, size = 'md' }: { contact: Contact; size?: 'sm' | 'md' | 'lg' }) {
+  const initials = (contact.nome || '').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  const sizeClasses = { sm: 'w-8 h-8 text-xs', md: 'w-10 h-10 text-sm', lg: 'w-16 h-16 text-xl' }
   return (
-    <motion.div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <motion.div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <motion.div
-        className="relative w-full sm:max-w-3xl bg-[var(--bg-card)] border border-[var(--border-main)] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
-        initial={{ opacity: 0, y: 60 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 60 }}
-        transition={{ type: 'spring', stiffness: 280, damping: 28 }}
-      >
-        {/* Modal Header */}
-        <div className="p-6 border-b border-[var(--border-main)] shrink-0">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <ContactAvatar contact={contact} size="lg" />
-              <div>
-                <h2 className="text-xl font-black text-[var(--text-main)]">{contact.nome}</h2>
-                <p className="text-sm text-[var(--text-muted)]">{contact.cargo} · {contact.empresa}</p>
-                <div className="flex items-center gap-2 mt-2 flex-wrap">
-                  <span className={cn('badge', statusConfig.classes)}>{statusConfig.label}</span>
-                  {contact.tags.map((tag) => (
-                    <span key={tag} className="badge badge-accent text-[10px]">{tag}</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={() => { onDelete(contact.id); onClose() }}
-                className="btn-danger p-2"
-                title="Excluir contato"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-              <button onClick={onClose} className="btn-ghost p-2">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex gap-1 mt-6 bg-[var(--bg-primary)] rounded-xl p-1">
-            {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={cn(
-                  'flex-1 py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all',
-                  activeTab === tab.key
-                    ? 'bg-[var(--bg-card)] text-accent border border-[var(--border-main)]'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
-                )}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Modal Body */}
-        <div className="overflow-y-auto flex-1 p-6">
-          <AnimatePresence mode="wait">
-            {activeTab === 'visao-geral' && (
-              <motion.div
-                key="visao"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                className="space-y-6"
-              >
-                {/* Funil Progress */}
-                <div className="bg-[var(--bg-primary)] rounded-2xl p-5 border border-[var(--border-main)]">
-                  <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-4">Estágio no Funil</p>
-                  {contact.status === 'inativo' ? (
-                    <div className="flex items-center gap-2">
-                      <span className="badge bg-red-500/10 text-red-400 border border-red-500/20">Inativo</span>
-                      <button
-                        onClick={() => updateStatus('lead')}
-                        className="text-xs text-accent underline underline-offset-2"
-                      >
-                        Reativar como Lead
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      {FUNIL_STAGES.map((stage, idx) => {
-                        const current = FUNIL_STAGES.findIndex((s) => s.key === contact.status)
-                        const isPast = idx < current
-                        const isActive = idx === current
-                        return (
-                          <div key={stage.key} className="flex items-center gap-2 flex-1">
-                            <button
-                              onClick={() => updateStatus(stage.key)}
-                              className={cn(
-                                'flex-1 py-2 px-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-center transition-all border',
-                                isActive && 'bg-accent/10 text-accent border-accent/30 shadow-accent/10 shadow-md',
-                                isPast && 'bg-accent/5 text-accent/50 border-accent/10',
-                                !isActive && !isPast && 'bg-[var(--bg-card)] text-[var(--text-muted)] border-[var(--border-main)] hover:border-white/10 hover:text-[var(--text-main)]'
-                              )}
-                            >
-                              {isPast && <CheckCircle2 className="w-3 h-3 inline mr-1" />}
-                              {isActive && <Circle className="w-3 h-3 inline mr-1 fill-accent text-accent" />}
-                              {stage.label}
-                            </button>
-                            {idx < FUNIL_STAGES.length - 1 && (
-                              <ArrowRight className={cn('w-3 h-3 shrink-0', isActive || isPast ? 'text-accent/40' : 'text-[var(--text-muted)]')} />
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {/* Two columns data */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Dados Pessoais</p>
-                    <DataRow icon={<Mail className="w-4 h-4" />} label="Email" value={contact.email} />
-                    <DataRow icon={<Phone className="w-4 h-4" />} label="Telefone" value={contact.telefone} />
-                    <DataRow icon={<Briefcase className="w-4 h-4" />} label="Cargo" value={contact.cargo} />
-                    <DataRow
-                      icon={getCanalIcon(contact.canal)}
-                      label="Canal Origem"
-                      value={contact.canal}
-                    />
-                  </div>
-                  <div className="space-y-4">
-                    <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Dados da Empresa</p>
-                    <DataRow icon={<Building2 className="w-4 h-4" />} label="Empresa" value={contact.empresa} />
-                    {contact.cnpj && (
-                      <DataRow icon={<FileText className="w-4 h-4" />} label="CNPJ" value={contact.cnpj} />
-                    )}
-                    <div>
-                      <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1 flex items-center gap-1">
-                        <Tag className="w-3 h-3" /> Tags
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        {contact.tags.length > 0 ? contact.tags.map((tag) => (
-                          <span key={tag} className="badge badge-accent text-[10px]">{tag}</span>
-                        )) : <span className="text-[var(--text-muted)] text-xs">—</span>}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Notes */}
-                {contact.notas && (
-                  <div className="bg-[var(--bg-primary)] rounded-xl p-4 border border-[var(--border-main)]">
-                    <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-2">Notas</p>
-                    <p className="text-sm text-[var(--text-main)] leading-relaxed">{contact.notas}</p>
-                  </div>
-                )}
-
-                {/* Meta */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-[var(--bg-primary)] rounded-xl p-4 border border-[var(--border-main)] text-center">
-                    <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mb-1">Criado em</p>
-                    <p className="text-sm font-bold text-[var(--text-main)]">{safeFormat(contact.createdAt, 'dd/MM/yyyy')}</p>
-                  </div>
-                  <div className="bg-[var(--bg-primary)] rounded-xl p-4 border border-[var(--border-main)] text-center">
-                    <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mb-1">Última Atividade</p>
-                    <p className="text-sm font-bold text-[var(--text-main)]">
-                      {safeDistance(contact.lastActivity)}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === 'atividades' && (
-              <motion.div
-                key="atividades"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                className="space-y-5"
-              >
-                <button
-                  onClick={() => setIsAddingActivity(!isAddingActivity)}
-                  className="btn-primary w-full flex items-center justify-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Registrar Atividade
-                </button>
-
-                <AnimatePresence>
-                  {isAddingActivity && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="bg-[var(--bg-primary)] rounded-2xl p-5 border border-accent/10 space-y-4">
-                        <p className="text-xs font-black text-accent uppercase tracking-widest">Nova Atividade</p>
-                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                          {(['phone', 'email', 'message', 'meeting', 'note'] as ActivityType[]).map((t) => (
-                            <button
-                              key={t}
-                              onClick={() => setActivityType(t)}
-                              className={cn(
-                                'py-2 px-2 rounded-xl text-[10px] font-bold uppercase tracking-wider flex flex-col items-center gap-1 border transition-all',
-                                activityType === t ? getActivityColor(t) + ' border-opacity-100' : 'border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
-                              )}
-                            >
-                              {getActivityIcon(t)}
-                              <span className="hidden sm:block">{t}</span>
-                            </button>
-                          ))}
-                        </div>
-                        <textarea
-                          className="input-field resize-none"
-                          rows={3}
-                          placeholder="Descreva a atividade..."
-                          value={activityDesc}
-                          onChange={(e) => setActivityDesc(e.target.value)}
-                        />
-                        <div className="flex gap-3">
-                          <button onClick={() => setIsAddingActivity(false)} className="btn-secondary flex-1 text-sm py-2">
-                            Cancelar
-                          </button>
-                          <button onClick={addActivity} className="btn-primary flex-1 text-sm py-2">
-                            Salvar
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Timeline */}
-                <div className="relative">
-                  <div className="absolute left-5 top-0 bottom-0 w-px bg-[var(--border-main)]" />
-                  <div className="space-y-4">
-                    {contact.activities.length === 0 && (
-                      <p className="text-[var(--text-muted)] text-sm text-center py-8">Nenhuma atividade registrada ainda.</p>
-                    )}
-                    {contact.activities.map((activity, idx) => (
-                      <motion.div
-                        key={activity.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                        className="flex gap-4 pl-2"
-                      >
-                        <div className={cn('w-8 h-8 rounded-full flex items-center justify-center border shrink-0 z-10', getActivityColor(activity.type))}>
-                          {getActivityIcon(activity.type)}
-                        </div>
-                        <div className="flex-1 bg-[var(--bg-primary)] rounded-xl p-4 border border-[var(--border-main)]">
-                          <p className="text-sm text-[var(--text-main)]">{activity.description}</p>
-                          <p className="text-[10px] text-[var(--text-muted)] mt-1 font-semibold uppercase tracking-wider">
-                            {safeFormat(activity.date, "dd 'de' MMMM 'de' yyyy")}
-                          </p>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === 'cnpj' && (
-              <motion.div
-                key="cnpj"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                className="space-y-5"
-              >
-                {contact.cnpj ? (
-                  <div className="space-y-4">
-                    <div className="bg-[var(--bg-primary)] rounded-2xl p-6 border border-[var(--border-main)]">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
-                          <Building2 className="w-5 h-5 text-accent" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-black text-[var(--text-main)] uppercase tracking-wider">{contact.empresa}</p>
-                          <p className="text-xs text-[var(--text-muted)]">{contact.cnpj}</p>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <DataRow icon={<FileText className="w-4 h-4" />} label="CNPJ" value={contact.cnpj} />
-                        <DataRow icon={<Building2 className="w-4 h-4" />} label="Razão Social" value={contact.empresa} />
-                        <DataRow icon={<Briefcase className="w-4 h-4" />} label="Responsável" value={contact.nome} />
-                        <DataRow icon={<Tag className="w-4 h-4" />} label="Segmento" value={contact.tags[0] ?? '—'} />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 p-4 rounded-xl bg-accent/5 border border-accent/10">
-                      <CheckCircle2 className="w-4 h-4 text-accent shrink-0" />
-                      <p className="text-xs text-[var(--text-muted)]">CNPJ vinculado e validado no cadastro do contato.</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-main)] flex items-center justify-center mx-auto mb-4">
-                      <Building2 className="w-8 h-8 text-[var(--text-muted)]" />
-                    </div>
-                    <p className="text-[var(--text-muted)] text-sm font-medium">Nenhum CNPJ vinculado</p>
-                    <p className="text-[var(--text-support)] text-xs mt-1">Este contato não possui CNPJ cadastrado.</p>
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
-    </motion.div>
-  )
-}
-
-function DataRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div>
-      <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-0.5 flex items-center gap-1">
-        <span className="text-[var(--text-muted)]">{icon}</span> {label}
-      </p>
-      <p className="text-sm text-[var(--text-main)] font-medium">{value}</p>
+    <div className={cn('rounded-full flex items-center justify-center font-black shrink-0 bg-accent/20 text-accent', sizeClasses[size])}>
+      {initials}
     </div>
   )
 }
+
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
@@ -1113,6 +635,11 @@ export default function CRMPage() {
             email: c.email || '',
             telefone: c.telefone || '',
             cargo: c.cargo || '',
+            cidade: c.cidade || '',
+            estado: c.estado || '',
+            endereco: c.endereco || '',
+            site: c.site || '',
+            nicho: c.nicho || '',
             createdAt: new Date(c.created_at),
             lastActivity: new Date(c.updated_at || c.created_at),
             activities: (c.atividades || []).map((a: any) => ({
@@ -1591,7 +1118,7 @@ export default function CRMPage() {
       </AnimatePresence>
       <AnimatePresence>
         {isDetailOpen && selectedContact && (
-          <ContactDetailModal
+          <LeadDetailModal
             contact={selectedContact}
             onClose={() => { setIsDetailOpen(false); setSelectedContact(null) }}
             onUpdate={handleUpdate}

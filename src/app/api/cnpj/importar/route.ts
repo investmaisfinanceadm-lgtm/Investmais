@@ -23,7 +23,11 @@ export async function POST(req: NextRequest) {
       cargo: 'Empresa',
       canal_origem: 'CNPJ',
       status_funil: 'lead',
-      notas: `CNAE: ${data.cnaePrincipalDescricao}\nEndereço: ${data.logradouro}, ${data.numero} — ${data.municipio}/${data.uf}`,
+      cidade: data.municipio || null,
+      estado: data.uf || null,
+      endereco: data.logradouro ? `${data.logradouro}, ${data.numero}` : null,
+      nicho: data.cnaePrincipalDescricao || null,
+      notas: `CNAE: ${data.cnaePrincipalDescricao || 'Não informado'}`,
     },
   })
 

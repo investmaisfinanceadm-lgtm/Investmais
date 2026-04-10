@@ -10,7 +10,15 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { format, parseISO } from 'date-fns'
 import toast from 'react-hot-toast'
 import { ptBR } from 'date-fns/locale'
-import { cn } from '@/lib/utils'
+import { 
+  LeadDetailModal, 
+  Contact, 
+  FunilStatus, 
+  Canal, 
+  ActivityType, 
+  ContactActivity 
+} from '@/components/crm/LeadDetailModal'
+
 
 // ─── CNPJ helpers ────────────────────────────────────────────────────────────
 function validarCNPJ(cnpj: string): boolean {
@@ -239,23 +247,54 @@ function GoogleTab() {
   const [pollingMsg, setPollingMsg] = useState<string | null>(null)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
+
   // Sorted leads: most recent first
   const sortedLeads = useMemo(
     () => [...googleLeads].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
     [googleLeads]
   )
 
-  const fetchGoogleLeads = useCallback(async (): Promise<any[]> => {
+  const formatContact = (c: any): Contact => ({
+    ...c,
+    status: (c.status_funil || 'lead') as FunilStatus,
+    canal: (c.canal_origem || 'Site') as Canal,
+    tags: c.tags || [],
+    notas: c.notas || '',
+    empresa: c.empresa || '',
+    email: c.email || '',
+    telefone: c.telefone || '',
+    cargo: c.cargo || '',
+    cidade: c.cidade || '',
+    estado: c.estado || '',
+    endereco: c.endereco || '',
+    site: c.site || '',
+    nicho: c.nicho || '',
+    createdAt: new Date(c.created_at),
+    lastActivity: new Date(c.updated_at || c.created_at),
+    activities: (c.atividades || []).map((a: any) => ({
+      id: a.id,
+      type: (a.tipo || 'note') as ActivityType,
+      description: a.descricao || '',
+      date: new Date(a.data || Date.now()),
+    }))
+  })
+
+  const fetchGoogleLeads = useCallback(async (): Promise<Contact[]> => {
     try {
       const d = await fetch('/api/creator/crm').then(r => r.json())
       if (Array.isArray(d)) {
-        const leadsGoogle = d.filter((c: any) => c.canal_origem?.toLowerCase() === 'google' || c.canal?.toLowerCase() === 'google')
+        const leadsGoogle = d
+          .filter((c: any) => c.canal_origem?.toLowerCase() === 'google' || c.canal?.toLowerCase() === 'google')
+          .map(formatContact)
         setGoogleLeads(leadsGoogle)
         return leadsGoogle
       }
     } catch {}
     return []
   }, [])
+
 
   useEffect(() => { fetchGoogleLeads() }, [fetchGoogleLeads])
   useEffect(() => { setCidade('') }, [estado])
@@ -393,18 +432,26 @@ function GoogleTab() {
             <p className="text-sm text-[var(--text-muted)] text-center py-6">Nenhum lead extraído do Google Maps até o momento.</p>
           ) : (
             sortedLeads.slice(0, visibleCount).map((b, i) => (
-              <div key={b.id ?? i} className="flex items-center justify-between px-6 py-4 hover:bg-[var(--bg-primary)] transition-colors">
+              <div 
+                key={b.id ?? i} 
+                onClick={() => {
+                  setSelectedContact(b)
+                  setIsDetailOpen(true)
+                }}
+                className="flex items-center justify-between px-6 py-4 hover:bg-[var(--bg-primary)] transition-colors cursor-pointer group"
+              >
                 <div className="flex items-center gap-3 flex-wrap min-w-0">
-                  <span className="text-sm font-semibold text-[var(--text-main)] truncate max-w-[160px] md:max-w-[260px]">{b.nome}</span>
+                  <span className="text-sm font-semibold text-[var(--text-main)] group-hover:text-accent transition-colors truncate max-w-[160px] md:max-w-[260px]">{b.nome}</span>
                   <span className="text-sm text-accent font-black tracking-tight whitespace-nowrap">{b.telefone || 'Sem número'}</span>
                   {b.email && <span className="text-[11px] text-[#64748B] font-medium truncate hidden sm:block">{b.email}</span>}
                 </div>
                 <div className="flex flex-col items-end ml-4 shrink-0">
-                  <span className="text-xs text-[var(--text-muted)] font-black uppercase tracking-wider">{b.status_funil || 'lead'}</span>
-                  <span className="text-[10px] text-[var(--text-support)] font-medium">{format(new Date(b.created_at || new Date()), "dd/MM/yy 'às' HH:mm")}</span>
+                  <span className="text-xs text-[var(--text-muted)] font-black uppercase tracking-wider">{b.status || 'lead'}</span>
+                  <span className="text-[10px] text-[var(--text-support)] font-medium">{format(new Date(b.createdAt || new Date()), "dd/MM/yy 'às' HH:mm")}</span>
                 </div>
               </div>
             ))
+
           )}
         </div>
 
@@ -425,7 +472,50 @@ function GoogleTab() {
           </div>
         )}
       </div>
+      {/* Detail Modal */}
+      <AnimatePresence>
+        {isDetailOpen && selectedContact && (
+          <LeadDetailModal
+            contact={selectedContact}
+            onClose={() => { setIsDetailOpen(false); setSelectedContact(null) }}
+            onUpdate={async (updated) => {
+              // Same basic update logic as CRM page
+              try {
+                const res = await fetch(`/api/creator/crm/${updated.id}`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    status_funil: updated.status,
+                    notas: updated.notas,
+                    tags: updated.tags
+                  })
+                })
+                if (res.ok) {
+                  const data = await res.json()
+                  const formatted = formatContact(data)
+                  setGoogleLeads(prev => prev.map(l => l.id === formatted.id ? formatted : l))
+                  setSelectedContact(formatted)
+                }
+              } catch (err) {
+                console.error('Update err:', err)
+              }
+            }}
+            onDelete={async (id) => {
+              try {
+                const res = await fetch(`/api/creator/crm/${id}`, { method: 'DELETE' })
+                if (res.ok) {
+                  setGoogleLeads(prev => prev.filter(l => l.id !== id))
+                  toast.success('Lead excluído')
+                }
+              } catch (err) {
+                console.error('Delete err:', err)
+              }
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
+
   )
 }
 
