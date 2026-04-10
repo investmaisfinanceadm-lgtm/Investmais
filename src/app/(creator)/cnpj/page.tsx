@@ -464,7 +464,7 @@ function GoogleTab() {
             sortedLeads.slice(0, visibleCount).map((b, i) => (
               <div 
                 key={b.id ?? i} 
-                className="flex items-center justify-between px-6 py-4 hover:bg-[var(--bg-primary)] transition-colors group"
+                className="flex items-center justify-between px-6 py-4 hover:bg-[var(--bg-muted)] transition-all duration-300 group border-l-2 border-transparent hover:border-accent"
               >
                 <div className="flex items-center gap-3 flex-wrap min-w-0 flex-1">
                   <span className="text-sm font-semibold text-[var(--text-main)] truncate max-w-[160px] md:max-w-[260px]">{b.nome}</span>
