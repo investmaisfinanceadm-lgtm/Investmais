@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useMemo } from 'react'
 import {
   Search, Building2, RefreshCw, CheckCircle2, XCircle, AlertCircle,
   AlertTriangle, UserPlus, Copy, Phone, Mail, MapPin, Calendar,
-  Briefcase, DollarSign, Users, Clock, ChevronDown, Filter,
+  Briefcase, DollarSign, Users, Clock, ChevronDown, Filter, Eye
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -450,20 +450,31 @@ function GoogleTab() {
             sortedLeads.slice(0, visibleCount).map((b, i) => (
               <div 
                 key={b.id ?? i} 
-                onClick={() => {
-                  setSelectedContact(b)
-                  setIsDetailOpen(true)
-                }}
-                className="flex items-center justify-between px-6 py-4 hover:bg-[var(--bg-primary)] transition-colors cursor-pointer group"
+                className="flex items-center justify-between px-6 py-4 hover:bg-[var(--bg-primary)] transition-colors group"
               >
-                <div className="flex items-center gap-3 flex-wrap min-w-0">
-                  <span className="text-sm font-semibold text-[var(--text-main)] group-hover:text-accent transition-colors truncate max-w-[160px] md:max-w-[260px]">{b.nome}</span>
+                <div className="flex items-center gap-3 flex-wrap min-w-0 flex-1">
+                  <span className="text-sm font-semibold text-[var(--text-main)] truncate max-w-[160px] md:max-w-[260px]">{b.nome}</span>
+                  <span className="text-[var(--text-support)]">•</span>
                   <span className="text-sm text-accent font-black tracking-tight whitespace-nowrap">{b.telefone || 'Sem número'}</span>
                   {b.email && <span className="text-[11px] text-[#64748B] font-medium truncate hidden sm:block">{b.email}</span>}
                 </div>
-                <div className="flex flex-col items-end ml-4 shrink-0">
-                  <span className="text-xs text-[var(--text-muted)] font-black uppercase tracking-wider">{b.status || 'lead'}</span>
-                  <span className="text-[10px] text-[var(--text-support)] font-medium">{format(new Date(b.createdAt || new Date()), "dd/MM/yy 'às' HH:mm")}</span>
+
+                <div className="flex items-center gap-4">
+                  <button 
+                    onClick={() => {
+                      setSelectedContact(b)
+                      setIsDetailOpen(true)
+                    }}
+                    title="Ver detalhes"
+                    className="p-2 rounded-lg text-gray-500 hover:text-accent hover:bg-accent/10 transition-all"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+
+                  <div className="flex flex-col items-end shrink-0 min-w-[80px]">
+                    <span className="text-xs text-[var(--text-muted)] font-black uppercase tracking-wider">{b.status || 'lead'}</span>
+                    <span className="text-[10px] text-[var(--text-support)] font-medium">{format(new Date(b.createdAt || new Date()), "dd/MM/yy 'às' HH:mm")}</span>
+                  </div>
                 </div>
               </div>
             ))
@@ -493,6 +504,8 @@ function GoogleTab() {
         {isDetailOpen && selectedContact && (
           <LeadDetailModal
             contact={selectedContact}
+            readOnly={true}
+            simpleMode={true}
             onClose={() => { setIsDetailOpen(false); setSelectedContact(null) }}
             onUpdate={async (updated) => {
               // Same basic update logic as CRM page

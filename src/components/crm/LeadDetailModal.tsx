@@ -1,5 +1,6 @@
+'use client'
+
 import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { 
   X, Mail, Phone, Building2, Briefcase, MessageSquare, 
   MapPin, Globe, Tag, ExternalLink, Copy, MessageCircle,
@@ -8,13 +9,14 @@ import {
 } from 'lucide-react'
 import { format, formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { cn } from '@/lib/utils'
+import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
+import { cn } from '@/lib/utils'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type FunilStatus = 'lead' | 'qualificado' | 'proposta' | 'cliente' | 'inativo'
-export type Canal = 'Instagram' | 'Site' | 'Indicação' | 'LinkedIn' | 'WhatsApp' | 'Google'
+export type Canal = 'WhatsApp' | 'Site' | 'Indicação' | 'Google' | 'Instagram'
+export type FunilStatus = 'lead' | 'qualificado' | 'reuniao' | 'proposta' | 'cliente' | 'inativo'
 export type ActivityType = 'phone' | 'email' | 'message' | 'meeting' | 'note'
 
 export interface ContactActivity {
@@ -27,59 +29,49 @@ export interface ContactActivity {
 export interface Contact {
   id: string
   nome: string
-  empresa: string
   email: string
   telefone: string
+  empresa: string
   cargo: string
   canal: Canal
   status: FunilStatus
   tags: string[]
-  cnpj?: string
   notas: string
-  cidade?: string
-  estado?: string
-  endereco?: string
-  site?: string
-  nicho?: string
+  cidade: string
+  estado: string
+  endereco: string
+  site: string
+  nicho: string
   createdAt: Date
   lastActivity: Date
   activities: ContactActivity[]
+  cnpj?: string
 }
 
-export const FUNIL_STAGES: { key: FunilStatus; label: string }[] = [
+const FUNIL_STAGES: { key: FunilStatus; label: string }[] = [
   { key: 'lead', label: 'Lead' },
   { key: 'qualificado', label: 'Qualificado' },
+  { key: 'reuniao', label: 'Reunião' },
   { key: 'proposta', label: 'Proposta' },
   { key: 'cliente', label: 'Cliente' },
+  { key: 'inativo', label: 'Inativo' },
 ]
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+const AVATAR_COLORS = [
+  'bg-blue-500/10 text-blue-500',
+  'bg-purple-500/10 text-purple-500',
+  'bg-emerald-500/10 text-emerald-500',
+  'bg-amber-500/10 text-amber-500',
+  'bg-rose-500/10 text-rose-500',
+  'bg-indigo-500/10 text-indigo-500',
+]
 
-function getInitials(name: string): string {
-  if (!name) return '??'
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase() || '??'
-}
-
-export function ContactAvatar({ contact, size = 'md' }: { contact: Contact; size?: 'sm' | 'md' | 'lg' }) {
-  const sizeClasses = { sm: 'w-8 h-8 text-xs', md: 'w-10 h-10 text-sm', lg: 'w-16 h-16 text-xl' }
-  return (
-    <div className={cn('rounded-full flex items-center justify-center font-black shrink-0', sizeClasses[size], getAvatarColor(contact.id))}>
-      {getInitials(contact.nome)}
-    </div>
-  )
-}
+// ─── Shared Utilities ─────────────────────────────────────────────────────────
 
 export function safeFormat(date: Date | string | null | undefined, fmt: string): string {
   try {
     if (!date) return '—'
     const d = date instanceof Date ? date : new Date(date)
-    if (isNaN(d.getTime())) return '—'
     return format(d, fmt, { locale: ptBR })
   } catch { return '—' }
 }
@@ -88,24 +80,29 @@ export function safeDistance(date: Date | string | null | undefined): string {
   try {
     if (!date) return '—'
     const d = date instanceof Date ? date : new Date(date)
-    if (isNaN(d.getTime())) return '—'
     return formatDistanceToNow(d, { locale: ptBR, addSuffix: true })
   } catch { return '—' }
 }
 
-const AVATAR_COLORS = [
-  'bg-accent/20 text-accent',
-  'bg-blue-500/20 text-blue-400',
-  'bg-purple-500/20 text-purple-400',
-  'bg-amber-500/20 text-amber-400',
-  'bg-rose-500/20 text-rose-400',
-  'bg-cyan-500/20 text-cyan-400',
-  'bg-orange-500/20 text-orange-400',
-  'bg-indigo-500/20 text-indigo-400',
-]
+export function ContactAvatar({ contact, size = 'md' }: { contact: Contact; size?: 'sm' | 'md' | 'lg' }) {
+  const initials = contact.nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() || '?'
+  const colorClass = getAvatarColor(contact.id)
+  
+  const sizes = {
+    sm: 'w-8 h-8 text-[10px]',
+    md: 'w-10 h-10 text-xs',
+    lg: 'w-16 h-16 text-xl'
+  }
 
-function getAvatarColor(id: string): string {
-  const index = parseInt(id, 10) % AVATAR_COLORS.length
+  return (
+    <div className={cn("rounded-2xl flex items-center justify-center font-black transition-transform group-hover:scale-105", sizes[size], colorClass)}>
+      {initials}
+    </div>
+  )
+}
+
+function getAvatarColor(id: string) {
+  const index = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % AVATAR_COLORS.length
   return AVATAR_COLORS[index] ?? AVATAR_COLORS[0]
 }
 
@@ -113,39 +110,40 @@ export function getStatusConfig(status: FunilStatus | undefined | null) {
   switch (status) {
     case 'lead': return { label: 'Lead', classes: 'bg-gray-500/10 text-gray-400 border border-gray-500/20' }
     case 'qualificado': return { label: 'Qualificado', classes: 'bg-blue-500/10 text-blue-400 border border-blue-500/20' }
+    case 'reuniao': return { label: 'Reunião', classes: 'bg-purple-500/10 text-purple-400 border border-purple-500/20' }
     case 'proposta': return { label: 'Proposta', classes: 'bg-amber-500/10 text-amber-400 border border-amber-500/20' }
-    case 'cliente': return { label: 'Cliente', classes: 'bg-accent/10 text-accent border border-accent/20' }
-    case 'inativo': return { label: 'Inativo', classes: 'bg-red-500/10 text-red-400 border border-red-500/20' }
-    default: return { label: 'Lead', classes: 'bg-gray-500/10 text-gray-400 border border-gray-500/20' }
+    case 'cliente': return { label: 'Cliente', classes: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' }
+    case 'inativo': return { label: 'Inativo', classes: 'bg-rose-500/10 text-rose-400 border border-rose-500/20' }
+    default: return { label: 'Novo', classes: 'bg-accent/10 text-accent border border-accent/20' }
   }
 }
 
 export function getCanalIcon(canal: Canal | undefined | null) {
   switch (canal) {
     case 'WhatsApp': return <MessageCircle className="w-3 h-3" />
+    case 'Google': return <Globe className="w-3 h-3" />
+    case 'Instagram': return <MessageSquare className="w-3 h-3" />
     default: return <Globe className="w-3 h-3" />
   }
 }
 
-function getActivityIcon(type: ActivityType | undefined | null) {
+function getActivityColor(type: ActivityType) {
   switch (type) {
-    case 'phone': return <Phone className="w-4 h-4" />
-    case 'email': return <Mail className="w-4 h-4" />
-    case 'message': return <MessageSquare className="w-4 h-4" />
-    case 'meeting': return <Calendar className="w-4 h-4" />
-    case 'note': return <FileText className="w-4 h-4" />
-    default: return <MessageSquare className="w-4 h-4" />
+    case 'phone': return 'bg-blue-500/10 text-blue-400'
+    case 'email': return 'bg-purple-500/10 text-purple-400'
+    case 'message': return 'bg-green-500/10 text-green-400'
+    case 'meeting': return 'bg-amber-500/10 text-amber-400'
+    case 'note': return 'bg-gray-500/10 text-gray-400'
   }
 }
 
-function getActivityColor(type: ActivityType | undefined | null) {
+function getActivityIcon(type: ActivityType) {
   switch (type) {
-    case 'phone': return 'bg-accent/10 text-accent border-accent/20'
-    case 'email': return 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-    case 'message': return 'bg-purple-500/10 text-purple-400 border-purple-500/20'
-    case 'meeting': return 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-    case 'note': return 'bg-gray-500/10 text-gray-400 border-gray-500/20'
-    default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20'
+    case 'phone': return <Phone className="w-4 h-4" />
+    case 'email': return <Mail className="w-4 h-4" />
+    case 'message': return <MessageCircle className="w-4 h-4" />
+    case 'meeting': return <Calendar className="w-4 h-4" />
+    case 'note': return <FileText className="w-4 h-4" />
   }
 }
 
@@ -154,19 +152,19 @@ function getActivityColor(type: ActivityType | undefined | null) {
 
 function SectionTitle({ title }: { title: string }) {
   return (
-    <div className="flex items-center gap-2 mb-2">
-      <div className="w-1.5 h-4 bg-accent rounded-full" />
-      <h3 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">{title}</h3>
-    </div>
+    <h3 className="text-[11px] font-black text-accent uppercase tracking-[0.2em] flex items-center gap-3">
+      {title}
+      <div className="flex-1 h-px bg-gradient-to-r from-accent/20 to-transparent" />
+    </h3>
   )
 }
 
-function DetailField({ icon, label, value, children }: { icon: React.ReactNode, label: string, value?: string, children?: React.ReactNode }) {
+function DetailField({ icon, label, value, children }: { icon: React.ReactNode; label: string; value?: string; children?: React.ReactNode }) {
   return (
-    <div className="bg-[var(--bg-primary)]/40 p-4 rounded-xl border border-[var(--border-main)]/50">
-      <div className="flex items-center gap-2 mb-1.5 grayscale opacity-60">
+    <div className="space-y-1 group">
+      <div className="flex items-center gap-2 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider group-hover:text-accent transition-colors">
         {icon}
-        <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">{label}</span>
+        {label}
       </div>
       {children ? children : (
         <span className={cn("text-sm font-bold block truncate", !value || value === "—" || value === "Não informado" ? "text-[var(--text-support)] font-medium italic" : "text-[var(--text-main)]")}>
@@ -184,11 +182,15 @@ export function LeadDetailModal({
   onClose,
   onUpdate,
   onDelete,
+  readOnly = false,
+  simpleMode = false
 }: {
   contact: Contact
   onClose: () => void
-  onUpdate: (updated: Contact) => void
-  onDelete: (id: string) => void
+  onUpdate?: (updated: Contact) => void
+  onDelete?: (id: string) => void
+  readOnly?: boolean
+  simpleMode?: boolean
 }) {
   const [activeTab, setActiveTab] = useState<'visao-geral' | 'atividades' | 'cnpj'>('visao-geral')
   const [isAddingActivity, setIsAddingActivity] = useState(false)
@@ -199,6 +201,7 @@ export function LeadDetailModal({
   const statusConfig = getStatusConfig(contact.status)
 
   function updateStatus(newStatus: FunilStatus) {
+    if (readOnly || !onUpdate) return
     onUpdate({ ...contact, status: newStatus, lastActivity: new Date() })
   }
 
@@ -215,6 +218,7 @@ export function LeadDetailModal({
       activities: [newActivity, ...contact.activities],
       lastActivity: new Date(),
     }
+    if (!onUpdate) return
     onUpdate(updated)
     setActivityDesc('')
     setIsAddingActivity(false)
@@ -272,10 +276,12 @@ export function LeadDetailModal({
                   <ContactAvatar contact={contact} size="lg" />
 
                  <div>
-                    <h2 className="text-2xl font-black text-[var(--text-main)] tracking-tight mb-1">{contact.nome}</h2>
+                    <h2 className="text-2xl font-black text-[var(--text-main)] tracking-tight mb-1">
+                      {readOnly && contact.empresa ? contact.empresa : contact.nome}
+                    </h2>
                     <div className="flex items-center gap-2 text-[var(--text-muted)] text-sm font-medium">
                        <Building2 className="w-4 h-4" />
-                       {contact.empresa} {contact.cargo && `· ${contact.cargo}`}
+                       {(readOnly && contact.empresa) ? contact.nome : (contact.empresa + (contact.cargo ? ` · ${contact.cargo}` : ''))}
                     </div>
                     <div className="flex items-center gap-2 mt-4">
                        <span className={cn('px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider', statusConfig.classes)}>
@@ -288,26 +294,32 @@ export function LeadDetailModal({
                  </div>
               </div>
               <div className="flex items-center gap-2">
-                 <button onClick={() => { onDelete(contact.id); onClose() }} className="p-3 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/10"> <Trash2 className="w-5 h-5" /> </button>
-                 <button onClick={onClose} className="p-3 rounded-2xl bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all"> <X className="w-5 h-5" /> </button>
-              </div>
+                  {!simpleMode && !readOnly && onDelete && (
+                    <button onClick={() => { onDelete(contact.id); onClose() }} className="p-3 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/10"> 
+                      <Trash2 className="w-5 h-5" /> 
+                    </button>
+                  )}
+                  <button onClick={onClose} className="p-3 rounded-2xl bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all"> <X className="w-5 h-5" /> </button>
+               </div>
            </div>
 
            {/* Tabs */}
-           <div className="flex gap-1 mt-8 bg-[var(--bg-primary)]/50 backdrop-blur-md rounded-2xl p-1.5 border border-[var(--border-main)] w-fit">
-             {(['visao-geral', 'atividades', 'cnpj'] as const).map((tab) => (
-               <button
-                 key={tab}
-                 onClick={() => setActiveTab(tab)}
-                 className={cn(
-                   'px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] transition-all relative',
-                   activeTab === tab ? 'bg-[var(--bg-card)] text-accent border border-[var(--border-main)]' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
-                 )}
-               >
-                 {tab === 'visao-geral' ? 'Visão Geral' : tab === 'atividades' ? 'Atividades' : 'CNPJ Vinculado'}
-               </button>
-             ))}
-           </div>
+           {!simpleMode && !readOnly && (
+             <div className="flex gap-1 mt-8 bg-[var(--bg-primary)]/50 backdrop-blur-md rounded-2xl p-1.5 border border-[var(--border-main)] w-fit">
+               {(['visao-geral', 'atividades', 'cnpj'] as const).map((tab) => (
+                 <button
+                   key={tab}
+                   onClick={() => setActiveTab(tab)}
+                   className={cn(
+                     'px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] transition-all relative',
+                     activeTab === tab ? 'bg-[var(--bg-card)] text-accent border border-[var(--border-main)]' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                   )}
+                 >
+                   {tab === 'visao-geral' ? 'Visão Geral' : tab === 'atividades' ? 'Atividades' : 'CNPJ Vinculado'}
+                 </button>
+               ))}
+             </div>
+           )}
         </div>
 
         {/* Modal Body */}
@@ -316,24 +328,26 @@ export function LeadDetailModal({
             {activeTab === 'visao-geral' && (
               <motion.div key="visao" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-8">
                 {/* Pipeline */}
-                <div className="bg-[var(--bg-primary)] rounded-[24px] p-6 border border-[var(--border-main)]">
-                   <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-4">Estágio no Funil</p>
-                   <div className="flex items-center gap-1.5">
-                      {FUNIL_STAGES.map((s, idx) => {
-                         const currentIdx = FUNIL_STAGES.findIndex(fs => fs.key === contact.status)
-                         const isPast = idx < currentIdx
-                         const isActive = idx === currentIdx
-                         return (
-                            <React.Fragment key={s.key}>
-                               <button onClick={() => updateStatus(s.key)} className={cn("flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-wider border transition-all", isActive ? "bg-accent text-white border-accent shadow-lg shadow-accent/20" : isPast ? "bg-accent/10 text-accent border-accent/20" : "bg-[var(--bg-card)] text-[var(--text-muted)] border-[var(--border-main)] hover:border-white/20")}>
-                                  {s.label}
-                               </button>
-                               {idx < FUNIL_STAGES.length - 1 && <ChevronRight className="w-3 h-3 text-[var(--border-main)]" />}
-                            </React.Fragment>
-                         )
-                      })}
+                {!simpleMode && !readOnly && (
+                   <div className="bg-[var(--bg-primary)] rounded-[24px] p-6 border border-[var(--border-main)]">
+                      <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-4">Estágio no Funil</p>
+                      <div className="flex items-center gap-1.5">
+                         {FUNIL_STAGES.map((s, idx) => {
+                            const currentIdx = FUNIL_STAGES.findIndex(fs => fs.key === contact.status)
+                            const isPast = idx < currentIdx
+                            const isActive = idx === currentIdx
+                            return (
+                               <React.Fragment key={s.key}>
+                                  <button onClick={() => updateStatus(s.key)} className={cn("flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-wider border transition-all", isActive ? "bg-accent text-white border-accent shadow-lg shadow-accent/20" : isPast ? "bg-accent/10 text-accent border-accent/20" : "bg-[var(--bg-card)] text-[var(--text-muted)] border-[var(--border-main)] hover:border-white/20")}>
+                                     {s.label}
+                                  </button>
+                                  {idx < FUNIL_STAGES.length - 1 && <ChevronRight className="w-3 h-3 text-[var(--border-main)]" />}
+                               </React.Fragment>
+                            )
+                         })}
+                      </div>
                    </div>
-                </div>
+                 )}
 
                 {/* Info Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
