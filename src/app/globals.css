@@ -34,7 +34,7 @@
 @layer base {
   html.light {
     --bg-primary:         #F1F5F9;
-    --bg-muted:           #F8FAFC;
+    --bg-muted:           #0A1020; /* Sidebar darker version */
     
     --bg-card:            #FFFFFF;
     --bg-card-dark:       #1E293B;
@@ -209,11 +209,10 @@ html.light .shadow-light-card { box-shadow: 0 2px 8px rgba(0,0,0,0.08) !importan
 
 /* ── Glassmorphism ───────────────────────────────────────────────── */
 .glass {
-  background: var(--bg-card);
+  background: rgba(13, 21, 38, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--border-main);
-  @apply bg-opacity-80;
+  border: 1px solid rgba(255,255,255,0.06);
 }
 
 /* ── Misc ────────────────────────────────────────────────────────── */
@@ -221,7 +220,7 @@ html.light .shadow-light-card { box-shadow: 0 2px 8px rgba(0,0,0,0.08) !importan
 
 .custom-scrollbar::-webkit-scrollbar       { height: 4px; width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border-main); border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-dark-border); border-radius: 4px; }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
 
 .no-view::-webkit-scrollbar { display: none; }

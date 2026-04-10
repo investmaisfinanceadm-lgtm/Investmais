@@ -87,7 +87,7 @@ export function CreatorSidebar() {
             {/* Navigation */}
             <nav className="flex-1 p-6 space-y-6 overflow-y-auto">
                 <div className="space-y-1">
-                    <p className="px-4 text-[11px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">Monitoramento</p>
+                    <p className="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">Monitoramento</p>
                     {navItems.map((item) => {
                         const Icon = item.icon
                         const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
@@ -112,7 +112,7 @@ export function CreatorSidebar() {
                 </div>
 
                 <div className="space-y-1">
-                    <p className="px-4 text-[11px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">Gerenciador de Conteúdo</p>
+                    <p className="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">Gerenciador de Conteúdo</p>
                     {contentItems.map((item, idx) => {
                         const Icon = item.icon
                         const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
@@ -223,7 +223,7 @@ export function CreatorSidebar() {
                 <div className="flex items-center gap-3">
                     <button className="relative p-2 text-gray-400 hover:text-white transition-colors">
                         <Bell className="w-5 h-5" />
-                        <div className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full border-2 border-[var(--bg-muted)]" />
+                        <div className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full border-2 border-[var(--color-dark-muted)]" />
                     </button>
                     <button
                         onClick={() => setMobileOpen(!mobileOpen)}

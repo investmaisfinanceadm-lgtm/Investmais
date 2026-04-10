@@ -2,8 +2,17 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Activity, Zap, ChevronDown, Users, Globe, Plus, ArrowRight, TrendingUp, Library } from 'lucide-react'
-import { cn, formatDateTime } from '@/lib/utils'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts'
+import { Video, Clock, Library, Plus, ArrowRight, TrendingUp, BarChart3, Activity, Zap, ChevronDown, Users, Globe } from 'lucide-react'
+import { cn, formatDateTime, getStatusColor, getStatusLabel } from '@/lib/utils'
+
+interface DashboardVideo {
+    id: string
+    nome_produto: string
+    status: string
+    created_at: string
+    duracao: number
+}
 
 interface DashboardContact {
     id: string
@@ -70,6 +79,8 @@ export default function DashboardPage() {
         loadData()
     }, [])
 
+    const quotaPercent = stats ? Math.min(Math.round((stats.cota_usada / stats.cota_mensal) * 100), 100) : 0
+
     const greeting = () => {
         const hour = new Date().getHours()
         if (hour < 12) return 'Bom dia'
@@ -96,11 +107,11 @@ export default function DashboardPage() {
                             </span> ⚡
                         </h1>
                     )}
-                    <p className="text-[var(--text-muted)] font-medium tracking-wide uppercase text-[10px]">
+                    <p className="text-muted font-medium tracking-wide uppercase text-[10px]">
                         ESTÚDIO DE CONTEÚDO AI • STATUS OPERACIONAL: ONLINE
                     </p>
                 </div>
-                <Link href="/criar" className="btn-primary group flex items-center gap-3 px-6 py-3.5 md:px-10 md:py-5 shadow-accent/20 hover:shadow-accent-lg active:scale-95 transition-all bg-accent text-black font-black uppercase tracking-widest text-xs rounded-2xl self-start md:self-auto uppercase">
+                <Link href="/criar" className="btn-primary group flex items-center gap-3 px-6 py-3.5 md:px-10 md:py-5 shadow-accent/20 hover:shadow-accent-lg active:scale-95 transition-all bg-accent text-black font-black uppercase tracking-widest text-xs rounded-2xl self-start md:self-auto">
                     <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
                     <span>Iniciar Nova Produção</span>
                 </Link>
@@ -177,7 +188,7 @@ export default function DashboardPage() {
                             <h3 className="text-2xl font-black text-[var(--text-main)]">{isLoading ? '—' : stats ? ((stats.conversoes / (stats.totalLeads || 1)) * 100).toFixed(1) : 0}%</h3>
                         </div>
                     </div>
-                    <div className="h-1.5 w-full bg-accent/5 rounded-full overflow-hidden mt-2 border border-[var(--border-main)]">
+                    <div className="h-1.5 w-full bg-accent/5 rounded-full overflow-hidden mt-2 border border-[var(--color-dark-border)]">
                         <div 
                             className="h-full bg-blue-500 transition-all duration-1000" 
                             style={{ width: stats ? `${(stats.conversoes / (stats.totalLeads || 1)) * 100}%` : '0%' }} 
@@ -186,7 +197,7 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* Performance Analytics Section */}
+            {/* Performance Analytics Section - NEW RECOMMENDATION */}
             <div className="card p-5 md:p-10 rounded-[32px] md:rounded-[48px] relative overflow-hidden">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-5 md:gap-8 mb-8 md:mb-12">
                     <div className="space-y-4">
@@ -199,18 +210,18 @@ export default function DashboardPage() {
                         <p className="text-[11px] text-[var(--text-muted)] font-bold uppercase tracking-widest">Aquisição de novos leads por período</p>
                     </div>
                     <div className="flex gap-4">
-                        <div className="relative">
+                         <div className="relative">
                             <select 
                                 value={chartScale}
                                 onChange={(e) => setChartScale(Number(e.target.value) as 7 | 30 | 90)}
-                                className="appearance-none bg-[var(--bg-muted)] border border-[var(--border-main)] hover:border-accent/40 px-6 py-3 pl-4 pr-10 rounded-2xl text-[9px] font-black text-[var(--text-main)] uppercase tracking-widest cursor-pointer outline-none transition-colors"
+                                className="appearance-none bg-[var(--color-dark-muted)] border border-[var(--color-dark-border)] hover:border-accent/40 px-6 py-3 pl-4 pr-10 rounded-2xl text-[9px] font-black text-[var(--text-main)] uppercase tracking-widest cursor-pointer outline-none transition-colors"
                             >
-                                <option className="bg-[var(--bg-card)] text-[var(--text-main)]" value={7}>Escala: Últimos 7 Dias</option>
-                                <option className="bg-[var(--bg-card)] text-[var(--text-main)]" value={30}>Escala: Últimos 30 Dias</option>
-                                <option className="bg-[var(--bg-card)] text-[var(--text-main)]" value={90}>Escala: Últimos 90 Dias</option>
+                                <option className="bg-[var(--color-dark-muted)] text-[var(--text-main)]" value={7}>Escala: Últimos 7 Dias</option>
+                                <option className="bg-[var(--color-dark-muted)] text-[var(--text-main)]" value={30}>Escala: Últimos 30 Dias</option>
+                                <option className="bg-[var(--color-dark-muted)] text-[var(--text-main)]" value={90}>Escala: Últimos 90 Dias</option>
                             </select>
                             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
-                        </div>
+                         </div>
                     </div>
                 </div>
 
@@ -241,7 +252,7 @@ export default function DashboardPage() {
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-main)" opacity={0.5} />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-dark-border)" opacity={0.5} />
                                     <XAxis 
                                         dataKey="day" 
                                         axisLine={false} 
@@ -258,7 +269,7 @@ export default function DashboardPage() {
                                     />
                                     <Tooltip 
                                         cursor={{ fill: 'var(--color-accent)', opacity: 0.05 }}
-                                        contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-main)', borderRadius: '12px', color: 'var(--text-main)', fontSize: '11px', fontWeight: 700, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
+                                        contentStyle={{ backgroundColor: 'var(--color-dark-card)', border: '1px solid var(--color-dark-border)', borderRadius: '12px', color: 'var(--text-main)', fontSize: '11px', fontWeight: 700, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
                                         itemStyle={{ fontWeight: 800, color: '#2563EB' }}
                                         labelStyle={{ color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.1em' }}
                                     />
@@ -268,7 +279,7 @@ export default function DashboardPage() {
                         )}
                     </div>
                     
-                    <div className="lg:col-span-1 flex flex-col justify-center border-l border-[var(--border-main)] pl-8 hidden lg:flex">
+                    <div className="lg:col-span-1 flex flex-col justify-center border-l border-[var(--color-dark-border)] pl-8 hidden lg:flex">
                          <div className="space-y-6">
                             <div>
                                 <h3 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-4 flex items-center gap-2">
@@ -288,11 +299,11 @@ export default function DashboardPage() {
                                                     <span className="text-[var(--text-support)]">{item.name}</span>
                                                     <span className="text-[var(--text-main)]">{item.value}</span>
                                                 </div>
-                                                <div className="h-1.5 w-full bg-accent/5 rounded-full overflow-hidden border border-[var(--border-main)]">
+                                                <div className="h-1.5 w-full bg-accent/5 rounded-full overflow-hidden border border-[var(--color-dark-border)]">
                                                     <div 
                                                         className="h-full bg-accent transition-all duration-1000" 
                                                         style={{ 
-                                                            width: `${(item.value / originData.reduce((acc, curr: any) => acc + curr.value, 0)) * 100}%`,
+                                                            width: `${(item.value / originData.reduce((acc, curr) => acc + curr.value, 0)) * 100}%`,
                                                             opacity: 1 - (idx * 0.2)
                                                         }} 
                                                     />
@@ -342,7 +353,7 @@ export default function DashboardPage() {
                         <div className="space-y-4">
                             {stats.contatosRecentes.map((contato) => (
                                 <div key={contato.id} className="card card-hover flex items-center gap-4 md:gap-6 p-4 md:p-6 transition-all">
-                                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-[var(--border-main)] flex items-center justify-center flex-shrink-0 group-hover:border-accent/30 transition-all bg-[var(--bg-muted)] overflow-hidden">
+                                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-[var(--color-dark-border)] flex items-center justify-center flex-shrink-0 group-hover:border-accent/30 transition-all bg-[var(--color-dark-muted)] overflow-hidden">
                                         <div className="w-full h-full bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center text-accent font-black text-xs uppercase">
                                             {contato.nome.substring(0, 2)}
                                         </div>
@@ -371,7 +382,7 @@ export default function DashboardPage() {
                                             "inline-flex items-center gap-2 px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border transition-all",
                                             contato.status_funil === 'cliente' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
                                             contato.status_funil === 'oportunidade' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 
-                                            'bg-[var(--bg-muted)] text-[var(--text-muted)] border-[var(--border-main)]'
+                                            'bg-[var(--color-dark-muted)] text-[var(--text-muted)] border-[var(--color-dark-border)]'
                                         )}>
                                             {contato.status_funil}
                                         </span>
@@ -414,7 +425,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Pro Tip Card - ENHANCED */}
-                    <div className="bg-gradient-to-br from-accent/10 to-transparent p-6 md:p-10 rounded-[32px] md:rounded-[48px] border border-[var(--border-main)] space-y-4 md:space-y-6 shadow-2xl relative overflow-hidden group">
+                    <div className="bg-gradient-to-br from-accent/10 to-transparent p-6 md:p-10 rounded-[32px] md:rounded-[48px] border border-[var(--color-dark-border)] space-y-4 md:space-y-6 shadow-2xl relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:rotate-12 group-hover:scale-125 transition-all duration-700">
                             <TrendingUp className="w-24 h-24 text-accent" />
                         </div>
