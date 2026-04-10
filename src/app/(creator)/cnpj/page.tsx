@@ -78,35 +78,152 @@ function DataRow({ icon, label, value }: { icon: React.ReactNode; label: string;
 const NICHOS = ['Beleza e Estética', 'Saúde e Medicina', 'Agronegócio', 'Contabilidade e Finanças', 'Engenharia e Construção', 'Educação', 'Alimentação e Gastronomia', 'Tecnologia', 'Jurídico', 'Imobiliário']
 const ESTADOS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO']
 
-const CIDADES_POR_ESTADO: Record<string, string[]> = {
-  'AC': ['Rio Branco', 'Cruzeiro do Sul', 'Sena Madureira', 'Tarauacá', 'Feijó', 'Brasileia', 'Epitaciolândia'],
-  'AL': ['Maceió', 'Arapiraca', 'Palmeira dos Índios', 'Rio Largo', 'Penedo', 'União dos Palmares', 'São Miguel dos Campos', 'Santana do Ipanema', 'Delmiro Gouveia'],
-  'AP': ['Macapá', 'Santana', 'Laranjal do Jari', 'Oiapoque', 'Mazagão', 'Porto Grande'],
-  'AM': ['Manaus', 'Parintins', 'Itacoatiara', 'Manacapuru', 'Coari', 'Tefé', 'Tabatinga', 'Maués', 'Humaitá', 'Lábrea'],
-  'BA': ['Salvador', 'Feira de Santana', 'Vitória da Conquista', 'Camaçari', 'Juazeiro', 'Itabuna', 'Lauro de Freitas', 'Ilhéus', 'Jequié', 'Alagoinhas', 'Barreiras', 'Teixeira de Freitas', 'Porto Seguro', 'Simões Filho', 'Paulo Afonso', 'Eunápolis', 'Santo Antônio de Jesus'],
-  'CE': ['Fortaleza', 'Caucaia', 'Juazeiro do Norte', 'Maracanaú', 'Sobral', 'Crato', 'Itapipoca', 'Maranguape', 'Iguatu', 'Quixadá', 'Pacatuba', 'Canindé', 'Russas', 'Tianguá'],
-  'DF': ['Brasília', 'Taguatinga', 'Ceilândia', 'Samambaia', 'Planaltina', 'Gama', 'Sobradinho', 'Águas Claras', 'Recanto das Emas', 'Guará', 'Riacho Fundo', 'Núcleo Bandeirante'],
-  'ES': ['Vitória', 'Vila Velha', 'Serra', 'Cariacica', 'Linhares', 'São Mateus', 'Cachoeiro de Itapemirim', 'Colatina', 'Guarapari', 'Aracruz', 'Viana', 'Nova Venécia'],
-  'GO': ['Goiânia', 'Aparecida de Goiânia', 'Anápolis', 'Rio Verde', 'Luziânia', 'Águas Lindas de Goiás', 'Valparaíso de Goiás', 'Trindade', 'Formosa', 'Novo Gama', 'Itumbiara', 'Senador Canedo', 'Catalão', 'Jataí', 'Planaltina', 'Goianésia'],
-  'MA': ['São Luís', 'Imperatriz', 'Timon', 'Caxias', 'Codó', 'Paço do Lumiar', 'Açailândia', 'Bacabal', 'Balsas', 'Santa Inês', 'Chapadinha', 'Zé Doca'],
-  'MT': ['Cuiabá', 'Várzea Grande', 'Rondonópolis', 'Sinop', 'Tangará da Serra', 'Cáceres', 'Sorriso', 'Lucas do Rio Verde', 'Primavera do Leste', 'Barra do Garças', 'Alta Floresta'],
-  'MS': ['Campo Grande', 'Dourados', 'Três Lagoas', 'Corumbá', 'Ponta Porã', 'Naviraí', 'Nova Andradina', 'Aquidauana', 'Sidrolândia', 'Maracaju'],
-  'MG': ['Belo Horizonte', 'Uberlândia', 'Contagem', 'Juiz de Fora', 'Betim', 'Montes Claros', 'Ribeirão das Neves', 'Uberaba', 'Governador Valadares', 'Ipatinga', 'Santa Luzia', 'Sete Lagoas', 'Divinópolis', 'Varginha', 'Pouso Alegre', 'Patos de Minas', 'Teófilo Otoni', 'Poços de Caldas', 'Barbacena', 'Sabará', 'Itabira', 'Muriaé'],
-  'PA': ['Belém', 'Ananindeua', 'Santarém', 'Marabá', 'Parauapebas', 'Castanhal', 'Abaetetuba', 'Cametá', 'Altamira', 'Itaituba', 'Tucuruí', 'Redenção', 'Breves', 'Paragominas'],
-  'PB': ['João Pessoa', 'Campina Grande', 'Santa Rita', 'Patos', 'Bayeux', 'Sousa', 'Cajazeiras', 'Cabedelo', 'Guarabira', 'Pombal'],
-  'PR': ['Curitiba', 'Londrina', 'Maringá', 'Ponta Grossa', 'Cascavel', 'São José dos Pinhais', 'Foz do Iguaçu', 'Colombo', 'Guarapuava', 'Paranaguá', 'Araucária', 'Toledo', 'Apucarana', 'Pinhais', 'Campo Largo', 'Almirante Tamandaré', 'Umuarama', 'Campo Mourão', 'Sarandi', 'Francisco Beltrão'],
-  'PE': ['Recife', 'Olinda', 'Caruaru', 'Petrolina', 'Jaboatão dos Guararapes', 'Paulista', 'Cabo de Santo Agostinho', 'Camaragibe', 'Garanhuns', 'Vitória de Santo Antão', 'Igarassu', 'Santa Cruz do Capibaribe', 'Araripina', 'Gravatá'],
-  'PI': ['Teresina', 'Parnaíba', 'Picos', 'Piripiri', 'Floriano', 'Campo Maior', 'Barras', 'Oeiras', 'São Raimundo Nonato'],
-  'RJ': ['Rio de Janeiro', 'São Gonçalo', 'Duque de Caxias', 'Nova Iguaçu', 'Niterói', 'Belford Roxo', 'Campos dos Goytacazes', 'São João de Meriti', 'Petrópolis', 'Volta Redonda', 'Macaé', 'Itaboraí', 'Magé', 'Mesquita', 'Nilópolis', 'Cabo Frio', 'Angra dos Reis', 'Nova Friburgo', 'Teresópolis', 'Queimados', 'Resende'],
-  'RN': ['Natal', 'Mossoró', 'Parnamirim', 'São Gonçalo do Amarante', 'Macaíba', 'Caicó', 'Assu', 'Currais Novos', 'Santa Cruz', 'Nova Cruz'],
-  'RS': ['Porto Alegre', 'Caxias do Sul', 'Pelotas', 'Canoas', 'Santa Maria', 'Gravataí', 'Viamão', 'Novo Hamburgo', 'São Leopoldo', 'Rio Grande', 'Alvorada', 'Passo Fundo', 'Sapucaia do Sul', 'Uruguaiana', 'Santa Cruz do Sul', 'Cachoeirinha', 'Bagé', 'Bento Gonçalves', 'Erechim', 'Guaíba', 'Lajeado', 'Sapiranga'],
-  'RO': ['Porto Velho', 'Ji-Paraná', 'Ariquemes', 'Vilhena', 'Cacoal', 'Rolim de Moura', 'Jaru', 'Guajará-Mirim'],
-  'RR': ['Boa Vista', 'Rorainópolis', 'Caracaraí', 'Mucajaí'],
-  'SC': ['Florianópolis', 'Joinville', 'Blumenau', 'São José', 'Criciúma', 'Chapecó', 'Itajaí', 'Lages', 'Jaraguá do Sul', 'Palhoça', 'Balneário Camboriú', 'Biguaçu', 'Brusque', 'Tubarão', 'São Bento do Sul', 'Caçador', 'Concórdia'],
-  'SP': ['São Paulo', 'Guarulhos', 'Campinas', 'São Bernardo do Campo', 'Santo André', 'São José dos Campos', 'Osasco', 'Ribeirão Preto', 'Sorocaba', 'Mauá', 'Santos', 'Mogi das Cruzes', 'Diadema', 'Jundiaí', 'Piracicaba', 'Carapicuíba', 'Bauru', 'São Vicente', 'Itaquaquecetuba', 'Franca', 'Guarujá', 'Limeira', 'Taubaté', 'Praia Grande', 'Suzano', 'Taboão da Serra', 'Sumaré', 'São Carlos', 'São José do Rio Preto', 'Marília', 'Americana', 'Araraquara', 'Cotia', 'Barueri', 'Hortolândia', 'Presidente Prudente', 'São João da Boa Vista'],
-  'SE': ['Aracaju', 'Nossa Senhora do Socorro', 'Lagarto', 'Itabaiana', 'São Cristóvão', 'Estância', 'Simão Dias'],
-  'TO': ['Palmas', 'Araguaína', 'Gurupi', 'Porto Nacional', 'Paraíso do Tocantins', 'Araguatins', 'Colinas do Tocantins'],
+// ─── City Selector Component ──────────────────────────────────────────────────
+function CitySelector({ uf, value, onChange }: { uf: string, value: string, onChange: (v: string) => void }) {
+  const [cidades, setCidades] = useState<string[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+
+  useEffect(() => {
+    if (!uf) {
+      setCidades([])
+      onChange('')
+      return
+    }
+
+    const fetchCidades = async () => {
+      setLoading(true)
+      setError(false)
+      try {
+        const res = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`)
+        if (!res.ok) throw new Error()
+        const data = await res.json()
+        const sorted = data
+          .map((m: any) => m.nome)
+          .sort((a: string, b: string) => a.localeCompare(b, 'pt-BR'))
+        setCidades(sorted)
+      } catch {
+        setError(true)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCidades()
+    onChange('') // Reset city when UF changes
+  }, [uf, onChange])
+
+  const filtered = useMemo(() => {
+    if (!searchTerm) return cidades
+    const normalizedSearch = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    return cidades.filter(c => 
+      c.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(normalizedSearch)
+    )
+  }, [cidades, searchTerm])
+
+  return (
+    <div className="relative">
+      <div 
+        onClick={() => !loading && uf && setIsOpen(!isOpen)}
+        className={cn(
+          "input-field flex items-center justify-between cursor-pointer group transition-all duration-300",
+          !uf && "opacity-40 cursor-not-allowed",
+          isOpen && "border-accent/60 ring-2 ring-accent/10 shadow-lg shadow-accent/5",
+          error && "border-red-500/50"
+        )}
+      >
+        <div className="flex items-center gap-2 truncate flex-1 min-w-0">
+          <MapPin className={cn("w-3.5 h-3.5 shrink-0", value ? "text-accent" : "text-[var(--text-support)]")} />
+          <span className={cn("text-sm truncate font-medium", !value && "text-[var(--text-support)]")}>
+            {loading ? (
+              <span className="flex items-center gap-2 italic text-accent animate-pulse">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Carregando cidades...
+              </span>
+            ) : error ? (
+              <span className="text-red-400">Erro ao carregar cidades. Tente novamente.</span>
+            ) : value || (uf ? "Selecione a Cidade" : "Selecione o estado")}
+          </span>
+        </div>
+        <ChevronDown className={cn("w-3.5 h-3.5 transition-all duration-300 text-[var(--text-support)] group-hover:text-accent", isOpen && "rotate-180 text-accent")} />
+      </div>
+
+      <AnimatePresence>
+        {isOpen && (
+          <div className="fixed inset-0 z-[60] flex items-start justify-center pt-20 px-4 sm:relative sm:inset-auto sm:p-0">
+             {/* Mobile Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsOpen(false)}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[-1] sm:hidden"
+            />
+            
+            <motion.div 
+               initial={{ opacity: 0, y: 8, scale: 0.95 }}
+               animate={{ opacity: 1, y: 0, scale: 1 }}
+               exit={{ opacity: 0, y: 8, scale: 0.95 }}
+               className="w-full max-w-md bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl shadow-2xl overflow-hidden glass z-[70] sm:absolute sm:top-full sm:left-0 sm:right-0 sm:mt-2"
+            >
+              <div className="p-3 border-b border-[var(--border-main)] bg-[var(--bg-primary)]/50">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-accent" />
+                  <input 
+                    autoFocus
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Buscar por nome da cidade..."
+                    className="w-full bg-[var(--bg-card)] text-sm px-10 py-2.5 rounded-xl border border-[var(--border-main)] focus:outline-none focus:border-accent/60 focus:ring-4 focus:ring-accent/10 transition-all placeholder:text-[var(--text-support)]"
+                  />
+                </div>
+              </div>
+              <div className="max-h-[300px] overflow-y-auto custom-scrollbar py-2">
+                {filtered.length === 0 ? (
+                  <div className="px-6 py-8 text-center">
+                    <Search className="w-8 h-8 text-[var(--text-support)] mx-auto mb-2 opacity-20" />
+                    <p className="text-xs text-[var(--text-support)] font-black uppercase tracking-widest">
+                      Nenhuma cidade encontrada
+                    </p>
+                  </div>
+                ) : (
+                  filtered.map(c => (
+                    <div 
+                      key={c}
+                      onClick={() => {
+                        onChange(c)
+                        setIsOpen(false)
+                        setSearchTerm('')
+                      }}
+                      className={cn(
+                        "px-6 py-3 text-sm cursor-pointer hover:bg-accent/10 hover:text-accent transition-all flex items-center justify-between group",
+                        value === c && "bg-accent/[0.08] text-accent font-bold"
+                      )}
+                    >
+                      <span className="truncate">{c}</span>
+                      {value === c && <div className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_8px_rgba(37,99,235,0.6)]" />}
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="p-2 bg-[var(--bg-primary)]/30 border-t border-[var(--border-main)] sm:hidden">
+                <button 
+                  onClick={() => setIsOpen(false)}
+                  className="w-full py-2 text-xs font-black uppercase tracking-wider text-[var(--text-muted)] hover:text-[var(--text-main)]"
+                >
+                  Fechar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
 }
+
 
 const PAGE_SIZE = 10
 const POLL_INTERVAL = 3000
@@ -215,17 +332,9 @@ function GoogleTab() {
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
             </div>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 focus-within:z-10 relative">
             <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">Cidade</label>
-            <div className="relative">
-              <select value={cidade} onChange={e => setCidade(e.target.value)}
-                disabled={!estado}
-                className="input-field appearance-none pr-8 text-sm disabled:opacity-40">
-                <option value="">{estado ? 'Selecione a Cidade' : 'Selecione o estado primeiro'}</option>
-                {(CIDADES_POR_ESTADO[estado] ?? []).map(c => <option key={c} value={c} className="text-gray-900 bg-white">{c}</option>)}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
-            </div>
+            <CitySelector uf={estado} value={cidade} onChange={setCidade} />
           </div>
           <div className="space-y-1.5">
             <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">Nicho de Mercado</label>
