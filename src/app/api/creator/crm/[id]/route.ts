@@ -27,7 +27,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     const userId = (session.user as any).id
 
     const data = await req.json()
-    const { status_funil, notas, tags, activity } = data
+    const { 
+      status_funil, notas, tags, activity,
+      cidade, estado, endereco, site, nicho
+    } = data
 
     // Se houver uma nova atividade para registrar
     if (activity) {
@@ -47,6 +50,11 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         status_funil: status_funil || undefined,
         notas: notas || undefined,
         tags: tags || undefined,
+        cidade: cidade !== undefined ? cidade : undefined,
+        estado: estado !== undefined ? estado : undefined,
+        endereco: endereco !== undefined ? endereco : undefined,
+        site: site !== undefined ? site : undefined,
+        nicho: nicho !== undefined ? nicho : undefined,
         updated_at: new Date(),
       },
       include: { atividades: { orderBy: { data: 'desc' } } }

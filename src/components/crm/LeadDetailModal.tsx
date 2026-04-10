@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   X, Mail, Phone, Building2, Briefcase, MessageSquare, 
   MapPin, Globe, Tag, ExternalLink, Copy, MessageCircle,
-  ChevronRight, Trash2, Clock, CheckCircle2, Circle
+  ChevronRight, Trash2, Clock, CheckCircle2, Circle, FileText,
+  Calendar, Users
 } from 'lucide-react'
 import { format, formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -74,7 +75,7 @@ export function ContactAvatar({ contact, size = 'md' }: { contact: Contact; size
   )
 }
 
-function safeFormat(date: Date | string | null | undefined, fmt: string): string {
+export function safeFormat(date: Date | string | null | undefined, fmt: string): string {
   try {
     if (!date) return '—'
     const d = date instanceof Date ? date : new Date(date)
@@ -83,7 +84,7 @@ function safeFormat(date: Date | string | null | undefined, fmt: string): string
   } catch { return '—' }
 }
 
-function safeDistance(date: Date | string | null | undefined): string {
+export function safeDistance(date: Date | string | null | undefined): string {
   try {
     if (!date) return '—'
     const d = date instanceof Date ? date : new Date(date)
@@ -108,7 +109,7 @@ function getAvatarColor(id: string): string {
   return AVATAR_COLORS[index] ?? AVATAR_COLORS[0]
 }
 
-function getStatusConfig(status: FunilStatus | undefined | null) {
+export function getStatusConfig(status: FunilStatus | undefined | null) {
   switch (status) {
     case 'lead': return { label: 'Lead', classes: 'bg-gray-500/10 text-gray-400 border border-gray-500/20' }
     case 'qualificado': return { label: 'Qualificado', classes: 'bg-blue-500/10 text-blue-400 border border-blue-500/20' }
@@ -119,7 +120,7 @@ function getStatusConfig(status: FunilStatus | undefined | null) {
   }
 }
 
-function getCanalIcon(canal: Canal | undefined | null) {
+export function getCanalIcon(canal: Canal | undefined | null) {
   switch (canal) {
     case 'WhatsApp': return <MessageCircle className="w-3 h-3" />
     default: return <Globe className="w-3 h-3" />
@@ -148,7 +149,6 @@ function getActivityColor(type: ActivityType | undefined | null) {
   }
 }
 
-function FileText(props: any) { return <MessageSquare {...props} /> } // Simplified for this context
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 

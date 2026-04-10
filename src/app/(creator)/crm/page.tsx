@@ -5,8 +5,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion, AnimatePresence } from 'framer-motion'
-import { format, formatDistanceToNow } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 import {
   Users,
   Upload,
@@ -53,12 +51,15 @@ import {
   FunilStatus, 
   Canal, 
   ActivityType, 
-  ContactActivity 
+  ContactActivity,
+  ContactAvatar,
+  getStatusConfig,
+  getCanalIcon,
+  safeDistance
 } from '@/components/crm/LeadDetailModal'
 
 type ViewMode = 'list' | 'grid'
 type FilterTab = 'todos' | 'leads' | 'clientes' | 'inativos'
-type DetailTab = 'visao-geral' | 'atividades' | 'cnpj'
 
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
@@ -256,9 +257,6 @@ const MOCK_CONTACTS: Contact[] = [
   },
 ]
 
-// ─── Helper Functions ─────────────────────────────────────────────────────────
-
-// Helper functions moved to shared component
 
 
 // ─── Zod Schema ───────────────────────────────────────────────────────────────
@@ -310,15 +308,6 @@ function MetricCard({
         <p className="text-3xl font-black text-[var(--text-main)] leading-none mb-2">{value}</p>
         {sub && <p className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-widest">{sub}</p>}
       </div>
-    </div>
-  )
-}
-
-function ContactAvatar({ contact, size = 'md' }: { contact: Contact; size?: 'sm' | 'md' | 'lg' }) {
-  const sizeClasses = { sm: 'w-8 h-8 text-xs', md: 'w-10 h-10 text-sm', lg: 'w-16 h-16 text-xl' }
-  return (
-    <div className={cn('rounded-full flex items-center justify-center font-black shrink-0', sizeClasses[size], getAvatarColor(contact.id))}>
-      {getInitials(contact.nome)}
     </div>
   )
 }
@@ -558,19 +547,6 @@ function ScrapeLeadsModal({ onClose }: { onClose: () => void }) {
         </form>
       </motion.div>
     </motion.div>
-  )
-}
-
-// ─── Contact Detail Modal ─────────────────────────────────────────────────────
-
-// Using shared components from '@/components/crm/LeadDetailModal'
-function ContactAvatar({ contact, size = 'md' }: { contact: Contact; size?: 'sm' | 'md' | 'lg' }) {
-  const initials = (contact.nome || '').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-  const sizeClasses = { sm: 'w-8 h-8 text-xs', md: 'w-10 h-10 text-sm', lg: 'w-16 h-16 text-xl' }
-  return (
-    <div className={cn('rounded-full flex items-center justify-center font-black shrink-0 bg-accent/20 text-accent', sizeClasses[size])}>
-      {initials}
-    </div>
   )
 }
 

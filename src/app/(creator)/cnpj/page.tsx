@@ -7,6 +7,7 @@ import {
   Briefcase, DollarSign, Users, Clock, ChevronDown, Filter,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { cn } from '@/lib/utils'
 import { format, parseISO } from 'date-fns'
 import toast from 'react-hot-toast'
 import { ptBR } from 'date-fns/locale'

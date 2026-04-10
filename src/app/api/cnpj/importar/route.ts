@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       status_funil: 'lead',
       cidade: data.municipio || null,
       estado: data.uf || null,
-      endereco: data.logradouro ? `${data.logradouro}, ${data.numero}` : null,
+      endereco: data.logradouro ? `${data.logradouro}${data.numero ? `, ${data.numero}` : ''}` : null,
       nicho: data.cnaePrincipalDescricao || null,
       notas: `CNAE: ${data.cnaePrincipalDescricao || 'Não informado'}`,
     },
