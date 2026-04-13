@@ -339,7 +339,6 @@ function AddContactModal({ onClose, onAdd }: { onClose: () => void; onAdd: (cont
     }
     onAdd(newContact)
     onClose()
-    onClose()
   }
 
   return (

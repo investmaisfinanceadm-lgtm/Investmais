@@ -43,6 +43,15 @@ export async function POST(req: Request) {
     if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     const userId = (session.user as any).id
 
+    // Check if user exists in Profile (prevent FK violation if using dev bypass)
+    const userExists = await prisma.profile.findUnique({ where: { id: userId } })
+    if (!userExists) {
+      console.error(`User ${userId} not found in database. Cannot create contact.`)
+      return NextResponse.json({ 
+        error: 'Usuario não encontrado no banco de dados. Tente fazer login novamente sem o modo bypass if possivel.' 
+      }, { status: 400 })
+    }
+
     const data = await req.json()
     const { 
       nome, email, telefone, empresa, cargo, canal_origem, 
@@ -50,37 +59,65 @@ export async function POST(req: Request) {
       cidade, estado, endereco, site, nicho, cnpj
     } = data
 
+    // Ensure tags is always an array for Prisma if it's sent as something else
+    const formattedTags = Array.isArray(tags) ? tags : (tags ? [tags] : [])
+
     let contact;
     try {
+      // Primary attempt: All fields
       contact = await prisma.contato.create({
         data: {
           user_id: userId,
-          nome, email, telefone, empresa, cargo,
+          nome, 
+          email: email || null, 
+          telefone: telefone || null, 
+          empresa: empresa || null, 
+          cargo: cargo || null,
           canal_origem: canal_origem || 'Site',
           status_funil: status_funil || 'lead',
-          tags: tags || [],
+          tags: formattedTags,
           notas: notas || '',
-          cidade, estado, endereco, site, nicho, cnpj,
+          cidade: cidade || null, 
+          estado: estado || null, 
+          endereco: endereco || null, 
+          site: site || null, 
+          nicho: nicho || null, 
+          cnpj: cnpj || null,
         },
       })
     } catch (err: any) {
-      console.error('Initial CRM POST failed, retrying safe version:', err.message)
-      // Retry without the new fields in case of migration failure
+      console.error('Initial CRM POST failed:', err.message)
+      
+      // Secondary attempt: Minimal fields (fallback for older schema)
+      // This handles cases where new columns like 'cidade' might be missing
       contact = await prisma.contato.create({
         data: {
           user_id: userId,
-          nome, email, telefone, empresa, cargo,
+          nome,
+          email: email || null,
+          telefone: telefone || null,
+          empresa: empresa || null,
+          cargo: cargo || null,
           canal_origem: canal_origem || 'Site',
           status_funil: status_funil || 'lead',
-          tags: tags || [],
+          tags: formattedTags,
           notas: notas || ''
         },
       })
     }
 
     return NextResponse.json(contact)
-  } catch (err) {
-    console.error('CRM POST error:', err)
-    return NextResponse.json({ error: 'Erro ao criar contato' }, { status: 500 })
+  } catch (err: any) {
+    console.error('CRM POST fatal error:', err)
+    
+    let errorMessage = 'Erro ao criar contato'
+    if (err.code === 'P2003') errorMessage = 'Erro de integridade: Usuário não encontrado no banco.'
+    if (err.code === 'P2002') errorMessage = 'Já existe um contato com estes dados.'
+    
+    return NextResponse.json({ 
+      error: errorMessage, 
+      details: err.message,
+      code: err.code 
+    }, { status: 500 })
   }
 }
