@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Fundo azul marinho arredondado — mesmo tom do sidebar -->
+  <rect width="32" height="32" rx="7" fill="#1E2D50"/>
+
+  <!--
+    Gráfico "V então seta para cima-direita"
+    Pontos: A(3,20) → B(13,27) → perto do tip
+
+    Direção AB→C: vetor (15,-23), ||=27.46
+    Unit forward : (0.546, -0.838)
+    Unit right   : (0.838,  0.546)
+
+    Tip C: (28, 4)
+    Back center (5u atrás): (25.27, 8.19)
+    Wing left  (3u): (22.76, 6.55)
+    Wing right (3u): (27.78, 9.83)
+
+    A linha vai até o back center para se juntar com a seta sem sobreposição.
+  -->
+
+  <!-- Linha do gráfico: A → B → back-center da seta -->
+  <polyline
+    points="3,20 13,27 25.3,8.2"
+    fill="none"
+    stroke="white"
+    stroke-width="2.8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Cabeça da seta (triângulo apontando para cima-direita) -->
+  <polygon points="28,4 22.76,6.55 27.78,9.83" fill="white"/>
+</svg>

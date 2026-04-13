@@ -1,0 +1,17 @@
+{
+  "name": "InvestMais Finance",
+  "short_name": "InvestMais",
+  "description": "Plataforma de geração de conteúdo financeiro por IA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1E2D50",
+  "theme_color": "#1E2D50",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

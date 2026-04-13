@@ -12,8 +12,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
     title: {
-        default: 'InvestMais | Geração de Conteúdo Financeiro por IA',
-        template: '%s | InvestMais',
+        default: 'InvestMais Finance',
+        template: '%s | InvestMais Finance',
     },
     description:
         'Plataforma especializada em geração de conteúdo por Inteligência Artificial para o mercado financeiro. Automatize a criação de vídeos profissionais para produtos como Home Equity e Financiamento.',
@@ -27,6 +27,13 @@ export const metadata: Metadata = {
         'financiamento',
     ],
     robots: 'noindex, nofollow',
+    icons: {
+        icon: [
+            { url: '/icon.svg', type: 'image/svg+xml' },
+        ],
+        apple: '/icon.svg',
+        shortcut: '/icon.svg',
+    },
 }
 
 export default function RootLayout({
@@ -36,6 +43,9 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="pt-BR" className={inter.variable}>
+            <head>
+                <link rel="manifest" href="/manifest.json" />
+            </head>
             <body className="font-sans antialiased">
                 <Providers>
                     {children}
