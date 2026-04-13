@@ -238,22 +238,57 @@ export function LeadDetailModal({
     window.open(link, '_blank')
   }
 
+  const isUndefined = (v: string | undefined | null) =>
+    !v || v === 'undefined' || v === 'null' || v.trim() === ''
+
   const formatAddress = () => {
     const parts = []
-    if (contact.endereco && contact.endereco !== 'undefined') parts.push(contact.endereco)
-    if (contact.cidade && contact.cidade !== 'undefined') parts.push(contact.cidade)
-    if (contact.estado && contact.estado !== 'undefined') parts.push(contact.estado)
-    
+    if (!isUndefined(contact.endereco)) parts.push(contact.endereco)
+    if (!isUndefined(contact.cidade))   parts.push(contact.cidade)
+    if (!isUndefined(contact.estado))   parts.push(contact.estado)
+
     if (parts.length > 0) return parts.join(', ')
-    
-    // Fallback search in notes
-    if (contact.notas && contact.notas.includes('Endereço:')) {
-      const match = contact.notas.match(/Endereço:\s*([^, Site:\n]+(?:,[^, Site:\n]+)*)/)
-      if (match && match[1] && !match[1].includes('undefined')) return match[1].trim()
+
+    // Fallback: extrair do campo notas quando N8N gravou lá
+    if (contact.notas?.includes('Endereço:')) {
+      const match = contact.notas.match(/Endereço:\s*([\s\S]+?)(?:\nSite:|\nNicho|\n\n|$)/)
+      if (match?.[1]) {
+        const val = match[1].trim()
+        if (!isUndefined(val)) return val
+      }
     }
-    
+
     return null
   }
+
+  const formatNicho = () => {
+    if (!isUndefined(contact.nicho)) return contact.nicho
+
+    // Fallback: extrair do campo notas (ex: "Nicho/Cidade: Beleza e Estética - Cutias")
+    if (contact.notas) {
+      const match = contact.notas.match(/Nicho(?:\/Cidade)?:\s*([\s\S]+?)(?:\n|$)/)
+      if (match?.[1]) {
+        // Separa nicho de cidade se vier junto com " - "
+        const val = match[1].split(' - ')[0].trim()
+        if (!isUndefined(val)) return val
+      }
+    }
+
+    return null
+  }
+
+  const formatSite = () => {
+    if (!isUndefined(contact.site)) return contact.site
+    return null
+  }
+
+  const cleanNotas = (notas: string) =>
+    notas
+      .replace(/Endereço:[\s\S]*?(?=\nSite:|\nNicho|\n\n|$)/g, '')
+      .replace(/Site:\s*.*?(?:\n|$)/g, '')
+      .replace(/Nicho(?:\/Cidade)?:\s*.*?(?:\n|$)/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim()
 
   return (
     <motion.div
@@ -385,29 +420,33 @@ export function LeadDetailModal({
                                 </span>
                             </DetailField>
                             <DetailField icon={<Globe className="w-4 h-4" />} label="Site">
-                                {contact.site ? (
-                                   <a href={contact.site.startsWith('http') ? contact.site : `https://${contact.site}`} target="_blank" rel="noopener noreferrer" className="text-accent underline font-bold flex items-center gap-1.5">
-                                      {contact.site} <ExternalLink className="w-3 h-3" />
+                                {formatSite() ? (
+                                   <a href={formatSite()!.startsWith('http') ? formatSite()! : `https://${formatSite()}`} target="_blank" rel="noopener noreferrer" className="text-accent underline font-bold flex items-center gap-1.5">
+                                      {formatSite()} <ExternalLink className="w-3 h-3" />
                                    </a>
                                 ) : <span className="text-[var(--text-support)] font-medium italic text-sm">Não informado</span>}
                             </DetailField>
                             {contact.cnpj && (
                               <DetailField icon={<FileText className="w-4 h-4" />} label="CNPJ" value={contact.cnpj} />
                             )}
-                            <DetailField icon={<Tag className="w-4 h-4" />} label="Nicho / Segmento" value={contact.nicho} />
+                            <DetailField icon={<Tag className="w-4 h-4" />} label="Nicho / Segmento" value={formatNicho() || undefined} />
                         </div>
                     </div>
                 </div>
 
                 {/* Notes */}
-                {(contact.notas && contact.notas.trim() !== "") && (
-                   <div className="bg-[var(--bg-primary)] rounded-[24px] p-6 border border-[var(--border-main)]">
-                      <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-3">Notas Internas</p>
-                      <p className="text-sm text-[var(--text-main)] leading-relaxed whitespace-pre-wrap opacity-80 font-medium">
-                         {contact.notas.replace(/Endereço:.*?(Site:|$)/g, '$1').trim() || contact.notas}
-                      </p>
-                   </div>
-                )}
+                {(() => {
+                   const notasLimpas = contact.notas ? cleanNotas(contact.notas) : ''
+                   if (!notasLimpas) return null
+                   return (
+                     <div className="bg-[var(--bg-primary)] rounded-[24px] p-6 border border-[var(--border-main)]">
+                        <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-3">Notas Internas</p>
+                        <p className="text-sm text-[var(--text-main)] leading-relaxed whitespace-pre-wrap opacity-80 font-medium">
+                           {notasLimpas}
+                        </p>
+                     </div>
+                   )
+                })()}
               </motion.div>
             )}
 
