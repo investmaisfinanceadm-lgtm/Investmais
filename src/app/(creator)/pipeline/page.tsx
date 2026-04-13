@@ -334,6 +334,7 @@ function CardDetailModal({
   const [comments, setComments] = useState<{ id: string; text: string; user: string; date: string }[]>([
     { id: '1', text: 'Cliente muito receptivo na última ligação. Próximo passo: agendar demo.', user: 'Ana Paula', date: new Date().toISOString() },
   ])
+  const [moveTo, setMoveTo] = useState<string>(card.columnId)
 
   // Reset local state if card prop changes remotely
   useEffect(() => { setEditedCard(card) }, [card])
@@ -372,6 +373,15 @@ function CardDetailModal({
       { id: String(Date.now()), text: comment.trim(), user: 'Você', date: new Date().toISOString() },
     ])
     setComment('')
+  }
+
+  function handleMarkAsWon() {
+    const wonColumn = columns.find(
+      (col) => /ganho|won|fechado|concluíd/i.test(col.name)
+    ) ?? columns[columns.length - 1]
+    if (!wonColumn) return
+    onMove(card.id, wonColumn.id)
+    toast.success('Negócio marcado como GANHO!')
   }
 
   // Helper renderer for a single editable field
@@ -466,20 +476,21 @@ function CardDetailModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        transition={{ duration: 0.25 }}
         onClick={onClose}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+        className="fixed inset-0 bg-black/40 z-40 cursor-pointer"
       />
 
       {/* Drawer */}
       <motion.div
-        initial={{ x: '100%', opacity: 0.5 }}
-        animate={{ x: 0, opacity: 1 }}
-        exit={{ x: '100%', opacity: 0 }}
-        transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-        className="fixed top-0 right-0 h-full w-full max-w-[600px] bg-[var(--bg-card)] border-l border-[var(--border-main)] z-50 flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.15)]"
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+        className="fixed top-0 right-0 h-screen w-full max-w-[480px] sm:max-w-[480px] bg-[var(--bg-card)] border-l border-[var(--border-main)] z-50 flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.25)]"
       >
         {/* ── Header ── */}
-        <div className="p-6 border-b border-[var(--border-main)] flex-shrink-0 relative group">
+        <div className="p-6 border-b border-[var(--border-main)] flex-shrink-0 relative group bg-[var(--bg-card)]">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div className="flex gap-2 items-center flex-wrap">
               <span className={`badge ${catClass}`}>{editedCard.category}</span>
@@ -742,16 +753,28 @@ function CardDetailModal({
         </div>
 
         {/* ── Footer Actions ── */}
-        <div className="p-6 border-t border-[var(--border-main)] flex shrink-0 gap-3">
+        <div className="sticky bottom-0 bg-[var(--bg-card)] border-t border-white/[0.08] flex shrink-0 gap-3 p-4 z-10">
            {isEditingGlobal ? (
               <>
-                 <button onClick={() => { setEditedCard(card); setIsEditingGlobal(false); setEditingField(null); }} className="flex-1 py-3.5 rounded-xl border border-[var(--border-main)] text-sm font-black text-[var(--text-muted)] hover:text-[var(--text-main)] uppercase tracking-wider transition-colors">Cancelar Modificações</button>
-                 <button onClick={handleSaveGlobal} className="flex-1 py-3.5 rounded-xl bg-accent text-black text-sm font-black uppercase tracking-wider hover:opacity-90 transition-opacity">Salvar Alterações</button>
+                 <button onClick={() => { setEditedCard(card); setIsEditingGlobal(false); setEditingField(null); }} className="flex-1 min-h-[48px] rounded-xl border border-[var(--border-main)] text-sm font-black text-[var(--text-muted)] hover:text-[var(--text-main)] uppercase tracking-wider transition-colors">Cancelar Modificações</button>
+                 <button onClick={handleSaveGlobal} className="flex-1 min-h-[48px] rounded-xl bg-accent text-black text-sm font-black uppercase tracking-wider hover:opacity-90 transition-opacity">Salvar Alterações</button>
               </>
            ) : (
               <>
-                 <button onClick={() => { if(confirm('Marcar como perdido e excluir do pipeline?')) onDelete(card.id) }} className="flex-1 py-3.5 rounded-xl border border-red-500/30 text-red-400 bg-red-500/5 hover:bg-red-500/10 text-sm font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2"><Trash2 className="w-4 h-4" /> Perdido / Excluir</button>
-                 <button className="flex-1 py-3.5 rounded-xl bg-emerald-500 text-black text-sm font-black uppercase tracking-widest hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2"><CheckCircle2 className="w-4 h-4" /> Ganho Garantido</button>
+                 <button
+                   type="button"
+                   onClick={() => { if(confirm('Marcar como perdido e excluir do pipeline?')) onDelete(card.id) }}
+                   className="flex-1 min-h-[48px] rounded-xl border border-red-500/30 text-red-400 bg-red-500/5 hover:bg-red-500/10 text-sm font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+                 >
+                   <Trash2 className="w-4 h-4" /> Perdido / Excluir
+                 </button>
+                 <button
+                   type="button"
+                   onClick={handleMarkAsWon}
+                   className="flex-1 min-h-[48px] rounded-xl bg-emerald-500 text-black text-sm font-black uppercase tracking-widest hover:bg-emerald-400 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                 >
+                   <CheckCircle2 className="w-4 h-4" /> Ganho Garantido
+                 </button>
               </>
            )}
         </div>
