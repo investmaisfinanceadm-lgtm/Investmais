@@ -19,6 +19,7 @@ export async function GET() {
       { header: 'empresa', key: 'empresa', width: 32 },
       { header: 'email', key: 'email', width: 38 },
       { header: 'telefone', key: 'telefone', width: 22 },
+      { header: 'endereco', key: 'endereco', width: 42 },
       { header: 'status', key: 'status', width: 16 },
       { header: 'canal', key: 'canal', width: 16 },
       { header: 'observacoes', key: 'observacoes', width: 52 },
@@ -52,6 +53,7 @@ export async function GET() {
         empresa: 'Clínica Bem Estar',
         email: 'ana.lima@clinicabemestar.com.br',
         telefone: '(11) 98765-4321',
+        endereco: 'Av. Paulista, 1000, São Paulo - SP',
         status: 'Cliente',
         canal: 'Google',
         observacoes: 'Atendimento particular, interesse em gestão financeira da clínica',
@@ -61,6 +63,7 @@ export async function GET() {
         empresa: 'Mendes & Associados Advocacia',
         email: 'carlos@mendesadvocacia.com.br',
         telefone: '(21) 97654-3210',
+        endereco: 'Rua do Ouvidor, 50, Rio de Janeiro - RJ',
         status: 'Lead',
         canal: 'Indicação',
         observacoes: 'Indicado pelo Dr. Paulo. Aguardando retorno para agendar reunião',
@@ -70,6 +73,7 @@ export async function GET() {
         empresa: 'Studio Beleza Total',
         email: 'patricia@studiobtp.com.br',
         telefone: '(31) 96543-2109',
+        endereco: 'Rua dos Carijós, 200, Belo Horizonte - MG',
         status: 'Novo',
         canal: 'Instagram',
         observacoes: '',
@@ -103,6 +107,7 @@ export async function GET() {
       { text: '  • empresa       → Nome da empresa ou negócio', style: 'item' },
       { text: '  • email         → Endereço de e-mail válido (usado para detectar duplicatas)', style: 'item' },
       { text: '  • telefone      → Formato recomendado: (XX) XXXXX-XXXX', style: 'item' },
+      { text: '  • endereco      → Endereço completo (ex: Rua X, 100, Cidade - UF)', style: 'item' },
       { text: '  • status        → Valores aceitos: Novo, Lead, Cliente, Inativo', style: 'item' },
       { text: '  • canal         → Valores aceitos: Google, Indicação, Instagram, Facebook, WhatsApp, Outro', style: 'item' },
       { text: '' },
@@ -207,6 +212,7 @@ export async function POST(req: Request) {
       empresa: findIdx('empresa'),
       email: findIdx('email'),
       telefone: findIdx('telefone', 'fone', 'phone'),
+      endereco: findIdx('endereco', 'endereço', 'address'),
       status: findIdx('status'),
       canal: findIdx('canal'),
       obs: findIdx('observ', 'obs', 'nota'),
@@ -218,6 +224,7 @@ export async function POST(req: Request) {
       empresa: string
       email: string
       telefone: string
+      endereco: string
       status_funil: string
       canal_origem: string
       notas: string
@@ -258,6 +265,7 @@ export async function POST(req: Request) {
       const empresa = getCellStr(row, idx.empresa)
       const email = getCellStr(row, idx.email)
       const telefone = getCellStr(row, idx.telefone)
+      const endereco = getCellStr(row, idx.endereco)
       const statusRaw = getCellStr(row, idx.status)
       const canalRaw = getCellStr(row, idx.canal)
       const notas = getCellStr(row, idx.obs)
@@ -281,7 +289,7 @@ export async function POST(req: Request) {
       const canal_origem =
         VALID_CANAIS.find((c) => c.toLowerCase() === canalRaw.toLowerCase()) ?? 'Outro'
 
-      parsedRows.push({ rowNumber, nome, empresa, email, telefone, status_funil, canal_origem, notas })
+      parsedRows.push({ rowNumber, nome, empresa, email, telefone, endereco, status_funil, canal_origem, notas })
     })
 
     // Busca duplicatas por email
@@ -328,6 +336,7 @@ export async function POST(req: Request) {
                 nome: row.nome,
                 empresa: row.empresa,
                 telefone: row.telefone || null,
+                endereco: row.endereco || null,
                 status_funil: row.status_funil,
                 canal_origem: row.canal_origem,
                 notas: row.notas || '',
@@ -349,6 +358,7 @@ export async function POST(req: Request) {
             empresa: row.empresa || null,
             email: row.email || null,
             telefone: row.telefone || null,
+            endereco: row.endereco || null,
             canal_origem: row.canal_origem,
             status_funil: row.status_funil,
             notas: row.notas || '',
