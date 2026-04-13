@@ -39,6 +39,10 @@ import {
   ExternalLink,
   MapPin,
   MessageCircle,
+  FileSpreadsheet,
+  AlertTriangle,
+  CheckCircle,
+  Download,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import toast from 'react-hot-toast'
@@ -561,6 +565,24 @@ export default function CRMPage() {
   const [isCsvOpen, setIsCsvOpen] = useState(false)
   const [csvText, setCsvText] = useState('')
   const [csvError, setCsvError] = useState('')
+
+  // ── Excel import state ────────────────────────────────────────────────────
+  const [isExcelOpen, setIsExcelOpen] = useState(false)
+  const [excelFile, setExcelFile] = useState<File | null>(null)
+  const [excelDragOver, setExcelDragOver] = useState(false)
+  const [excelLoading, setExcelLoading] = useState(false)
+  const [excelStep, setExcelStep] = useState<'upload' | 'duplicates' | 'result'>('upload')
+  const [excelCheckResult, setExcelCheckResult] = useState<{
+    valid: number
+    errors: { row: number; field: string; message: string }[]
+    duplicates: { row: number; email: string; existingName: string; existingId: string }[]
+  } | null>(null)
+  const [excelImportResult, setExcelImportResult] = useState<{
+    imported: number
+    skipped: number
+    errors: { row: number; message: string }[]
+  } | null>(null)
+
   const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [activeFilter, setActiveFilter] = useState<FilterTab>('todos')
   const [search, setSearch] = useState('')
@@ -781,6 +803,93 @@ export default function CRMPage() {
     import('react-hot-toast').then(({ default: toast }) => toast.success(`${imported.length} contato(s) importado(s)!`))
   }
 
+  function resetExcelModal() {
+    setExcelFile(null)
+    setExcelDragOver(false)
+    setExcelLoading(false)
+    setExcelStep('upload')
+    setExcelCheckResult(null)
+    setExcelImportResult(null)
+  }
+
+  function openExcelModal() {
+    resetExcelModal()
+    setIsExcelOpen(true)
+  }
+
+  async function handleExcelCheck() {
+    if (!excelFile) return
+    setExcelLoading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', excelFile)
+      fd.append('mode', 'check')
+      const res = await fetch('/api/creator/crm/import-excel', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) { toast.error(data.error || 'Erro ao processar arquivo'); return }
+      setExcelCheckResult(data)
+      if (data.duplicates?.length > 0) {
+        setExcelStep('duplicates')
+      } else {
+        await handleExcelImportConfirm('skip')
+      }
+    } catch {
+      toast.error('Erro de conexão')
+    } finally {
+      setExcelLoading(false)
+    }
+  }
+
+  async function handleExcelImportConfirm(duplicateAction: 'skip' | 'overwrite') {
+    if (!excelFile) return
+    setExcelLoading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', excelFile)
+      fd.append('mode', 'import')
+      fd.append('duplicateAction', duplicateAction)
+      const res = await fetch('/api/creator/crm/import-excel', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) { toast.error(data.error || 'Erro ao importar'); return }
+      setExcelImportResult(data)
+      setExcelStep('result')
+      // Recarrega a lista de contatos da API
+      const contactsRes = await fetch('/api/creator/crm')
+      if (contactsRes.ok) {
+        const raw = await contactsRes.json()
+        const formatted = raw.map((c: any) => ({
+          ...c,
+          status: (c.status_funil || 'lead') as FunilStatus,
+          canal: (c.canal_origem || 'Site') as Canal,
+          tags: c.tags || [],
+          notas: c.notas || '',
+          empresa: c.empresa || '',
+          email: c.email || '',
+          telefone: c.telefone || '',
+          cargo: c.cargo || '',
+          cidade: c.cidade || '',
+          estado: c.estado || '',
+          endereco: c.endereco || '',
+          site: c.site || '',
+          nicho: c.nicho || '',
+          createdAt: new Date(c.created_at),
+          lastActivity: new Date(c.updated_at || c.created_at),
+          activities: (c.atividades || []).map((a: any) => ({
+            id: a.id,
+            type: (a.tipo || 'note') as ActivityType,
+            description: a.descricao || '',
+            date: new Date(a.data || Date.now()),
+          }))
+        }))
+        setContacts(formatted)
+      }
+    } catch {
+      toast.error('Erro de conexão')
+    } finally {
+      setExcelLoading(false)
+    }
+  }
+
   const filterTabs: { key: FilterTab; label: string; count: number }[] = [
     { key: 'todos', label: 'Todos', count: contacts.length },
     { key: 'leads', label: 'Leads', count: contacts.filter((c) => ['lead', 'qualificado', 'proposta'].includes(c.status)).length },
@@ -810,6 +919,10 @@ export default function CRMPage() {
           <button onClick={() => setIsCsvOpen(true)} className="btn-secondary flex items-center gap-2 text-sm py-2.5 px-5">
             <Upload className="w-4 h-4" />
             Importar CSV
+          </button>
+          <button onClick={openExcelModal} className="btn-secondary flex items-center gap-2 text-sm py-2.5 px-5">
+            <FileSpreadsheet className="w-4 h-4" />
+            Importar Excel
           </button>
           <button
             onClick={() => setIsAddOpen(true)}
@@ -1142,6 +1255,247 @@ export default function CRMPage() {
                     Importar
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Modal: Importar Excel ── */}
+      <AnimatePresence>
+        {isExcelOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          >
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { if (!excelLoading) { setIsExcelOpen(false) } }} />
+            <motion.div
+              className="relative w-full max-w-lg bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl shadow-card-hover"
+              initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+            >
+              {/* Header */}
+              <div className="p-5 border-b border-[var(--border-main)] flex items-center justify-between">
+                <div>
+                  <h2 className="text-base font-black text-[var(--text-main)] uppercase tracking-wider">Importar Excel</h2>
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5">Selecione ou arraste um arquivo Excel (.xlsx ou .xls)</p>
+                </div>
+                <button
+                  onClick={() => { if (!excelLoading) { setIsExcelOpen(false) } }}
+                  className="p-1.5 rounded-lg hover:bg-[var(--bg-primary)] text-[var(--text-muted)]"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-5 space-y-4">
+
+                {/* ── Etapa: upload ─────────────────────────────────────── */}
+                {excelStep === 'upload' && (
+                  <>
+                    {/* Drag-and-drop area */}
+                    <label
+                      htmlFor="excel-file-input"
+                      className={cn(
+                        'flex flex-col items-center justify-center gap-3 w-full min-h-[160px] rounded-xl border-2 border-dashed cursor-pointer transition-all',
+                        excelDragOver
+                          ? 'border-accent bg-accent/10 scale-[1.01]'
+                          : excelFile
+                          ? 'border-green-500/50 bg-green-500/5'
+                          : 'border-[var(--border-main)] hover:border-accent/50 hover:bg-accent/5'
+                      )}
+                      onDragOver={(e) => { e.preventDefault(); setExcelDragOver(true) }}
+                      onDragLeave={() => setExcelDragOver(false)}
+                      onDrop={(e) => {
+                        e.preventDefault()
+                        setExcelDragOver(false)
+                        const file = e.dataTransfer.files[0]
+                        if (file && file.name.match(/\.(xlsx|xls)$/i)) {
+                          setExcelFile(file)
+                        } else {
+                          toast.error('Envie um arquivo .xlsx ou .xls')
+                        }
+                      }}
+                    >
+                      <input
+                        id="excel-file-input"
+                        type="file"
+                        accept=".xlsx,.xls"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) setExcelFile(file)
+                        }}
+                      />
+                      {excelFile ? (
+                        <>
+                          <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center border border-green-500/20">
+                            <FileSpreadsheet className="w-5 h-5 text-green-500" />
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm font-semibold text-[var(--text-main)] truncate max-w-[260px]">{excelFile.name}</p>
+                            <p className="text-xs text-[var(--text-muted)] mt-0.5">{(excelFile.size / 1024).toFixed(1)} KB — clique para trocar</p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center border border-accent/20">
+                            <Upload className="w-5 h-5 text-accent" />
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm font-semibold text-[var(--text-main)]">Arraste o arquivo aqui</p>
+                            <p className="text-xs text-[var(--text-muted)] mt-0.5">ou clique para selecionar</p>
+                            <p className="text-xs text-[var(--text-muted)] mt-1 opacity-60">Aceita .xlsx e .xls</p>
+                          </div>
+                        </>
+                      )}
+                    </label>
+
+                    {/* Download template */}
+                    <div className="flex items-center justify-center">
+                      <a
+                        href="/api/creator/crm/import-excel"
+                        download="modelo-importacao-contatos.xlsx"
+                        className="inline-flex items-center gap-2 text-xs font-semibold text-accent hover:underline"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Baixar planilha modelo
+                      </a>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setIsExcelOpen(false)}
+                        className="btn-secondary flex-1"
+                        disabled={excelLoading}
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={handleExcelCheck}
+                        disabled={!excelFile || excelLoading}
+                        className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {excelLoading ? (
+                          <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                          </svg>
+                        ) : (
+                          <Upload className="w-4 h-4" />
+                        )}
+                        {excelLoading ? 'Verificando...' : 'Importar'}
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {/* ── Etapa: duplicatas ─────────────────────────────────── */}
+                {excelStep === 'duplicates' && excelCheckResult && (
+                  <>
+                    <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-[var(--text-main)]">
+                          {excelCheckResult.duplicates.length} duplicata{excelCheckResult.duplicates.length !== 1 ? 's' : ''} encontrada{excelCheckResult.duplicates.length !== 1 ? 's' : ''}
+                        </p>
+                        <p className="text-xs text-[var(--text-muted)]">
+                          Os seguintes e-mails já estão cadastrados. O que deseja fazer?
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Lista de duplicatas */}
+                    <div className="max-h-40 overflow-y-auto space-y-1.5 rounded-xl border border-[var(--border-main)] p-3">
+                      {excelCheckResult.duplicates.map((dup) => (
+                        <div key={dup.row} className="flex items-center justify-between text-xs">
+                          <span className="font-medium text-[var(--text-main)] truncate max-w-[200px]">{dup.email}</span>
+                          <span className="text-[var(--text-muted)] truncate max-w-[120px]">já existe como "{dup.existingName}"</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {excelCheckResult.errors.length > 0 && (
+                      <p className="text-xs text-[var(--text-muted)]">
+                        + {excelCheckResult.errors.length} linha{excelCheckResult.errors.length !== 1 ? 's' : ''} com erro{excelCheckResult.errors.length !== 1 ? 's' : ''} serão ignoradas
+                      </p>
+                    )}
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setExcelStep('upload')}
+                        className="btn-secondary flex-1"
+                        disabled={excelLoading}
+                      >
+                        Voltar
+                      </button>
+                      <button
+                        onClick={() => handleExcelImportConfirm('skip')}
+                        disabled={excelLoading}
+                        className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-[var(--border-main)] text-sm font-semibold text-[var(--text-main)] hover:bg-[var(--bg-primary)] transition-colors disabled:opacity-50"
+                      >
+                        Ignorar duplicatas
+                      </button>
+                      <button
+                        onClick={() => handleExcelImportConfirm('overwrite')}
+                        disabled={excelLoading}
+                        className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {excelLoading ? (
+                          <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                          </svg>
+                        ) : null}
+                        {excelLoading ? 'Importando...' : 'Sobrescrever'}
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {/* ── Etapa: resultado ──────────────────────────────────── */}
+                {excelStep === 'result' && excelImportResult && (
+                  <>
+                    <div className={cn(
+                      'p-4 rounded-xl border flex items-start gap-3',
+                      excelImportResult.imported > 0
+                        ? 'bg-green-500/10 border-green-500/20'
+                        : 'bg-[var(--bg-primary)] border-[var(--border-main)]'
+                    )}>
+                      <CheckCircle className={cn('w-5 h-5 flex-shrink-0 mt-0.5', excelImportResult.imported > 0 ? 'text-green-500' : 'text-[var(--text-muted)]')} />
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-[var(--text-main)]">Importação concluída</p>
+                        <p className="text-xs text-[var(--text-muted)]">
+                          <span className="text-green-500 font-semibold">{excelImportResult.imported} contato{excelImportResult.imported !== 1 ? 's' : ''} importado{excelImportResult.imported !== 1 ? 's' : ''} com sucesso</span>
+                          {excelImportResult.skipped > 0 && (
+                            <> · {excelImportResult.skipped} duplicata{excelImportResult.skipped !== 1 ? 's' : ''} ignorada{excelImportResult.skipped !== 1 ? 's' : ''}</>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    {excelImportResult.errors.length > 0 && (
+                      <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 space-y-1.5 max-h-36 overflow-y-auto">
+                        <p className="text-xs font-bold text-red-400">
+                          {excelImportResult.errors.length} erro{excelImportResult.errors.length !== 1 ? 's' : ''} encontrado{excelImportResult.errors.length !== 1 ? 's' : ''}:
+                        </p>
+                        {excelImportResult.errors.slice(0, 8).map((e, i) => (
+                          <p key={i} className="text-xs text-red-300">
+                            {'row' in e ? `Linha ${'row' in e ? (e as any).row : ''}: ` : ''}{'message' in e ? (e as any).message : ('field' in e ? `Campo "${(e as any).field}" obrigatório` : '')}
+                          </p>
+                        ))}
+                        {excelImportResult.errors.length > 8 && (
+                          <p className="text-xs text-red-300 opacity-60">...e mais {excelImportResult.errors.length - 8} erro(s)</p>
+                        )}
+                      </div>
+                    )}
+
+                    <button onClick={() => setIsExcelOpen(false)} className="btn-primary w-full">
+                      Fechar
+                    </button>
+                  </>
+                )}
+
               </div>
             </motion.div>
           </motion.div>
