@@ -533,19 +533,16 @@ export default function ConfiguracoesPage() {
         <div className="space-y-6">
           <SectionCard title="Informações do Perfil" subtitle="Atualize seus dados pessoais e foto">
             <div className="flex items-center gap-6 mb-6">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center overflow-hidden">
+              <div className="relative group" onClick={() => avatarInputRef.current?.click()}>
+                <div className="w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center overflow-hidden cursor-pointer relative shadow-sm transition-all group-hover:border-accent">
                   {profile.avatar_url
                     ? <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                     : <span className="text-accent font-black text-lg">{getInitials(profile.nome || 'U')}</span>
                   }
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <Camera className="w-5 h-5 text-white opacity-80" />
+                  </div>
                 </div>
-                <button
-                  onClick={() => avatarInputRef.current?.click()}
-                  className="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-accent text-[var(--background)] flex items-center justify-center shadow-md hover:scale-110 transition-transform cursor-pointer"
-                >
-                  <Camera className="w-2.5 h-2.5" />
-                </button>
                 <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
               </div>
               <div>
