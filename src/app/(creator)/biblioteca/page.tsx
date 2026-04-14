@@ -12,6 +12,7 @@ import {
     Trash2, 
     X,
     Play,
+    Pause,
     Move,
     Tag,
     Hash,
@@ -61,6 +62,7 @@ export default function BibliotecaPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [activeMenu, setActiveMenu] = useState<string | null>(null)
     const [movingVideo, setMovingVideo] = useState<string | null>(null)
+    const [isPlaying, setIsPlaying] = useState(true)
 
     useEffect(() => {
         fetchData()
@@ -424,6 +426,8 @@ export default function BibliotecaPage() {
                                             loop
                                             playsInline
                                             className="w-full h-full object-cover" 
+                                            onPlay={() => setIsPlaying(true)}
+                                            onPause={() => setIsPlaying(false)}
                                             onClick={(e) => {
                                                 const v = e.currentTarget
                                                 if (v.paused) v.play()
@@ -443,7 +447,11 @@ export default function BibliotecaPage() {
                                                         }}
                                                         className="w-12 h-12 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/10 flex items-center justify-center transition-all active:scale-95"
                                                     >
-                                                        <Plus className="w-5 h-5 text-[var(--text-main)] rotate-45" /> {/* Using Plus as a quick mock, I should use Play/Pause if I had them but let's stick to standard lucide if possible */}
+                                                        {isPlaying ? (
+                                                            <Pause className="w-5 h-5 text-[var(--text-main)] fill-current" />
+                                                        ) : (
+                                                            <Play className="w-5 h-5 text-[var(--text-main)] fill-current ml-1" />
+                                                        )}
                                                     </button>
                                                     <div className="space-y-0.5">
                                                         <p className="text-[10px] font-black text-[var(--text-main)] uppercase tracking-widest">{selectedVideo.nome_produto}</p>
@@ -473,7 +481,11 @@ export default function BibliotecaPage() {
                                         {/* Interaction Hint */}
                                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover/player:group-active/player:opacity-100 transition-opacity">
                                             <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-md border border-white/20 flex items-center justify-center animate-ping">
-                                                <Plus className="w-8 h-8 text-[var(--text-main)]" />
+                                                {isPlaying ? (
+                                                    <Pause className="w-8 h-8 text-[var(--text-main)] fill-current" />
+                                                ) : (
+                                                    <Play className="w-8 h-8 text-[var(--text-main)] fill-current ml-2" />
+                                                )}
                                             </div>
                                         </div>
                                     </div>
