@@ -934,81 +934,95 @@ export default function CRMPage() {
     <div className="p-4 md:p-8 space-y-8 md:space-y-12 max-w-7xl mx-auto animate-fade-in pb-20">
 
       {/* ── Header ── */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-[var(--border-main)]">
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-accent/10 flex items-center justify-center border border-accent/20">
-              <Users className="w-4 h-4 text-accent" />
-            </div>
-            <h1 className="text-3xl font-black text-[var(--text-main)] tracking-tighter uppercase">CRM de Contatos</h1>
+      <div className="flex items-center justify-between gap-4 pb-5 border-b border-[var(--border-main)]">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-accent/10 flex items-center justify-center border border-accent/20 flex-shrink-0">
+            <Users className="w-4 h-4 text-accent" />
           </div>
-          <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Gerencie seus relacionamentos e pipeline de vendas</p>
+          <div>
+            <h1 className="text-xl font-black text-[var(--text-main)] tracking-tighter uppercase leading-none">CRM</h1>
+            <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest hidden sm:block">Relacionamentos e Pipeline</p>
+          </div>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <button onClick={() => setIsScrapeOpen(true)} className="flex items-center gap-2 text-sm font-black uppercase tracking-widest py-2.5 px-5 rounded-xl border border-accent text-accent hover:bg-accent/10 transition-colors">
+        {/* Mobile: icon buttons row | Desktop: full buttons */}
+        <div className="flex items-center gap-2">
+          {/* Icon-only buttons on mobile */}
+          <button onClick={() => setIsScrapeOpen(true)} title="Prospectar Leads" className="flex items-center gap-2 h-10 px-3 rounded-xl border border-accent text-accent hover:bg-accent/10 transition-colors">
             <Globe className="w-4 h-4" />
-            Prospectar Leads
+            <span className="hidden sm:inline text-xs font-black uppercase tracking-widest">Prospectar</span>
           </button>
-          <button onClick={() => setIsCsvOpen(true)} className="btn-secondary flex items-center gap-2 text-sm py-2.5 px-5">
+          <button onClick={() => setIsCsvOpen(true)} title="Importar CSV" className="hidden sm:flex items-center gap-2 h-10 px-3 rounded-xl border border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-accent/30 transition-colors">
             <Upload className="w-4 h-4" />
-            Importar CSV
+            <span className="text-xs font-black uppercase tracking-widest">CSV</span>
           </button>
-          <button onClick={openExcelModal} className="btn-secondary flex items-center gap-2 text-sm py-2.5 px-5">
+          <button onClick={openExcelModal} title="Importar Excel" className="hidden sm:flex items-center gap-2 h-10 px-3 rounded-xl border border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-accent/30 transition-colors">
             <FileSpreadsheet className="w-4 h-4" />
-            Importar Excel
+            <span className="text-xs font-black uppercase tracking-widest">Excel</span>
           </button>
           <button
             onClick={() => setIsAddOpen(true)}
-            className="btn-primary flex items-center gap-2 text-sm py-2.5 px-5"
+            className="flex items-center gap-2 h-10 px-4 rounded-xl bg-accent text-white font-black text-xs uppercase tracking-widest hover:bg-accent/90 active:scale-95 transition-all shadow-lg shadow-accent/20"
           >
             <Plus className="w-4 h-4" />
-            Novo Contato
+            <span className="hidden sm:inline">Novo</span>
           </button>
         </div>
+      </div>
+
+      {/* Mobile: secondary import buttons */}
+      <div className="flex sm:hidden gap-2">
+        <button onClick={() => setIsCsvOpen(true)} className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl border border-[var(--border-main)] text-[var(--text-muted)] text-xs font-bold">
+          <Upload className="w-3.5 h-3.5" /> CSV
+        </button>
+        <button onClick={openExcelModal} className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl border border-[var(--border-main)] text-[var(--text-muted)] text-xs font-bold">
+          <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
+        </button>
+      </div>
+
       {/* Search + Filters + View Toggle */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="relative flex-1 w-full sm:max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
-            <input
-              type="text"
-              placeholder="Buscar por nome, empresa, email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="input-field pl-10 py-2.5 text-sm"
-            />
-          </div>
-          <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-[var(--border-main)] rounded-xl p-1 shadow-sm">
+      <div className="flex flex-col gap-3">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+          <input
+            type="text"
+            placeholder="Buscar por nome, empresa, email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="input-field pl-10 py-3 text-sm w-full"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Horizontally scrollable filter tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-view flex-1 bg-[var(--bg-card)] border border-[var(--border-main)] rounded-xl p-1 shadow-sm">
             {filterTabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveFilter(tab.key)}
                 className={cn(
-                  'px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5',
-                  activeFilter === tab.key ? 'bg-accent text-[var(--text-main)] shadow-md' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                  'px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 whitespace-nowrap flex-shrink-0',
+                  activeFilter === tab.key ? 'bg-accent text-white shadow-md' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 )}
               >
                 {tab.label}
                 <span className={cn(
                   'text-[10px] px-1.5 py-0.5 rounded-full',
-                  activeFilter === tab.key ? 'bg-accent/20 text-accent' : 'bg-[var(--bg-primary)] text-[var(--text-muted)]'
+                  activeFilter === tab.key ? 'bg-white/20 text-white' : 'bg-[var(--bg-primary)] text-[var(--text-muted)]'
                 )}>
                   {tab.count}
                 </span>
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-1 bg-[var(--bg-card)] border border-[var(--border-main)] rounded-xl p-1 ml-auto">
+          <div className="flex items-center gap-1 bg-[var(--bg-card)] border border-[var(--border-main)] rounded-xl p-1 flex-shrink-0">
             <button
               onClick={() => setViewMode('list')}
               className={cn('p-2 rounded-lg transition-all', viewMode === 'list' ? 'bg-accent/10 text-accent' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]')}
-              title="Visualização em lista"
             >
               <LayoutList className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode('grid')}
               className={cn('p-2 rounded-lg transition-all', viewMode === 'grid' ? 'bg-accent/10 text-accent' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]')}
-              title="Visualização em grade"
             >
               <LayoutGrid className="w-4 h-4" />
             </button>

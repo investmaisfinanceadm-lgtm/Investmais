@@ -154,94 +154,84 @@ export default function BibliotecaPage() {
         <div className="flex h-screen bg-[var(--bg-primary)] overflow-hidden">
             <div className="flex-1 flex flex-col min-w-0 bg-[var(--bg-primary)]">
                 {/* Header Actions */}
-                <div className="min-h-[60px] md:h-24 border-b border-[var(--border-main)] bg-[var(--bg-card)] flex flex-wrap items-center justify-between gap-3 px-4 md:px-10 py-3 md:py-0 backdrop-blur-md sticky top-0 z-20">
-                    <div className="flex items-center gap-4 md:gap-10 flex-1 max-w-4xl min-w-0">
-                        <div className="flex items-center gap-4">
-                             <div className="w-10 h-10 rounded-2xl bg-accent/20 flex items-center justify-center border border-accent/20">
-                                <LayoutGrid className="w-5 h-5 text-accent" />
-                            </div>
-                            <div className="flex flex-col">
-                                <h1 className="text-xl font-black text-[var(--text-main)] uppercase tracking-tighter">Acervo Digital</h1>
-                                <p className="text-[8px] text-[var(--text-muted)] font-bold uppercase tracking-widest">Protocolos de Mídia Estúdio AI</p>
-                            </div>
+                <div className="min-h-[56px] border-b border-[var(--border-main)] bg-[var(--bg-card)] flex items-center justify-between gap-3 px-4 md:px-10 py-3 backdrop-blur-md sticky top-0 z-20">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="w-8 h-8 rounded-xl bg-accent/20 flex items-center justify-center border border-accent/20 flex-shrink-0">
+                            <LayoutGrid className="w-4 h-4 text-accent" />
                         </div>
-
-                        <div className="relative flex-1 max-w-md group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-accent transition-colors" />
+                        <div className="flex flex-col">
+                            <h1 className="text-base font-black text-[var(--text-main)] uppercase tracking-tighter leading-none">Acervo</h1>
+                            <p className="text-[8px] text-[var(--text-muted)] font-bold uppercase tracking-widest hidden sm:block">Protocolos de Mídia AI</p>
+                        </div>
+                        {/* Search inline on mobile */}
+                        <div className="relative flex-1 max-w-xs md:max-w-md group ml-2">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-600 group-focus-within:text-accent transition-colors" />
                             <input
                                 type="text"
-                                placeholder="BUSCAR NO ACERVO..."
+                                placeholder="Buscar..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl py-3 pl-12 pr-4 text-[10px] font-black uppercase tracking-widest text-[var(--text-main)] placeholder-[#94A3B8] focus:bg-[var(--bg-primary)] focus:border-accent/40 focus:ring-0 transition-all outline-none"
+                                className="w-full bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-xl py-2 pl-9 pr-3 text-[10px] font-bold uppercase tracking-widest text-[var(--text-main)] placeholder-gray-600 focus:border-accent/40 focus:ring-0 transition-all outline-none"
                             />
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                        <Link href="/criar" className="btn-primary flex items-center gap-2 md:gap-3 px-4 md:px-8 py-2.5 md:py-3 bg-accent text-black font-black uppercase tracking-widest text-[10px] rounded-2xl hover:scale-105 transition-all shadow-accent/20 whitespace-nowrap">
-                            <Plus className="w-4 h-4" />
-                            <span className="hidden sm:inline">Configurar Novo Protocolo</span>
-                            <span className="sm:hidden">Novo</span>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                        <Link href="/criar" className="flex items-center gap-2 px-3 py-2 bg-accent text-black font-black uppercase tracking-widest text-[9px] rounded-xl hover:scale-105 active:scale-95 transition-all shadow-accent/20 whitespace-nowrap">
+                            <Plus className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Novo</span>
+                            <span className="sm:hidden">+</span>
                         </Link>
                     </div>
                 </div>
 
-                {/* Advanced Filter Bar (Folders & Tags) - NEW RECOMMENDATION */}
-                <div className="px-4 md:px-10 py-4 md:py-6 border-b border-[var(--border-main)] flex flex-col gap-4 md:gap-6 bg-[var(--bg-card)]">
-                    {/* Folders */}
-                    <div className="flex items-center gap-4 overflow-x-auto custom-scrollbar no-view">
-                        <div className="flex items-center gap-2 mr-4 border-r border-[var(--border-main)] pr-4">
-                             <Filter className="w-3 h-3 text-gray-600" />
-                             <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest whitespace-nowrap">Pastas Operais:</span>
-                        </div>
+                {/* Filter Bar - single row on mobile, two rows on desktop */}
+                <div className="px-4 md:px-10 py-3 border-b border-[var(--border-main)] bg-[var(--bg-card)]">
+                    {/* Mobile: single combined scrollable row */}
+                    <div className="flex items-center gap-2 overflow-x-auto no-view">
+                        {/* Folder filters */}
                         <button
                             onClick={() => setSelectedFolder(null)}
                             className={cn(
-                                "flex items-center gap-3 px-6 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap",
-                                !selectedFolder ? 'bg-accent text-black shadow-accent' : 'bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--border-main)]'
+                                "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border",
+                                !selectedFolder ? 'bg-accent text-black border-accent' : 'bg-[var(--bg-primary)] text-[var(--text-muted)] border-[var(--border-main)] hover:text-[var(--text-main)]'
                             )}
                         >
-                            <LayoutGrid className="w-3.5 h-3.5" />
-                            Ver Tudo
+                            <LayoutGrid className="w-3 h-3" />
+                            Tudo
                         </button>
                         {pastas.map(folder => (
                             <button
                                 key={folder.id}
                                 onClick={() => setSelectedFolder(folder.id)}
                                 className={cn(
-                                    "flex items-center gap-3 px-6 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border border-[var(--border-main)]",
-                                    selectedFolder === folder.id ? 'bg-accent text-black shadow-accent' : 'bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--border-main)]'
+                                    "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border",
+                                    selectedFolder === folder.id ? 'bg-accent text-black border-accent' : 'bg-[var(--bg-primary)] text-[var(--text-muted)] border-[var(--border-main)] hover:text-[var(--text-main)]'
                                 )}
                             >
-                                <Folder className="w-3.5 h-3.5" />
+                                <Folder className="w-3 h-3" />
                                 {folder.nome}
                             </button>
                         ))}
-                    </div>
-
-                    {/* Tags System - NEW */}
-                    <div className="flex items-center gap-4 overflow-x-auto custom-scrollbar no-view">
-                        <div className="flex items-center gap-2 mr-4 border-r border-[var(--border-main)] pr-4">
-                             <Hash className="w-3 h-3 text-gray-600" />
-                             <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest whitespace-nowrap">Filtragem Inteligente:</span>
-                        </div>
+                        {/* Divider */}
+                        <div className="w-px h-5 bg-[var(--border-main)] flex-shrink-0 mx-1" />
+                        {/* Tag filters */}
                         <button
                             onClick={() => setSelectedTag(null)}
                             className={cn(
-                                "px-4 py-2 rounded-full text-[8px] font-black uppercase tracking-widest transition-all border",
-                                !selectedTag ? 'border-accent bg-accent/10 text-accent' : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                                "px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest transition-all border whitespace-nowrap",
+                                !selectedTag ? 'border-accent bg-accent/10 text-accent' : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-[var(--text-muted)]'
                             )}
                         >
-                            TODAS AS TAGS
+                            # Todas
                         </button>
                         {DEFAULT_TAGS.map(tag => (
                             <button
                                 key={tag}
                                 onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
                                 className={cn(
-                                    "px-4 py-2 rounded-full text-[8px] font-black uppercase tracking-widest transition-all border",
-                                    selectedTag === tag ? 'border-accent bg-accent/10 text-accent shadow-accent-sm' : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                                    "px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest transition-all border whitespace-nowrap",
+                                    selectedTag === tag ? 'border-accent bg-accent/10 text-accent' : 'border-[var(--border-main)] bg-[var(--bg-primary)] text-[var(--text-muted)]'
                                 )}
                             >
                                 {tag}

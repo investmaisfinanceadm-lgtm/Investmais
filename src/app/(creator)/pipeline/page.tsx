@@ -821,19 +821,19 @@ function StatsBar({ columns }: { columns: KanbanColumn[] }) {
   ]
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div className="flex gap-3 overflow-x-auto no-view pb-1">
       {stats.map((s, i) => (
         <div
           key={s.label}
-          className="card-hover group border border-[var(--border-main)] bg-[var(--bg-card)] p-5 rounded-2xl flex items-center gap-4 relative overflow-hidden"
+          className="card-hover group border border-[var(--border-main)] bg-[var(--bg-card)] p-4 rounded-2xl flex items-center gap-3 relative overflow-hidden flex-shrink-0 min-w-[140px] sm:flex-1"
           style={{ animationDelay: `${i * 0.08}s` }}
         >
-          <div className={`w-11 h-11 rounded-xl flex items-center justify-center border flex-shrink-0 ${s.iconBg} group-hover:scale-110 transition-transform`}>
-            <s.icon className={`w-5 h-5 ${s.iconColor}`} />
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center border flex-shrink-0 ${s.iconBg} group-hover:scale-110 transition-transform`}>
+            <s.icon className={`w-4 h-4 ${s.iconColor}`} />
           </div>
           <div className="min-w-0">
-            <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.15em] mb-0.5">{s.label}</p>
-            <p className={`text-2xl font-black leading-none truncate ${s.accent ? 'text-accent' : 'text-[var(--text-main)]'}`}>
+            <p className="text-[9px] font-black text-gray-500 uppercase tracking-[0.15em] mb-0.5 whitespace-nowrap">{s.label}</p>
+            <p className={`text-lg font-black leading-none truncate ${s.accent ? 'text-accent' : 'text-[var(--text-main)]'}`}>
               {s.value}
             </p>
           </div>
