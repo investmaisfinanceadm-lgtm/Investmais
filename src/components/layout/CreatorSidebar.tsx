@@ -34,7 +34,7 @@ const navItems = [
     { href: '/crm', label: 'CRM', icon: Users },
     { href: '/disparos', label: 'Disparos', icon: Send },
     { href: '/cnpj', label: 'Leads', icon: Search },
-    { href: '/configuracoes', label: 'Config', icon: Settings },
+    { href: '/configuracoes', label: 'Configuração', icon: Settings },
 ]
 
 const contentItems = [
