@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -455,7 +455,7 @@ function AddContactModal({ onClose, onAdd }: { onClose: () => void; onAdd: (cont
 
 // ─── Scrape Leads Modal (N8N Google Maps) ───────────────────────────────────
 
-function ScrapeLeadsModal({ onClose }: { onClose: () => void }) {
+function ScrapeLeadsModal({ onClose, onProspected }: { onClose: () => void; onProspected: () => void }) {
   const [estado, setEstado] = useState('')
   const [cidade, setCidade] = useState('')
   const [nicho, setNicho] = useState('')
@@ -477,6 +477,7 @@ function ScrapeLeadsModal({ onClose }: { onClose: () => void }) {
       })
       if (res.ok) {
         toast.success('Busca N8N iniciada! Seus novos leads vão começar a cair aqui na tabela em instantes.')
+        onProspected()
         onClose()
       } else {
         const err = await res.json().catch(() => ({}))
@@ -614,46 +615,78 @@ export default function CRMPage() {
     return matchFilter && matchSearch
   })
 
-  // Fetch contacts on mount
-  useEffect(() => {
-    async function fetchContacts() {
-      try {
-        const res = await fetch('/api/creator/crm')
-        if (res.ok) {
-          const data = await res.json()
-          // Ensure dates are actual Date objects
-          const formatted = data.map((c: any) => ({
-            ...c,
-            status: (c.status_funil || 'lead') as FunilStatus,
-            canal: (c.canal_origem || 'Site') as Canal,
-            tags: c.tags || [],
-            notas: c.notas || '',
-            empresa: c.empresa || '',
-            email: c.email || '',
-            telefone: c.telefone || '',
-            cargo: c.cargo || '',
-            cidade: c.cidade || '',
-            estado: c.estado || '',
-            endereco: c.endereco || '',
-            site: c.site || '',
-            nicho: c.nicho || '',
-            createdAt: new Date(c.created_at),
-            lastActivity: new Date(c.updated_at || c.created_at),
-            activities: (c.atividades || []).map((a: any) => ({
-              id: a.id,
-              type: (a.tipo || 'note') as ActivityType,
-              description: a.descricao || '',
-              date: new Date(a.data || Date.now()),
-            }))
+  // Fetch contacts — reusable so polling and manual refresh can call it
+  const fetchContacts = useCallback(async (): Promise<number> => {
+    try {
+      const res = await fetch('/api/creator/crm')
+      if (res.ok) {
+        const data = await res.json()
+        const formatted = data.map((c: any) => ({
+          ...c,
+          status: (c.status_funil || 'lead') as FunilStatus,
+          canal: (c.canal_origem || 'Site') as Canal,
+          tags: c.tags || [],
+          notas: c.notas || '',
+          empresa: c.empresa || '',
+          email: c.email || '',
+          telefone: c.telefone || '',
+          cargo: c.cargo || '',
+          cidade: c.cidade || '',
+          estado: c.estado || '',
+          endereco: c.endereco || '',
+          site: c.site || '',
+          nicho: c.nicho || '',
+          createdAt: new Date(c.created_at),
+          lastActivity: new Date(c.updated_at || c.created_at),
+          activities: (c.atividades || []).map((a: any) => ({
+            id: a.id,
+            type: (a.tipo || 'note') as ActivityType,
+            description: a.descricao || '',
+            date: new Date(a.data || Date.now()),
           }))
-          setContacts(formatted)
-        }
-      } catch (err) {
-        console.error('Failed to fetch contacts:', err)
+        }))
+        setContacts(formatted)
+        return formatted.length
       }
+    } catch (err) {
+      console.error('Failed to fetch contacts:', err)
     }
-    fetchContacts()
+    return 0
   }, [])
+
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // After a scrape is triggered, poll until new leads arrive (up to 90s)
+  function handleScrapeSuccess() {
+    const baseCount = contacts.length
+    let attempts = 0
+    const maxAttempts = 18 // 18 × 5 s = 90 s
+
+    if (pollingRef.current) clearInterval(pollingRef.current)
+
+    pollingRef.current = setInterval(async () => {
+      attempts++
+      const count = await fetchContacts()
+      const newLeads = count - baseCount
+
+      if (newLeads > 0) {
+        toast.success(`${newLeads} lead${newLeads > 1 ? 's' : ''} adicionado${newLeads > 1 ? 's' : ''} com sucesso!`)
+        clearInterval(pollingRef.current!)
+        pollingRef.current = null
+      } else if (attempts >= maxAttempts) {
+        clearInterval(pollingRef.current!)
+        pollingRef.current = null
+      }
+    }, 5000)
+  }
+
+  // Fetch on mount; clean up any running poll on unmount
+  useEffect(() => {
+    fetchContacts()
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current)
+    }
+  }, [fetchContacts])
 
   function openDetail(contact: Contact) {
     setSelectedContact(contact)
@@ -1202,7 +1235,7 @@ export default function CRMPage() {
 
       {/* ── Modals ── */}
       <AnimatePresence>
-        {isScrapeOpen && <ScrapeLeadsModal onClose={() => setIsScrapeOpen(false)} />}
+        {isScrapeOpen && <ScrapeLeadsModal onClose={() => setIsScrapeOpen(false)} onProspected={handleScrapeSuccess} />}
       </AnimatePresence>
       <AnimatePresence>
         {isDetailOpen && selectedContact && (
