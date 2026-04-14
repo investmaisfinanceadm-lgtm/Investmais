@@ -506,30 +506,30 @@ export default function BibliotecaPage() {
                                 <div className="space-y-12">
                                     <div className="flex justify-between items-start">
                                         <div className="space-y-6">
-                                            <h3 className="text-4xl font-black text-[var(--text-main)] uppercase tracking-tighter leading-none italic">{selectedVideo.nome_produto}</h3>
+                                            <h3 className="text-4xl font-black text-white uppercase tracking-tighter leading-none italic">{selectedVideo.nome_produto}</h3>
                                             <div className="flex flex-wrap gap-2">
                                                 {selectedVideo.tags?.map(tag => (
                                                     <span key={tag} className="px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent font-black text-[8px] uppercase tracking-widest">{tag}</span>
                                                 ))}
                                             </div>
                                         </div>
-                                        <button onClick={() => setSelectedVideo(null)} className="p-4 rounded-3xl bg-[var(--bg-primary)] border border-[var(--border-main)] text-gray-600 hover:text-[var(--text-main)] transition-all hover:scale-110">
+                                        <button onClick={() => setSelectedVideo(null)} className="p-4 rounded-3xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all hover:scale-110">
                                             <X className="w-6 h-6" />
                                         </button>
                                     </div>
 
                                     <div className="space-y-8">
-                                        <div className="flex justify-between items-center py-5 border-b border-[var(--border-main)] group">
-                                            <span className="text-[11px] font-black text-gray-700 uppercase tracking-widest group-hover:text-gray-400 transition-colors">Protocolo de Tempo</span>
-                                            <span className="text-[11px] font-black text-[var(--text-main)] uppercase tracking-widest">{selectedVideo.duracao} Segundos</span>
+                                        <div className="flex justify-between items-center py-5 border-b border-white/10 group">
+                                            <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest group-hover:text-gray-300 transition-colors">Protocolo de Tempo</span>
+                                            <span className="text-[11px] font-black text-white uppercase tracking-widest">{selectedVideo.duracao} Segundos</span>
                                         </div>
-                                        <div className="flex justify-between items-center py-5 border-b border-[var(--border-main)] group">
-                                            <span className="text-[11px] font-black text-gray-700 uppercase tracking-widest group-hover:text-gray-400 transition-colors">Layout de Saída</span>
-                                            <span className="text-[11px] font-black text-[var(--text-main)] uppercase tracking-widest">{FORMATO_LABELS[selectedVideo.formato] || selectedVideo.formato}</span>
+                                        <div className="flex justify-between items-center py-5 border-b border-white/10 group">
+                                            <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest group-hover:text-gray-300 transition-colors">Layout de Saída</span>
+                                            <span className="text-[11px] font-black text-white uppercase tracking-widest">{FORMATO_LABELS[selectedVideo.formato] || selectedVideo.formato}</span>
                                         </div>
-                                        <div className="flex justify-between items-center py-5 border-b border-[var(--border-main)] group">
-                                            <span className="text-[11px] font-black text-gray-700 uppercase tracking-widest group-hover:text-gray-400 transition-colors">Sincronização</span>
-                                            <span className="text-[11px] font-black text-[var(--text-main)] uppercase tracking-widest">{formatDateTime(selectedVideo.created_at)}</span>
+                                        <div className="flex justify-between items-center py-5 border-b border-white/10 group">
+                                            <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest group-hover:text-gray-300 transition-colors">Sincronização</span>
+                                            <span className="text-[11px] font-black text-white uppercase tracking-widest">{formatDateTime(selectedVideo.created_at)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -547,7 +547,7 @@ export default function BibliotecaPage() {
                                     )}
                                     <button 
                                         onClick={() => setSelectedVideo(null)}
-                                        className="w-full py-4 transition-all font-black uppercase tracking-[0.3em] text-[10px] text-gray-700 hover:text-[var(--text-main)]"
+                                        className="w-full py-4 transition-all font-black uppercase tracking-[0.3em] text-[10px] text-gray-500 hover:text-white"
                                     >
                                         Fechar Workspace
                                     </button>
