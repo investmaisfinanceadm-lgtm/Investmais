@@ -542,9 +542,9 @@ export default function ConfiguracoesPage() {
                 </div>
                 <button
                   onClick={() => avatarInputRef.current?.click()}
-                  className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-xl bg-accent text-black flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+                  className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-accent text-[var(--background)] flex items-center justify-center shadow-md hover:scale-110 transition-transform cursor-pointer"
                 >
-                  <Camera className="w-3.5 h-3.5" />
+                  <Camera className="w-3 h-3" />
                 </button>
                 <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
               </div>
