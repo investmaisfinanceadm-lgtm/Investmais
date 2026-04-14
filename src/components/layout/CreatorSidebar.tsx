@@ -18,7 +18,9 @@ import {
     Send,
     Search,
     Moon,
-    Sun
+    Sun,
+    Plus,
+    Home
 } from 'lucide-react'
 import { useSession, signOut } from 'next-auth/react'
 import { useTheme } from 'next-themes'
@@ -30,14 +32,23 @@ const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/pipeline', label: 'Pipeline', icon: Kanban },
     { href: '/crm', label: 'CRM', icon: Users },
-    { href: '/disparos', label: 'Listas de Disparo', icon: Send },
-    { href: '/cnpj', label: 'Busca de Leads', icon: Search },
-    { href: '/configuracoes', label: 'Configurações', icon: Settings },
+    { href: '/disparos', label: 'Disparos', icon: Send },
+    { href: '/cnpj', label: 'Leads', icon: Search },
+    { href: '/configuracoes', label: 'Config', icon: Settings },
 ]
 
 const contentItems = [
     { href: '/criar', label: 'Criar Vídeo', icon: Video },
     { href: '/biblioteca', label: 'Biblioteca', icon: Library },
+]
+
+// Items that appear in the mobile bottom nav (most important)
+const mobileBottomNav = [
+    { href: '/dashboard', label: 'Início', icon: Home },
+    { href: '/crm', label: 'CRM', icon: Users },
+    { href: '/criar', label: 'Criar', icon: Plus, isPrimary: true },
+    { href: '/biblioteca', label: 'Acervo', icon: Library },
+    { href: '/pipeline', label: 'Pipeline', icon: Kanban },
 ]
 
 export function CreatorSidebar() {
@@ -48,7 +59,6 @@ export function CreatorSidebar() {
     const [mobileOpen, setMobileOpen] = useState(false)
     const { data: session } = useSession()
 
-    // Avoid hydration mismatch
     useEffect(() => {
         setMounted(true)
     }, [])
@@ -205,36 +215,39 @@ export function CreatorSidebar() {
 
     return (
         <>
-            {/* Desktop Sidebar */}
+            {/* ─────────── DESKTOP SIDEBAR ─────────── */}
             <aside className="hidden lg:flex flex-col w-72 sidebar-fixed-dark h-screen sticky top-0 flex-shrink-0 z-50">
                 <SidebarContent />
             </aside>
 
-            {/* Mobile Header */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 sidebar-fixed-dark border-b border-white/10">
-                <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 flex-shrink-0">
-                        <img src="/logo.png" alt="InvestMais Finance" className="h-9 w-auto object-contain" />
-                    </div>
-                    <span className="text-white font-bold text-xl tracking-tighter">
+            {/* ─────────── MOBILE TOP HEADER ─────────── */}
+            <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 py-3.5 sidebar-fixed-dark border-b border-white/10 safe-top">
+                <Link href="/dashboard" className="flex items-center gap-3">
+                    <img src="/logo.png" alt="InvestMais Finance" className="h-8 w-auto object-contain" />
+                    <span className="text-white font-bold text-lg tracking-tighter">
                         INVEST<span className="text-accent">MAIS</span>
                     </span>
-                </div>
-                <div className="flex items-center gap-3">
-                    <button className="relative p-2 text-gray-400 hover:text-white transition-colors">
-                        <Bell className="w-5 h-5" />
-                        <div className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full border-2 border-[var(--color-dark-muted)]" />
-                    </button>
+                </Link>
+                <div className="flex items-center gap-2">
+                    {mounted && (
+                        <button
+                            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                            className="p-2 text-gray-400 hover:text-accent transition-colors rounded-xl"
+                        >
+                            {theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5 text-amber-400" />}
+                        </button>
+                    )}
                     <button
                         onClick={() => setMobileOpen(!mobileOpen)}
-                        className="p-2 text-gray-400 hover:text-white transition-colors"
+                        className="p-2 text-gray-400 hover:text-white transition-colors rounded-xl"
+                        aria-label="Menu completo"
                     >
-                        {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                        {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                     </button>
                 </div>
             </div>
 
-            {/* Mobile Sidebar Overlay */}
+            {/* ─────────── MOBILE DRAWER OVERLAY ─────────── */}
             {mobileOpen && (
                 <div
                     className="lg:hidden fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm"
@@ -242,15 +255,66 @@ export function CreatorSidebar() {
                 />
             )}
 
-            {/* Mobile Sidebar */}
+            {/* ─────────── MOBILE DRAWER ─────────── */}
             <aside
                 className={cn(
-                    'lg:hidden fixed top-0 left-0 h-full w-[80vw] max-w-[320px] sidebar-fixed-dark z-[70] transition-transform duration-500 ease-in-out',
+                    'lg:hidden fixed top-0 left-0 h-full w-[82vw] max-w-[320px] sidebar-fixed-dark z-[70] transition-transform duration-300 ease-in-out',
                     mobileOpen ? 'translate-x-0' : '-translate-x-full'
                 )}
             >
                 <SidebarContent />
             </aside>
+
+            {/* ─────────── MOBILE BOTTOM NAVIGATION ─────────── */}
+            <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 sidebar-fixed-dark border-t border-white/10 safe-bottom">
+                <div className="flex items-center justify-around px-2 py-2">
+                    {mobileBottomNav.map((item) => {
+                        const Icon = item.icon
+                        const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                        const isPrimary = item.isPrimary
+
+                        if (isPrimary) {
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    className="flex flex-col items-center gap-1 -mt-6"
+                                >
+                                    <div className="w-14 h-14 rounded-2xl bg-accent flex items-center justify-center shadow-lg shadow-accent/40 active:scale-95 transition-transform">
+                                        <Icon className="w-6 h-6 text-black" strokeWidth={2.5} />
+                                    </div>
+                                    <span className="text-[9px] font-black text-accent uppercase tracking-widest">{item.label}</span>
+                                </Link>
+                            )
+                        }
+
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all active:scale-95"
+                            >
+                                <div className={cn(
+                                    "w-8 h-8 rounded-xl flex items-center justify-center transition-all",
+                                    isActive ? "bg-accent/10" : ""
+                                )}>
+                                    <Icon
+                                        className={cn(
+                                            "w-5 h-5 transition-colors",
+                                            isActive ? "text-accent" : "text-gray-500"
+                                        )}
+                                        strokeWidth={isActive ? 2.5 : 2}
+                                    />
+                                </div>
+                                <span className={cn(
+                                    "text-[9px] font-black uppercase tracking-widest transition-colors",
+                                    isActive ? "text-accent" : "text-gray-600"
+                                )}>{item.label}</span>
+                            </Link>
+                        )
+                    })}
+                </div>
+            </nav>
         </>
     )
 }

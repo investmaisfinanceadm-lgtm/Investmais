@@ -6,7 +6,8 @@ export default function CreatorLayout({ children }: { children: ReactNode }) {
         <div className="flex h-screen overflow-hidden">
             <CreatorSidebar />
             <main className="flex-1 min-w-0 overflow-y-auto bg-transparent">
-                <div className="pt-16 lg:pt-0">{children}</div>
+                {/* pt-16 = mobile top header | pb-24 = mobile bottom nav | lg:pt-0 lg:pb-0 = desktop resets */}
+                <div className="pt-[60px] pb-24 lg:pt-0 lg:pb-0">{children}</div>
             </main>
         </div>
     )

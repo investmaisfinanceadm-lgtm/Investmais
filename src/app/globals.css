@@ -226,3 +226,60 @@ html.light .shadow-light-card { box-shadow: 0 2px 8px rgba(0,0,0,0.08) !importan
 
 .no-view::-webkit-scrollbar { display: none; }
 .no-view { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Mobile / Touch optimizations ───────────────────────────────── */
+
+/* iOS safe area support */
+.safe-top    { padding-top: env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+/* Remove tap highlight on mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Minimum touch target size */
+button, a, [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+/* Exception: inline small elements */
+a.inline-link {
+  min-height: unset;
+  min-width: unset;
+}
+
+/* Smooth momentum scrolling on iOS */
+.overflow-y-auto,
+.overflow-y-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Prevent text size adjustment on orientation change */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Better input appearance on mobile */
+input, textarea, select {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
+}
+
+/* Prevent zoom on input focus on iOS */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="number"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
