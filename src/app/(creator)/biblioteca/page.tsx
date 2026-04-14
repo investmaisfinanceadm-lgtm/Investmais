@@ -448,20 +448,15 @@ export default function BibliotecaPage() {
                                                         className="w-12 h-12 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/10 flex items-center justify-center transition-all active:scale-95"
                                                     >
                                                         {isPlaying ? (
-                                                            <Pause className="w-5 h-5 text-[var(--text-main)] fill-current" />
+                                                            <Pause className="w-5 h-5 text-white fill-current" />
                                                         ) : (
-                                                            <Play className="w-5 h-5 text-[var(--text-main)] fill-current ml-1" />
+                                                            <Play className="w-5 h-5 text-white fill-current ml-1" />
                                                         )}
                                                     </button>
                                                     <div className="space-y-0.5">
-                                                        <p className="text-[10px] font-black text-[var(--text-main)] uppercase tracking-widest">{selectedVideo.nome_produto}</p>
-                                                        <p className="text-[8px] font-bold text-accent uppercase tracking-[0.2em]">{selectedVideo.formato === 'stories' ? '9:16 Vertical' : '16:9 Landscape'}</p>
+                                                        <p className="text-[10px] font-black text-white uppercase tracking-widest drop-shadow-md">{selectedVideo.nome_produto}</p>
+                                                        <p className="text-[8px] font-bold text-accent uppercase tracking-[0.2em] drop-shadow-md">{selectedVideo.formato === 'stories' ? '9:16 Vertical' : '16:9 Landscape'}</p>
                                                     </div>
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    <button className="p-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-main)] text-[var(--text-main)]/40 hover:text-[var(--text-main)] transition-colors">
-                                                        <AlertCircle className="w-4 h-4" />
-                                                    </button>
                                                 </div>
                                             </div>
                                             {/* Progress bar mock */}
@@ -478,13 +473,12 @@ export default function BibliotecaPage() {
                                             </div>
                                         )}
 
-                                        {/* Interaction Hint */}
                                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover/player:group-active/player:opacity-100 transition-opacity">
                                             <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-md border border-white/20 flex items-center justify-center animate-ping">
                                                 {isPlaying ? (
-                                                    <Pause className="w-8 h-8 text-[var(--text-main)] fill-current" />
+                                                    <Pause className="w-8 h-8 text-white fill-current" />
                                                 ) : (
-                                                    <Play className="w-8 h-8 text-[var(--text-main)] fill-current ml-2" />
+                                                    <Play className="w-8 h-8 text-white fill-current ml-2" />
                                                 )}
                                             </div>
                                         </div>
@@ -503,7 +497,7 @@ export default function BibliotecaPage() {
                                 <div className="absolute top-10 left-10 flex gap-4">
                                      <div className="px-4 py-2 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center gap-3">
                                           <div className="w-2 h-2 rounded-full bg-accent shadow-accent animate-pulse" />
-                                          <span className="text-[10px] font-black text-[var(--text-main)] uppercase tracking-widest italic tracking-tighter">{selectedVideo.nome_produto}</span>
+                                          <span className="text-[10px] font-black text-white uppercase tracking-widest italic tracking-tighter drop-shadow-md">{selectedVideo.nome_produto}</span>
                                      </div>
                                 </div>
                             </div>
