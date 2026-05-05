@@ -85,7 +85,7 @@ interface KanbanColumn {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatCurrency(value: number | null | undefined) {
-  return (value || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+  return (value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
 function formatDate(dateStr: string) {
@@ -242,6 +242,11 @@ function KanbanCardItem({
         
         {columnSla && (
           <div className={cn(
+            "flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full",
+            slaStatus === 'over' ? "text-red-400 bg-red-400/10 border-red-400/20" :
+            slaStatus === 'near' ? "text-amber-400 bg-amber-400/10 border-amber-400/20" :
+            "text-emerald-400 bg-emerald-400/10 border-emerald-500/20"
+          )}>
             <Activity className="w-3 h-3" />
             {hoursInStage}h no estágio
           </div>
@@ -296,12 +301,12 @@ function KanbanColumnComponent({
             <div className="w-1.5 h-8 rounded-full" style={{ backgroundColor: column.color }} />
             <div className="space-y-0.5">
                 <h3 className="text-xs font-black text-white uppercase tracking-[0.4em] italic">{column.name}</h3>
-                <p className="text-[9px] font-black text-white/10 uppercase tracking-[0.2em]">{column.cards.length} Active Nodes</p>
+                <p className="text-[9px] font-black text-white/10 uppercase tracking-[0.2em]">{column.cards.length} Cards Ativos</p>
             </div>
           </div>
           {column.probabilidade < 100 && (
              <div className="px-3 py-1 rounded-full bg-white/[0.03] border border-white/5">
-                <span className="text-[8px] text-sidebar-primary font-black tracking-[0.2em] uppercase italic">{column.probabilidade}% PROB</span>
+                <span className="text-[8px] text-sidebar-primary font-black tracking-[0.2em] uppercase italic">{column.probabilidade}% PROB.</span>
              </div>
           )}
         </div>
@@ -330,7 +335,7 @@ function KanbanColumnComponent({
               className="flex-1 flex flex-col items-center justify-center border-4 border-dashed border-white/[0.02] rounded-[48px] text-white/5 min-h-[300px]"
             >
               <Cpu className="w-12 h-12 mb-6 opacity-10" />
-              <p className="text-[10px] font-black uppercase tracking-[0.5em] italic">Empty Stack</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.5em] italic">Nenhum Card</p>
             </motion.div>
           ) : (
             column.cards.map((card) => (
@@ -422,7 +427,7 @@ export default function PipelinePage() {
                 <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-white/10 group-focus-within:text-sidebar-primary transition-colors" />
                 <input 
                     type="text" 
-                    placeholder="SCAN NODES..."
+                    placeholder="PESQUISAR..."
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     className="bg-white/[0.02] border border-white/5 rounded-2xl px-14 py-4 text-[10px] font-black text-white uppercase tracking-widest placeholder-white/10 focus:border-sidebar-primary/20 focus:bg-white/[0.04] transition-all outline-none w-64 italic"
@@ -438,10 +443,10 @@ export default function PipelinePage() {
         {/* Global Pipeline Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-                { label: 'Active Pipeline', value: formatCurrency(columns.reduce((acc, col) => acc + col.cards.reduce((sum, c) => sum + c.value, 0), 0)), icon: DollarSign, color: 'text-sidebar-primary' },
-                { label: 'Live Nodes', value: columns.reduce((acc, col) => acc + col.cards.length, 0), icon: Layers, color: 'text-blue-400' },
-                { label: 'Transmission Efficiency', value: '94.2%', icon: Activity, color: 'text-emerald-400' },
-                { label: 'Neural Throughput', value: 'Sustained', icon: Zap, color: 'text-white' },
+                { label: 'Valor Total', value: formatCurrency(columns.reduce((acc, col) => acc + col.cards.reduce((sum, c) => sum + c.value, 0), 0)), icon: DollarSign, color: 'text-sidebar-primary' },
+                { label: 'Cards Ativos', value: columns.reduce((acc, col) => acc + col.cards.length, 0), icon: Layers, color: 'text-blue-400' },
+                { label: 'Taxa de Sucesso', value: '94.2%', icon: Activity, color: 'text-emerald-400' },
+                { label: 'Status do Sistema', value: 'Operacional', icon: Zap, color: 'text-white' },
             ].map((stat, i) => (
                 <div key={i} className="nl-glass p-6 rounded-[32px] border-white/5 flex items-center gap-6 group hover:border-white/10 transition-all duration-700">
                     <div className={cn("w-12 h-12 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center transition-all duration-700 group-hover:scale-110", stat.color)}>
@@ -543,7 +548,7 @@ function CardDetailModal({ card, columns, onClose, onMove, onDelete, onUpdate }:
                     <div className="space-y-6">
                         <div className="flex items-center gap-4">
                             <div className="w-2 h-2 rounded-full bg-sidebar-primary netlife-glow shadow-none animate-pulse" />
-                            <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.5em] italic">Identification</span>
+                            <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.5em] italic">Detalhes do Card</span>
                         </div>
                         <h2 className="text-5xl font-black text-white uppercase tracking-tighter italic leading-none">{editedCard.title}</h2>
                         <div className="flex items-center gap-6">
@@ -556,18 +561,18 @@ function CardDetailModal({ card, columns, onClose, onMove, onDelete, onUpdate }:
 
                     <div className="grid grid-cols-2 gap-8">
                         <div className="nl-glass p-8 rounded-[40px] border-white/5 space-y-4">
-                            <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">Estimated Value</p>
+                            <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">Valor Estimado</p>
                             <p className="text-3xl font-black text-sidebar-primary italic">{formatCurrency(editedCard.value)}</p>
                         </div>
                         <div className="nl-glass p-8 rounded-[40px] border-white/5 space-y-4">
-                            <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">Transmission Deadline</p>
+                            <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">Data de Fechamento</p>
                             <p className="text-3xl font-black text-white italic">{formatDate(editedCard.dueDate)}</p>
                         </div>
                     </div>
 
                     <div className="space-y-8">
                         <div className="flex border-b border-white/5">
-                            {['Overview', 'Parameters', 'Sync Log'].map(tab => (
+                            {['Visão Geral', 'Parâmetros', 'Histórico'].map(tab => (
                                 <button key={tab} onClick={() => setActiveTab(tab)} className={cn("px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] transition-all relative italic", activeTab === tab ? "text-sidebar-primary" : "text-white/10 hover:text-white")}>
                                     {tab}
                                     {activeTab === tab && <motion.div layoutId="tab-active" className="absolute bottom-0 left-0 right-0 h-1 bg-sidebar-primary netlife-glow shadow-none" />}
@@ -576,12 +581,12 @@ function CardDetailModal({ card, columns, onClose, onMove, onDelete, onUpdate }:
                         </div>
 
                         <div className="min-h-[300px]">
-                            {activeTab === 'Overview' && (
+                            {activeTab === 'Visão Geral' && (
                                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
                                     <div className="space-y-4">
-                                        <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic">Strategic Intel</p>
+                                        <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic">Descrição Estratégica</p>
                                         <div className="p-10 rounded-[48px] bg-white/[0.02] border border-white/5 text-sm text-white/40 font-black uppercase tracking-widest leading-loose italic">
-                                            {editedCard.description || 'No strategic metadata recorded for this node.'}
+                                            {editedCard.description || 'Nenhuma descrição registrada.'}
                                         </div>
                                     </div>
                                     
@@ -592,7 +597,7 @@ function CardDetailModal({ card, columns, onClose, onMove, onDelete, onUpdate }:
                                                     <User className="w-6 h-6 text-sidebar-primary" />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest italic">Lead Infiltration Agent</p>
+                                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest italic">Responsável pelo Lead</p>
                                                     <p className="text-sm font-black text-white uppercase tracking-tighter italic">{editedCard.responsible.name}</p>
                                                 </div>
                                             </div>
@@ -605,8 +610,8 @@ function CardDetailModal({ card, columns, onClose, onMove, onDelete, onUpdate }:
                                                     <Target className="w-6 h-6 text-sidebar-primary" />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest italic">Protocol Origin</p>
-                                                    <p className="text-sm font-black text-white uppercase tracking-tighter italic">{editedCard.origin || 'Neural Direct'}</p>
+                                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest italic">Origem do Lead</p>
+                                                    <p className="text-sm font-black text-white uppercase tracking-tighter italic">{editedCard.origin || 'Direto'}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -618,10 +623,10 @@ function CardDetailModal({ card, columns, onClose, onMove, onDelete, onUpdate }:
 
                     <div className="pt-12 border-t border-white/5 flex gap-6">
                         <button onClick={() => onMove(card.id, columns[columns.length-1].id)} className="flex-1 btn-primary py-7 netlife-glow shadow-none text-xs font-black uppercase tracking-[0.3em] italic flex items-center justify-center gap-4">
-                            <CheckCircle2 className="w-5 h-5" /> Execute Conversion
+                            <CheckCircle2 className="w-5 h-5" /> Concluir Deal
                         </button>
                         <button className="px-10 py-7 rounded-[32px] bg-white/[0.03] border border-white/5 text-white/20 hover:text-red-500 hover:border-red-500/20 transition-all font-black uppercase text-[10px] tracking-[0.3em] italic">
-                            Purge Node
+                            Remover Card
                         </button>
                     </div>
                 </div>
