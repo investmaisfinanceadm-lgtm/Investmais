@@ -45,6 +45,9 @@ const navItems = [
     { href: '/cnpj', label: 'Busca de Leads', icon: Search },
     { href: '/disparos', label: 'Disparos', icon: Send },
     { href: '/relatorios', label: 'Relatórios', icon: Library },
+    { href: '/atividades', label: 'Atividades', icon: Calendar },
+    { href: '/utm', label: 'UTM Analytics', icon: BarChart2 },
+    { href: '/insights', label: 'IA Insights', icon: Sparkles },
     { href: '/configuracoes', label: 'Configurações', icon: Settings },
 ]
 

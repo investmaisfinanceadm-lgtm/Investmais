@@ -52,191 +52,139 @@ function StatCard({ label, value, trend, trendValue, icon: Icon, color }: any) {
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function RelatoriosPage() {
-  const [periodo, setPeriodo] = useState('Este Mês')
+  const [pipeline, setPipeline] = useState('Host Menos Imposto')
+  const [periodo, setPeriodo] = useState('Últimos 7 dias')
 
   return (
     <div className="min-h-screen bg-[#050505] text-white p-6 lg:p-10 space-y-10">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-white/5 pb-10">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Relatórios e Insights</h1>
-          <p className="text-white/40 text-sm">Acompanhe o desempenho das suas operações em tempo real</p>
+          <h1 className="text-3xl font-bold tracking-tight">Relatórios</h1>
+          <p className="text-white/40 text-sm">Acompanhe entradas, conversões e performance da equipe por pipeline e período.</p>
         </div>
         
-        <div className="flex items-center gap-4">
-          <div className="flex bg-white/[0.03] border border-white/5 p-1.5 rounded-2xl">
-            {['Este Mês', 'Últimos 90 dias', 'Todo Período'].map(p => (
-              <button 
-                key={p} 
-                onClick={() => setPeriodo(p)}
-                className={cn(
-                  "px-6 py-3 rounded-xl text-xs font-bold transition-all",
-                  periodo === p ? 'bg-primary text-white shadow-lg' : 'text-white/40 hover:text-white'
-                )}
-              >
-                {p}
-              </button>
-            ))}
+        <button className="bg-primary px-8 py-3 rounded-xl text-white text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-primary/20 hover:scale-105 transition-all">
+          <Download className="w-4 h-4" /> Baixar PDF
+        </button>
+      </div>
+
+      {/* Filters Bar */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+        <div className="space-y-2">
+          <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest px-1">Pipeline</p>
+          <div className="relative group">
+            <select className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-3 pl-4 pr-10 text-xs font-bold text-white/60 appearance-none focus:border-primary/40 transition-all outline-none">
+              <option>Host Menos Imposto</option>
+              <option>CRM Vendas</option>
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-hover:text-primary transition-colors" />
           </div>
-          <button className="bg-white/[0.03] border border-white/5 p-4 rounded-xl text-white/40 hover:text-white transition-all">
-            <Download className="w-5 h-5" />
-          </button>
+        </div>
+        <div className="space-y-2">
+          <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest px-1">Período</p>
+          <div className="relative group">
+            <select className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-3 pl-4 pr-10 text-xs font-bold text-white/60 appearance-none focus:border-primary/40 transition-all outline-none">
+              <option>Últimos 7 dias</option>
+              <option>Últimos 30 dias</option>
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-hover:text-primary transition-colors" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest px-1">Vendedor</p>
+          <div className="relative group">
+            <select className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-3 pl-4 pr-10 text-xs font-bold text-white/60 appearance-none focus:border-primary/40 transition-all outline-none">
+              <option>Todos os vendedores</option>
+              <option>Gabriel Sousa</option>
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-hover:text-primary transition-colors" />
+          </div>
+        </div>
+        <div className="space-y-2">
+           <div className="bg-white/[0.03] border border-white/10 rounded-xl py-3 px-6 flex items-center justify-between text-white/40">
+              <div className="flex items-center gap-3">
+                 <Calendar className="w-4 h-4" />
+                 <span className="text-xs font-bold">29/04/26 — 05/05/26</span>
+              </div>
+           </div>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard 
-          label="Total de Leads" 
-          value="12.840" 
-          trend="up" 
-          trendValue="+14%" 
-          icon={Users} 
-          color="bg-primary/10 border-primary/20 text-primary" 
-        />
-        <StatCard 
-          label="Mensagens Enviadas" 
-          value="8.420" 
-          trend="up" 
-          trendValue="+22%" 
-          icon={Send} 
-          color="bg-blue-500/10 border-blue-500/20 text-blue-400" 
-        />
-        <StatCard 
-          label="Taxa de Resposta" 
-          value="18.5%" 
-          trend="down" 
-          trendValue="-2%" 
-          icon={Activity} 
-          color="bg-emerald-500/10 border-emerald-500/20 text-emerald-400" 
-        />
-        <StatCard 
-          label="Novos Negócios" 
-          value="42" 
-          trend="up" 
-          trendValue="+8" 
-          icon={Zap} 
-          color="bg-amber-500/10 border-amber-500/20 text-amber-500" 
-        />
+      {/* Metrics Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+        <StatCard label="Leads que entraram" value="121" icon={Activity} color="bg-primary/10 border-primary/20 text-primary" />
+        <StatCard label="Ganhos" value="0" subtext="0.0% de conversão" icon={Target} color="bg-emerald-500/10 border-emerald-500/20 text-emerald-400" />
+        <StatCard label="Perdidos" value="2" icon={ArrowDownRight} color="bg-red-500/10 border-red-500/20 text-red-500" />
+        <StatCard label="Em aberto" value="119" icon={Layers} color="bg-amber-500/10 border-amber-500/20 text-amber-500" />
+        <StatCard label="Valor ganho" value="R$ 0" icon={DollarSign} color="bg-blue-500/10 border-blue-500/20 text-blue-400" />
+        <StatCard label="Ticket médio" value="R$ 0" icon={TrendingUp} color="bg-primary/10 border-primary/20 text-primary" />
       </div>
 
-      {/* Charts / Detailed Info */}
+      {/* Main Content: Daily Evolution and Visual Funnel */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          {/* Main Chart Mock */}
-          <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-10 space-y-8">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                  <BarChart2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">Desempenho Semanal</h3>
-                  <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Conversão de Leads por Dia</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="h-64 flex items-end gap-3 lg:gap-6">
-              {[60, 45, 90, 65, 80, 50, 70].map((h, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-4 group">
-                  <motion.div 
-                    initial={{ height: 0 }} 
-                    animate={{ height: `${h}%` }} 
-                    className="w-full bg-primary/20 border-t-2 border-primary rounded-t-lg group-hover:bg-primary/40 transition-all cursor-pointer relative"
-                  >
-                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-primary text-black text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                      {h*12}
-                    </div>
-                  </motion.div>
-                  <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">{['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'][i]}</span>
-                </div>
-              ))}
+        
+        {/* Evolução Diária */}
+        <div className="lg:col-span-2 bg-white/[0.03] border border-white/5 rounded-[32px] p-10 space-y-8">
+           <div className="flex flex-col gap-1">
+            <h3 className="text-xl font-bold">Evolução diária</h3>
+            <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest">Leads que entraram, ganhos e perdidos por dia.</p>
+          </div>
+          <div className="h-72 relative mt-10">
+            <div className="absolute inset-0 border-l border-b border-white/10" />
+            <svg className="w-full h-full" viewBox="0 0 500 200">
+               <path d="M0,150 L100,165 L200,80 L300,75 L400,150 L500,180" fill="none" stroke="currentColor" strokeWidth="3" className="text-primary drop-shadow-[0_0_10px_rgba(var(--primary-rgb),0.3)]" />
+               <path d="M0,195 L500,195" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-500" />
+            </svg>
+            <div className="flex justify-between mt-6 text-[10px] font-bold text-white/20 uppercase tracking-widest">
+              <span>29/04</span><span>30/04</span><span>01/05</span><span>02/05</span><span>03/05</span><span>04/05</span><span>05/05</span>
             </div>
           </div>
-
-          {/* Nichos Table */}
-          <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden shadow-xl">
-            <div className="px-10 py-6 border-b border-white/5 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
-                  <Target className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-white">Melhores Nichos</h3>
-                  <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Performance por setor</p>
-                </div>
-              </div>
-            </div>
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-white/[0.01] border-b border-white/5">
-                  <th className="px-10 py-5 text-[10px] font-bold text-white/20 uppercase tracking-widest">Setor / Atividade</th>
-                  <th className="px-10 py-5 text-[10px] font-bold text-white/20 uppercase tracking-widest text-center">Volume</th>
-                  <th className="px-10 py-5 text-[10px] font-bold text-white/20 uppercase tracking-widest text-right">Conversão</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {[
-                  { n: 'Imobiliário', v: '2.450', c: '22%' },
-                  { n: 'Tecnologia', v: '1.820', c: '18%' },
-                  { n: 'Varejo', v: '1.240', c: '15%' },
-                  { n: 'Saúde', v: '980', c: '12%' },
-                ].map((row, i) => (
-                  <tr key={i} className="group hover:bg-white/[0.02] transition-all">
-                    <td className="px-10 py-6 text-sm font-bold text-white">{row.n}</td>
-                    <td className="px-10 py-6 text-sm font-medium text-white/40 text-center">{row.v}</td>
-                    <td className="px-10 py-6 text-sm font-bold text-primary text-right">{row.c}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="flex items-center gap-6 justify-center">
+            <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-primary" /><span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Entraram</span></div>
+            <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500" /><span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Ganhos</span></div>
+            <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-red-500" /><span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Perdidos</span></div>
           </div>
         </div>
 
-        {/* Right Column */}
-        <div className="space-y-8">
-          <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-8 space-y-8">
-            <h3 className="text-sm font-bold text-white uppercase tracking-widest">Distribuição de Status</h3>
-            <div className="aspect-square relative flex items-center justify-center">
-              <PieChart className="w-32 h-32 text-white/5 absolute" />
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="40" fill="transparent" stroke="currentColor" strokeWidth="12" className="text-white/5" />
-                <circle cx="50" cy="50" r="40" fill="transparent" stroke="currentColor" strokeWidth="12" strokeDasharray="180 251.2" className="text-primary" />
-                <circle cx="50" cy="50" r="40" fill="transparent" stroke="currentColor" strokeWidth="12" strokeDasharray="50 251.2" strokeDashoffset="-180" className="text-blue-500" />
-              </svg>
-            </div>
-            <div className="space-y-4">
+        {/* Funil Visual */}
+        <div className="bg-white/[0.03] border border-white/5 rounded-[32px] p-10 space-y-8">
+           <div className="flex flex-col gap-1">
+              <h3 className="text-xl font-bold">Funil visual</h3>
+              <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest">Volume de entradas por etapa.</p>
+           </div>
+           
+           <div className="space-y-3 pt-4">
               {[
-                { label: 'Negociação', val: '65%', color: 'bg-primary' },
-                { label: 'Agendado', val: '25%', color: 'bg-blue-500' },
-                { label: 'Outros', val: '10%', color: 'bg-white/10' },
-              ].map(st => (
-                <div key={st.label} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={cn("w-3 h-3 rounded-full", st.color)} />
-                    <span className="text-xs font-medium text-white/40">{st.label}</span>
+                { label: 'Nova Lead', val: 0, color: 'bg-primary/20', t: 'text-primary' },
+                { label: 'Qualificação', val: 117, color: 'bg-blue-500', t: 'text-blue-400', p: 90 },
+                { label: 'Reunião Marcada', val: 24, color: 'bg-amber-500', t: 'text-amber-500', p: 40 },
+                { label: 'Reunião Realizada', val: 12, color: 'bg-emerald-500', t: 'text-emerald-400', p: 30 },
+                { label: 'Negociação', val: 7, color: 'bg-red-500', t: 'text-red-500', p: 20 },
+                { label: 'Follow up', val: 8, color: 'bg-pink-500', t: 'text-pink-500', p: 25 },
+                { label: 'Operação Caixa Rápido', val: 47, color: 'bg-purple-500', t: 'text-purple-400', p: 55 },
+                { label: 'Base Lead', val: 122, color: 'bg-white/10', t: 'text-white/40', p: 95 },
+              ].map((stage, i) => (
+                <div key={i} className="space-y-1.5">
+                  <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest">
+                    <div className="flex items-center gap-2">
+                       <div className={cn("w-1.5 h-1.5 rounded-full", stage.color)} />
+                       <span className="text-white/60">{stage.label}</span>
+                    </div>
+                    <span className="text-white/40">{stage.val} leads</span>
                   </div>
-                  <span className="text-xs font-bold text-white">{st.val}</span>
+                  <div className="h-4 w-full bg-white/[0.02] rounded-md overflow-hidden p-0.5">
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${stage.p || 0}%` }} className={cn("h-full rounded-sm opacity-80", stage.color)} />
+                  </div>
                 </div>
               ))}
-            </div>
-          </div>
-
-          <div className="bg-primary/5 border border-primary/10 rounded-3xl p-8 space-y-4">
-            <div className="flex items-center gap-3 text-primary">
-              <TrendingUp className="w-5 h-5" />
-              <h3 className="text-sm font-bold uppercase tracking-widest">Insight da IA</h3>
-            </div>
-            <p className="text-xs text-white/60 leading-relaxed">
-              O nicho <strong>Imobiliário</strong> teve um crescimento de 22% em conversão esta semana. Recomendamos aumentar o volume de disparos para este setor.
-            </p>
-            <button className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] flex items-center gap-2 hover:translate-x-2 transition-transform">
-              Ver Detalhes <ChevronRight className="w-3 h-3" />
-            </button>
-          </div>
+           </div>
         </div>
+
       </div>
+    </div>
+  )
+}
     </div>
   )
 }
