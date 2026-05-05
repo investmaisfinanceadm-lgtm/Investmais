@@ -18,18 +18,33 @@ import {
     Target,
     Activity,
     Plus,
+    Shield,
+    Database,
+    ZapOff,
+    Terminal,
+    ArrowRight,
+    Layers,
+    Cpu,
+    Fingerprint,
+    Lock,
+    Globe,
+    Maximize,
+    ChevronDown,
+    Layout,
+    Box
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils'
+import { motion, AnimatePresence } from 'framer-motion'
 
 type NotionConnectState = 'disconnected' | 'connecting' | 'connected'
 
 const MOCK_IDEIAS = [
-    'Home Equity Estratégico: Refinanciamento para Crescimento de Ativos',
-    'Matriz Imobiliária: Análise de Financiamento vs. Consórcio',
-    'Crédito com Garantia: 5 Benefícios para Investimentos de Alto Rendimento',
-    'Síntese Financeira: Quando Pivotar via Refinanciamento',
-    'Protocolo de Aprovação: Guia Completo de Crédito Imobiliário',
+    'Strategic Home Equity: Refinancing for Asset Expansion',
+    'Real Estate Matrix: Financing vs. Consortium Analysis',
+    'Secured Credit: 5 Benefits for High-Yield Investments',
+    'Financial Synthesis: When to Pivot via Refinancing',
+    'Approval Protocol: Complete Real Estate Credit Guide',
 ]
 
 export default function AgendaPage() {
@@ -60,307 +75,242 @@ export default function AgendaPage() {
 
     const handleConnectNotion = async () => {
         if (!notionToken.trim()) {
-            toast.error('Insira o Segredo de Integração do Notion')
+            toast.error('Insert Notion Integration Secret')
             return
         }
         setConnectState('connecting')
-
-        await new Promise((r) => setTimeout(r, 1500))
-
+        await new Promise((r) => setTimeout(r, 2000))
         const res = await fetch('/api/creator/integracoes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ tipo: 'notion', token_acesso: notionToken, ativo: true, configuracoes: {} }),
         })
-
         if (!res.ok) {
-            toast.error('Falha ao sincronizar Notion')
+            toast.error('Failed to sync Notion protocol')
             setConnectState('disconnected')
         } else {
-            toast.success('Notion Sincronizado!')
+            toast.success('Notion Protocol Synchronized')
             setConnectState('connected')
         }
     }
 
     const handleGenerateIdeas = async () => {
         if (!ideaInput.trim()) {
-            toast.error('Configure o produto base para gerar narrativas')
+            toast.error('Define base product for narrative generation')
             return
         }
         setIsGeneratingIdeas(true)
-        await new Promise((r) => setTimeout(r, 2000))
+        await new Promise((r) => setTimeout(r, 2500))
         const customIdeas = MOCK_IDEIAS.map((idea) =>
-            idea.replace('Home Equity', ideaInput.split(' ')[0] || 'Ativo')
+            idea.replace('Home Equity', ideaInput.split(' ')[0] || 'Asset')
         )
         setIdeas(customIdeas)
         setIsGeneratingIdeas(false)
+        toast.success('Narrative Matrix Distilled')
     }
 
     const handleAnalyzeCompetitor = async () => {
         if (!concorrenteInput.trim()) {
-            toast.error('Handle ou URL do perfil necessária')
+            toast.error('Profile handle or URL required for reconnaissance')
             return
         }
         setIsAnalyzing(true)
-        await new Promise((r) => setTimeout(r, 2500))
+        await new Promise((r) => setTimeout(r, 3000))
         setAnalysisResult(`
-ANALISE DE PROTOCOLO: ${concorrenteInput}
+RECON PROTOCOL: ${concorrenteInput}
 
-📊 PEGADA ESTRATÉGICA
-Informativo de alta resolução. Uso intenso de infográficos procedurais e sequências curtas de renderização.
+[STRATEGIC FOOTPRINT]
+High-resolution informational delivery. Heavy use of procedural infographics and rapid rendering sequences.
 
-📅 FREQUÊNCIA OPERACIONAL
-Média de 0.8 posts/dia. Pico de engajamento detectado: QUI/SEX às 18:00 UTC.
+[OPERATIONAL FREQUENCY]
+Average 0.8 posts/cycle. Engagement peak detected: THU/FRI at 18:00 UTC.
 
-🎯 MATRIZ DE CONTEÚDO
-- 40% Vídeo Sintético Educativo (30-60s)
-- 30% Carrosséis de Dados Financeiros
-- 20% Copy de Resposta Direta
-- 10% Stories de Engajamento Interativo
+[CONTENT MATRIX]
+- 40% Synthetic Educational Video (30-60s)
+- 30% Financial Data Carousels
+- 20% Direct Response Copy
+- 10% Interactive Engagement Stories
 
-💡 OPORTUNIDADES DETECTADAS
-Gap identificado em planejamento de ativos de longo prazo, lógica comparativa de produtos e arquivos de prova social de alta confiança.
+[GAPS DETECTED]
+Identified intelligence gap in long-term asset planning, comparative product logic, and high-trust social proof archives.
         `.trim())
         setIsAnalyzing(false)
+        toast.success('Infiltration Data Decrypted')
     }
 
-    const statusConfig: Record<string, { label: string; icon: typeof Circle; color: string; bg: string }> = {
-        'rascunho': { label: 'RASCUNHO', icon: Circle, color: 'text-gray-500', bg: 'bg-[var(--bg-primary)] border-[var(--border-main)]' },
-        'em revisão': { label: 'PENDENTE', icon: AlertCircle, color: 'text-amber-400', bg: 'bg-amber-400/5 border-amber-400/20' },
-        'aprovado': { label: 'APROVADO', icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-400/5 border-emerald-400/20' },
-        'publicado': { label: 'PUBLICADO', icon: Zap, color: 'text-blue-400', bg: 'bg-blue-400/5 border-blue-400/20' },
+    const statusConfig: Record<string, { label: string; icon: any; color: string; bg: string }> = {
+        'rascunho': { label: 'DRAFT', icon: Circle, color: 'text-white/20', bg: 'bg-white/[0.02] border-white/5' },
+        'em revisão': { label: 'PENDING', icon: AlertCircle, color: 'text-amber-400', bg: 'bg-amber-400/5 border-amber-400/10' },
+        'aprovado': { label: 'APPROVED', icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-400/5 border-emerald-400/10' },
+        'publicado': { label: 'LIVE', icon: Zap, color: 'text-sidebar-primary', bg: 'bg-sidebar-primary/5 border-sidebar-primary/10' },
     }
 
     if (connectState !== 'connected') {
         return (
-            <div className="p-4 md:p-8 lg:p-12 max-w-2xl mx-auto space-y-8 md:space-y-12 bg-primary min-h-[80vh] flex flex-col justify-center">
-                <div className="space-y-4 text-center border-b border-[var(--border-main)] pb-12">
-                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 mb-4 transition-all hover:bg-accent/20">
-                        <Calendar className="w-3 h-3 text-accent" />
-                        <span className="text-[10px] font-black text-accent uppercase tracking-widest">Sincronização de Protocolo</span>
-                    </div>
-                    <h1 className="text-4xl font-black text-main uppercase tracking-tighter italic">Operações de <br /><span className="text-transparent bg-clip-text bg-gradient-accent">Estratégia</span></h1>
-                    <p className="text-muted font-medium uppercase tracking-widest text-[10px]">Inicialize a arquitetura de conteúdo via Notion Engine</p>
-                </div>
-
-                <div className="card text-center p-12 border-[var(--border-main)] bg-[var(--bg-card)] shadow-light-card space-y-10 shadow-2xl rounded-[48px]">
-                    <div className="w-24 h-24 rounded-[32px] bg-[var(--bg-primary)] border border-[var(--border-main)] flex items-center justify-center mx-auto shadow-lg relative">
-                         <Calendar className="w-10 h-10 text-gray-500" />
-                         <div className="absolute -inset-2 rounded-[40px] border border-accent/10 animate-pulse" />
-                    </div>
-                    <div className="space-y-4">
-                        <h2 className="text-2xl font-black text-main uppercase tracking-tighter leading-none italic">Sincronizar Banco <br />de Dados Externo</h2>
-                        <p className="text-muted font-medium text-[10px] leading-loose uppercase tracking-[0.2em] max-w-xs mx-auto">
-                            Integre com o Notion para gerenciar fluxos de trabalho, aprovações e agendamentos em sua rede corporativa.
-                        </p>
-                    </div>
-
-                    <div className="text-left space-y-4">
-                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Chave Secreta de Integração</label>
-                        <input
-                            type="text"
-                            placeholder="secret_..."
-                            value={notionToken}
-                            onChange={(e) => setNotionToken(e.target.value)}
-                            className="input-field h-14 bg-[var(--bg-primary)] border-[var(--border-main)] rounded-2xl px-6 text-xs text-[var(--text-main)] outline-none focus:bg-[var(--bg-primary)]"
-                        />
-                        <div className="bg-[var(--bg-primary)] p-4 rounded-xl">
-                            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">
-                                Protocolo: Vá para notion.so → Configurações → Conexões → Gerenciar Integrações
-                            </p>
+            <div className="min-h-screen bg-black flex flex-col items-center justify-center p-8 relative overflow-hidden">
+                <div className="ambient-bg" />
+                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="nl-glass p-20 rounded-[80px] text-center max-w-2xl border-white/5 shadow-[0_100px_200px_rgba(0,0,0,1)] relative z-10 space-y-16">
+                    <div className="space-y-8">
+                        <div className="w-24 h-24 rounded-[48px] bg-sidebar-primary/5 border border-sidebar-primary/20 flex items-center justify-center mx-auto group hover:scale-110 transition-all duration-1000 shadow-2xl">
+                            <Shield className="w-10 h-10 text-sidebar-primary animate-pulse" />
                         </div>
-                        <button
-                            onClick={handleConnectNotion}
-                            disabled={connectState === 'connecting'}
-                            className="btn-primary w-full py-5 flex items-center justify-center gap-3 transition-all hover:gap-4 bg-accent text-black font-black uppercase tracking-widest text-xs rounded-2xl"
-                        >
-                            {connectState === 'connecting' ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                    <span>Sincronizando...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Link2 className="w-4 h-4" />
-                                    <span>Verificar Integração Hub</span>
-                                </>
-                            )}
-                        </button>
+                        <div className="space-y-4">
+                            <h2 className="text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase italic leading-none">Notion <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-sidebar-primary to-cyan-400">Synchronization</span></h2>
+                            <p className="text-white/20 font-black uppercase tracking-[0.5em] text-[10px] italic">Initialize Strategy Architecture Protocol</p>
+                        </div>
                     </div>
-                </div>
+
+                    <div className="space-y-8 text-left">
+                        <div className="space-y-4">
+                            <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] ml-10 italic">Secure Uplink Secret</label>
+                            <div className="relative group">
+                                <Lock className="absolute left-10 top-1/2 -translate-y-1/2 w-6 h-6 text-white/10 group-focus-within:text-sidebar-primary transition-all duration-700" />
+                                <input type="password" placeholder="secret_..." value={notionToken} onChange={(e) => setNotionToken(e.target.value)} className="w-full h-24 bg-black border border-white/5 rounded-[48px] pl-24 pr-10 text-lg text-white outline-none focus:border-sidebar-primary/40 transition-all font-mono tracking-widest shadow-2xl" />
+                            </div>
+                        </div>
+                        <p className="text-[9px] text-white/10 font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 italic"><Fingerprint className="w-4 h-4" /> notion.so/settings/connections/manage</p>
+                    </div>
+
+                    <button onClick={handleConnectNotion} disabled={connectState === 'connecting'} className="btn-primary w-full py-10 netlife-glow shadow-none text-sm font-black uppercase tracking-[0.4em] italic flex items-center justify-center gap-6 group">
+                        {connectState === 'connecting' ? <><Loader2 className="w-8 h-8 animate-spin" /> Establishing Sync...</> : <><Link2 className="w-8 h-8 group-hover:rotate-45 transition-transform" /> Initialize Neural Hub</>}
+                    </button>
+                </motion.div>
             </div>
         )
     }
 
     return (
-        <div className="p-4 md:p-8 lg:p-12 space-y-8 md:space-y-12 max-w-7xl mx-auto bg-primary pb-20 animate-fade-in">
-            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4 md:gap-6 border-b border-[var(--border-main)] pb-6 md:pb-12">
-                <div className="space-y-3 md:space-y-4">
-                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 transition-all hover:bg-accent/20">
-                        <Activity className="w-3 h-3 text-accent" />
-                        <span className="text-[10px] font-black text-accent uppercase tracking-widest">Hub de Operações Ativo</span>
-                    </div>
-                    <h1 className="text-3xl md:text-5xl font-black text-main tracking-tighter leading-none uppercase italic">Inteligência de <br /><span className="text-transparent bg-clip-text bg-gradient-accent">Conteúdo</span></h1>
-                </div>
-                <div className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[10px] text-emerald-400 font-black uppercase tracking-widest">Stream Ativo: Notion ID v2.4</span>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                {/* Content Hub */}
-                <div className="card space-y-8 border-[var(--border-main)] bg-[var(--bg-card)] shadow-light-card p-10 shadow-2xl relative overflow-hidden flex flex-col rounded-[48px]">
-                    <div className="absolute top-0 right-0 p-8 opacity-5">
-                        <Calendar className="w-32 h-32" />
-                    </div>
-                    <div className="flex items-center gap-4 border-b border-[var(--border-main)] pb-6">
-                        <div className="w-10 h-10 rounded-2xl bg-accent/10 flex items-center justify-center border border-accent/20 shadow-accent">
-                            <Calendar className="w-5 h-5 text-accent" />
+        <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
+            <div className="ambient-bg" />
+            
+            <div className="relative z-10 flex-1 flex flex-col p-8 lg:p-12 max-w-[1600px] mx-auto w-full space-y-16 pb-32">
+                
+                {/* Header */}
+                <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-12 border-b border-white/5 pb-16">
+                    <div className="space-y-6 flex-1 min-w-0">
+                        <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-sidebar-primary/5 border border-sidebar-primary/20 backdrop-blur-3xl">
+                            <Activity className="w-4 h-4 text-sidebar-primary" />
+                            <span className="text-[10px] font-black text-sidebar-primary uppercase tracking-[0.5em] italic">Operational Flux Active</span>
                         </div>
-                        <h2 className="text-xs font-black text-main uppercase tracking-[0.4em]">Comando de Pauta Hub</h2>
+                        <div className="space-y-4">
+                            <h1 className="text-6xl lg:text-7xl font-black text-white leading-none tracking-tighter uppercase italic">Strategy Hub</h1>
+                            <p className="text-white/20 font-black uppercase tracking-[0.4em] text-[10px] italic flex items-center gap-4">
+                                <Cpu className="w-4 h-4" /> Neural Content Orchestration v4.0.0
+                            </p>
+                        </div>
                     </div>
 
-                    <div className="space-y-3 flex-1 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
-                        {posts.map((post) => {
-                            const config = statusConfig[post.status]
-                            const Icon = config.icon
-                            return (
-                                <div key={post.id} className={cn("flex items-center gap-4 p-5 rounded-2xl border transition-all group hover:scale-[1.02]", config.bg)}>
-                                    <Icon className={cn("w-4 h-4", config.color)} />
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-[10px] text-main font-black uppercase tracking-widest truncate">{post.titulo}</p>
-                                        <p className="text-[8px] text-muted font-bold uppercase tracking-tight mt-1">{post.data} • REPOSITÓRIO CORE</p>
-                                    </div>
-                                    <span className={cn("text-[9px] font-black tracking-widest", config.color)}>
-                                        {config.label}
-                                    </span>
+                    <div className="flex items-center gap-6">
+                        <div className="nl-glass px-10 py-5 rounded-[28px] border-emerald-500/20 flex items-center gap-6 shadow-2xl">
+                             <div className="w-3.5 h-3.5 rounded-full bg-emerald-500 netlife-glow shadow-none animate-pulse" />
+                             <div className="space-y-1">
+                                 <span className="text-[11px] text-white font-black uppercase tracking-widest italic">Uplink Stable</span>
+                                 <p className="text-[9px] text-white/20 font-black uppercase tracking-widest italic leading-none">Notion Engine Connected</p>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-16">
+                    {/* Content Matrix */}
+                    <div className="nl-glass p-16 border-white/5 rounded-[64px] space-y-12 relative overflow-hidden group shadow-[0_50px_100px_rgba(0,0,0,0.6)] flex flex-col">
+                        <div className="absolute top-0 right-0 p-16 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-[2000ms]"> <Layout className="w-64 h-64 text-sidebar-primary" /> </div>
+                        <div className="flex items-center justify-between relative z-10">
+                            <div className="flex items-center gap-8">
+                                <div className="w-14 h-14 rounded-[28px] bg-sidebar-primary/10 flex items-center justify-center border border-sidebar-primary/20 shadow-2xl"> <Calendar className="w-7 h-7 text-sidebar-primary" /> </div>
+                                <div className="space-y-1">
+                                    <h2 className="text-xl font-black text-white uppercase tracking-[0.4em] italic">Workflow Logs</h2>
+                                    <p className="text-[11px] font-black text-white/20 uppercase tracking-[0.4em] italic">Temporal Content Architecture</p>
                                 </div>
-                            )
-                        })}
-                    </div>
-                    <button
-                        onClick={() => {
-                            const header = 'Título,Status,Data'
-                            const rows = posts.map(p => `"${p.titulo}","${p.status}","${p.data}"`)
-                            const csv = [header, ...rows].join('\n')
-                            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-                            const url = URL.createObjectURL(blob)
-                            const a = document.createElement('a')
-                            a.href = url
-                            a.download = 'manifesto-conteudo.csv'
-                            a.click()
-                            URL.revokeObjectURL(url)
-                        }}
-                        className="btn-secondary w-full py-4 text-[10px] font-black uppercase tracking-widest border-[var(--border-main)] hover:border-accent/40 mt-4 rounded-xl">
-                        Exportar Lista de Manifesto (CSV)
-                    </button>
-                </div>
-
-                {/* Idea Generator */}
-                <div className="card space-y-8 border-[var(--border-main)] bg-[var(--bg-primary)] p-10 shadow-2xl flex flex-col rounded-[48px]">
-                    <div className="flex items-center gap-4 border-b border-[var(--border-main)] pb-6">
-                        <div className="w-10 h-10 rounded-2xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20 shadow-[0_0_20px_rgba(168,85,247,0.1)]">
-                            <Brain className="w-5 h-5 text-purple-400" />
-                        </div>
-                        <h2 className="text-xs font-black text-[var(--text-main)] uppercase tracking-[0.4em]">Motor de Núcleo Narrativo</h2>
-                    </div>
-
-                    <div className="space-y-6">
-                        <div className="space-y-4">
-                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Ponto de Entrada (Produto/Tema)</label>
-                            <div className="flex gap-3">
-                                <input
-                                    type="text"
-                                    placeholder="ex: Soluções de Dívida com Garantia"
-                                    value={ideaInput}
-                                    onChange={(e) => setIdeaInput(e.target.value)}
-                                    className="input-field h-14 bg-[var(--bg-primary)] border-[var(--border-main)] rounded-2xl px-6 text-[10px] font-bold tracking-widest uppercase flex-1 focus:bg-[var(--bg-primary)] outline-none"
-                                    onKeyDown={(e) => e.key === 'Enter' && handleGenerateIdeas()}
-                                />
-                                <button
-                                    onClick={handleGenerateIdeas}
-                                    disabled={isGeneratingIdeas}
-                                    className="btn-primary px-8 rounded-2xl flex items-center justify-center bg-accent text-black"
-                                >
-                                    {isGeneratingIdeas ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-5 h-5" />}
-                                </button>
                             </div>
                         </div>
 
-                        {ideas.length > 0 && (
-                            <div className="space-y-3 flex-1 overflow-y-auto max-h-[300px] pr-2 custom-scrollbar">
-                                {ideas.map((idea, i) => (
-                                    <div key={i} className="flex items-start gap-4 p-5 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-main)] hover:border-purple-400/40 transition-all cursor-pointer group">
-                                        <span className="text-purple-400 text-[10px] font-black mt-1">#0{i + 1}</span>
-                                        <p className="text-[11px] text-gray-400 font-medium group-hover:text-[var(--text-main)] transition-colors leading-relaxed uppercase tracking-tighter">{idea}</p>
+                        <div className="space-y-6 flex-1 overflow-y-auto max-h-[500px] pr-6 scrollbar-none relative z-10">
+                            {posts.length === 0 ? (
+                                <div className="py-32 flex flex-col items-center justify-center gap-8 opacity-10">
+                                    <ZapOff className="w-16 h-16" />
+                                    <p className="text-[12px] font-black uppercase tracking-[0.5em] italic">No Manifest Records Detected</p>
+                                </div>
+                            ) : posts.map((post) => (
+                                <div key={post.id} className="p-8 rounded-[36px] bg-black border border-white/5 flex items-center gap-8 hover:border-sidebar-primary/20 transition-all duration-700 group/item italic">
+                                     <div className="w-1.5 h-12 bg-white/5 rounded-full group-hover/item:bg-sidebar-primary transition-all duration-700" />
+                                     <div className="flex-1 min-w-0 space-y-2">
+                                         <p className="text-[13px] text-white font-black uppercase tracking-widest truncate">{post.titulo}</p>
+                                         <p className="text-[9px] text-white/20 font-black uppercase tracking-widest">{post.data} • MATRIX SECTOR 01</p>
+                                     </div>
+                                     <span className="px-5 py-2 rounded-xl bg-white/[0.03] border border-white/5 text-[9px] font-black text-white/20 uppercase tracking-widest">{post.status.toUpperCase()}</span>
+                                </div>
+                            ))}
+                        </div>
+                        
+                        <button className="w-full py-8 text-[11px] font-black uppercase tracking-[0.4em] text-white/20 hover:text-white transition-all border-t border-white/5 relative z-10 italic">Export Temporal Archive</button>
+                    </div>
+
+                    <div className="space-y-16">
+                        {/* Neural Idea Engine */}
+                        <div className="nl-glass p-16 border-white/5 rounded-[64px] space-y-12 relative overflow-hidden group shadow-[0_50px_100px_rgba(0,0,0,0.6)]">
+                            <div className="flex items-center gap-8">
+                                <div className="w-14 h-14 rounded-[28px] bg-purple-500/10 flex items-center justify-center border border-purple-500/20 shadow-2xl"> <Brain className="w-7 h-7 text-purple-400" /> </div>
+                                <div className="space-y-1">
+                                    <h2 className="text-xl font-black text-white uppercase tracking-[0.4em] italic">Narrative Engine</h2>
+                                    <p className="text-[11px] font-black text-white/20 uppercase tracking-[0.4em] italic">AI Concept Generation</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-8">
+                                <div className="flex flex-col md:flex-row gap-6">
+                                    <div className="relative flex-1 group">
+                                         <Cpu className="absolute left-10 top-1/2 -translate-y-1/2 w-7 h-7 text-white/10 group-focus-within:text-purple-400 transition-all duration-700" />
+                                         <input type="text" placeholder="SEED THEME..." value={ideaInput} onChange={(e) => setIdeaInput(e.target.value)} className="w-full h-24 bg-black border border-white/5 rounded-[48px] pl-24 pr-10 text-lg font-black text-white placeholder-white/5 tracking-[0.3em] outline-none focus:border-purple-400/40 transition-all italic duration-700 shadow-2xl" onKeyDown={(e) => e.key === 'Enter' && handleGenerateIdeas()} />
                                     </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
+                                    <button onClick={handleGenerateIdeas} disabled={isGeneratingIdeas} className="w-24 h-24 rounded-[48px] bg-purple-500 text-black shadow-2xl flex items-center justify-center hover:scale-105 transition-all active:scale-95 disabled:opacity-40"><Plus className={cn("w-10 h-10", isGeneratingIdeas && "animate-spin")} /></button>
+                                </div>
 
-                {/* Recon Análise */}
-                <div className="card space-y-8 border-[var(--border-main)] bg-[var(--bg-primary)] p-10 shadow-2xl relative overflow-hidden rounded-[48px]">
-                    <div className="flex items-center gap-4 border-b border-[var(--border-main)] pb-6">
-                        <div className="w-10 h-10 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.1)]">
-                            <Target className="w-5 h-5 text-blue-400" />
-                        </div>
-                        <h2 className="text-xs font-black text-[var(--text-main)] uppercase tracking-[0.4em]">Reconhecimento de Inteligência</h2>
-                    </div>
-
-                    <div className="space-y-10">
-                        <div className="space-y-4">
-                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Ponto de Infiltração (@handle ou URL)</label>
-                            <div className="flex gap-3">
-                                <input
-                                    type="text"
-                                    placeholder="@no_concorrente"
-                                    value={concorrenteInput}
-                                    onChange={(e) => setConcorrenteInput(e.target.value)}
-                                    className="input-field h-14 bg-[var(--bg-primary)] border-[var(--border-main)] rounded-2xl px-6 text-[10px] font-bold tracking-widest lowercase flex-1 focus:bg-[var(--bg-primary)] outline-none"
-                                />
-                                <button
-                                    onClick={handleAnalyzeCompetitor}
-                                    disabled={isAnalyzing}
-                                    className="btn-primary px-8 rounded-2xl flex items-center justify-center bg-blue-500 text-[var(--text-main)] shadow-blue-500/20"
-                                >
-                                    {isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <BarChart2 className="w-5 h-5" />}
-                                </button>
+                                <div className="grid grid-cols-1 gap-4 max-h-[300px] overflow-y-auto scrollbar-none">
+                                    {ideas.map((idea, i) => (
+                                        <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} className="p-8 rounded-[36px] bg-black/40 border border-white/5 text-[11px] font-black text-white uppercase tracking-widest italic flex items-center gap-8 group/idea hover:border-purple-400/20 transition-all duration-700">
+                                            <div className="w-2 h-2 rounded-full bg-purple-500 group-hover/idea:animate-ping shadow-none" />
+                                            {idea}
+                                        </motion.div>
+                                    ))}
+                                    {ideas.length === 0 && <div className="py-20 flex flex-col items-center justify-center opacity-10 gap-6"><Brain className="w-12 h-12" /><p className="text-[10px] font-black uppercase tracking-[0.5em] italic">Awaiting Seed Protocol</p></div>}
+                                </div>
                             </div>
                         </div>
 
-                        {analysisResult && (
-                            <div className="p-8 rounded-[32px] bg-[var(--bg-primary)] border border-blue-500/20 text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-pre-line leading-relaxed italic animate-fade-in shadow-[0_0_50px_rgba(59,130,246,0.05)]">
-                                <div className="text-blue-400 mb-4 not-italic font-black">DADOS DE RECON DESCRIPTOGRAFADOS // SOBREPOSIÇÃO DE ANÁLISE</div>
-                                {analysisResult}
+                        {/* Infiltration Intelligence */}
+                        <div className="nl-glass p-16 border-white/5 rounded-[64px] space-y-12 relative overflow-hidden group shadow-[0_50px_100px_rgba(0,0,0,0.6)]">
+                            <div className="flex items-center gap-8">
+                                <div className="w-14 h-14 rounded-[28px] bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 shadow-2xl"> <Target className="w-7 h-7 text-cyan-400" /> </div>
+                                <div className="space-y-1">
+                                    <h2 className="text-xl font-black text-white uppercase tracking-[0.4em] italic">Recon Matrix</h2>
+                                    <p className="text-[11px] font-black text-white/20 uppercase tracking-[0.4em] italic">Competitor Infiltration</p>
+                                </div>
                             </div>
-                        )}
-                    </div>
-                </div>
 
-                {/* Agendamento Autônomo */}
-                <div className="card space-y-8 border-[var(--border-main)] bg-[var(--bg-primary)] p-10 shadow-2xl flex flex-col justify-between rounded-[48px]">
-                    <div className="space-y-8">
-                        <div className="flex items-center gap-4 border-b border-[var(--border-main)] pb-6">
-                            <div className="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20 shadow-[0_0_20px_rgba(249,115,22,0.1)]">
-                                <Zap className="w-5 h-5 text-orange-400" />
+                            <div className="space-y-12">
+                                <div className="flex flex-col md:flex-row gap-6">
+                                    <div className="relative flex-1 group">
+                                         <Search className="absolute left-10 top-1/2 -translate-y-1/2 w-7 h-7 text-white/10 group-focus-within:text-cyan-400 transition-all duration-700" />
+                                         <input type="text" placeholder="@handle" value={concorrenteInput} onChange={(e) => setConcorrenteInput(e.target.value)} className="w-full h-24 bg-black border border-white/5 rounded-[48px] pl-24 pr-10 text-lg font-black text-white placeholder-white/5 tracking-[0.3em] outline-none focus:border-cyan-400/40 transition-all italic duration-700 shadow-2xl" />
+                                    </div>
+                                    <button onClick={handleAnalyzeCompetitor} disabled={isAnalyzing} className="w-24 h-24 rounded-[48px] bg-cyan-500 text-black shadow-2xl flex items-center justify-center hover:scale-105 transition-all active:scale-95 disabled:opacity-40"><Zap className={cn("w-10 h-10", isAnalyzing && "animate-spin")} /></button>
+                                </div>
+
+                                <AnimatePresence>
+                                    {analysisResult && (
+                                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="p-10 rounded-[40px] bg-black border border-cyan-500/20 text-[11px] font-black text-white/40 uppercase tracking-widest italic leading-relaxed whitespace-pre-line relative overflow-hidden shadow-2xl">
+                                             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/[0.03] to-transparent" />
+                                             <div className="flex items-center gap-4 mb-8 text-cyan-400 not-italic">
+                                                 <div className="w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse" />
+                                                 DECRYPTED SIGNAL // INFILTRATION COMPLETE
+                                             </div>
+                                             {analysisResult}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
-                            <h2 className="text-xs font-black text-[var(--text-main)] uppercase tracking-[0.4em]">Autopiloto de Disparo</h2>
                         </div>
-                        <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest leading-loose">
-                            Inicialize sequências de distribuição automatizada para seus ativos de mídia em múltiplos nós sociais.
-                        </p>
-                    </div>
-                    <div className="p-10 rounded-[40px] bg-[var(--bg-primary)] border border-white/10 text-center space-y-4 flex flex-col items-center justify-center min-h-[200px]">
-                        <Activity className="w-10 h-10 text-gray-700 animate-pulse" />
-                        <p className="text-[10px] text-gray-600 font-black uppercase tracking-[0.3em] max-w-xs leading-loose">
-                            Configurações de protocolo social detectadas em <br />
-                            <a href="/configuracoes" className="text-accent hover:text-[var(--text-main)] transition-colors underline decoration-accent/40 underline-offset-8">
-                                Parâmetros → Integrações
-                            </a>
-                        </p>
                     </div>
                 </div>
             </div>

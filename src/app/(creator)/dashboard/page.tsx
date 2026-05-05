@@ -2,18 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts'
-import { Video, Clock, Library, Plus, ArrowRight, TrendingUp, BarChart3, Activity, Zap, ChevronDown, Users, Globe, DollarSign, CheckCircle2, ArrowUpRight } from 'lucide-react'
-import { cn, formatDateTime, getStatusColor, getStatusLabel } from '@/lib/utils'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { Video, Clock, Library, Plus, ArrowRight, TrendingUp, BarChart3, Activity, Zap, ChevronDown, Users, Globe, DollarSign, CheckCircle2, ArrowUpRight, Cpu, Shield, Layers, Target, Sparkles, Radio } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { cn, formatDateTime } from '@/lib/utils'
 import { formatCurrency as formatBRL } from '@/lib/crm-utils'
-
-interface DashboardVideo {
-    id: string
-    nome_produto: string
-    status: string
-    created_at: string
-    duracao: number
-}
 
 interface DashboardContact {
     id: string
@@ -44,6 +37,7 @@ export default function DashboardPage() {
     const [originData, setOriginData] = useState<any[]>([])
     const [isChartLoading, setIsChartLoading] = useState(true)
     const [chartError, setChartError] = useState(false)
+    const [showFilters, setShowFilters] = useState(false)
 
     const fetchChartData = useCallback(async () => {
         setIsChartLoading(true)
@@ -80,387 +74,347 @@ export default function DashboardPage() {
         loadData()
     }, [])
 
-
-
     const greeting = () => {
         const hour = new Date().getHours()
-        if (hour < 12) return 'Bom dia'
-        if (hour < 18) return 'Boa tarde'
-        return 'Boa noite'
+        if (hour < 12) return 'Strategic Morning'
+        if (hour < 18) return 'Executive Afternoon'
+        return 'Operational Night'
     }
 
     return (
-        <div className="p-4 md:p-8 lg:p-12 space-y-8 md:space-y-12 max-w-7xl mx-auto animate-fade-in pb-20">
-            {/* Welcome Header */}
-            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-5 md:gap-8 pb-6 md:pb-8 border-b border-white/5">
-                <div className="space-y-3 md:space-y-4">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 transition-all hover:bg-accent/20">
-                        <Activity className="w-3 h-3 text-accent" />
-                        <span className="text-[10px] font-black text-accent uppercase tracking-widest">Painel Operacional Ativo</span>
-                    </div>
-                    {isLoading ? (
-                        <div className="shimmer h-10 w-64 rounded-2xl" />
-                    ) : (
-                        <h1 className="text-3xl md:text-5xl font-black text-[var(--text-main)] tracking-tighter leading-none">
-                            {greeting()}, <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-accent">
-                                {stats?.nome?.split(' ')[0] || 'Investidor'}
-                            </span> ⚡
-                        </h1>
-                    )}
-                    <p className="text-muted font-medium tracking-wide uppercase text-[10px]">
-                        ESTÚDIO DE CONTEÚDO AI • STATUS OPERACIONAL: ONLINE
-                    </p>
-                </div>
-                <Link href="/criar" className="btn-primary group flex items-center gap-3 px-6 py-3.5 md:px-10 md:py-5 shadow-accent/20 hover:shadow-accent-lg active:scale-95 transition-all bg-accent text-black font-black uppercase tracking-widest text-xs rounded-2xl self-start md:self-auto">
-                    <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-                    <span>Iniciar Nova Produção</span>
-                </Link>
-            </div>
-
-            {/* Metric Cards - CRM Performance Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
-                <div className="card card-hover group relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform">
-                        <TrendingUp className="w-16 h-16" />
-                    </div>
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center border border-accent/20">
-                            <DollarSign className="w-6 h-6 text-accent" />
+        <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
+            <div className="ambient-bg" />
+            
+            <div className="relative z-10 flex-1 flex flex-col p-8 lg:p-12 max-w-[1600px] mx-auto w-full space-y-16 pb-32">
+                {/* Header Section */}
+                <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-12 border-b border-white/5 pb-16">
+                    <div className="space-y-6">
+                        <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-sidebar-primary/5 border border-sidebar-primary/20 backdrop-blur-3xl">
+                            <div className="w-2 h-2 rounded-full bg-sidebar-primary netlife-glow shadow-none animate-pulse" />
+                            <span className="text-[10px] font-black text-sidebar-primary uppercase tracking-[0.5em] italic">Neural Network Operational</span>
                         </div>
-                        <div>
-                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Faturamento Total</p>
-                            <h3 className="text-2xl font-black text-[var(--text-main)]">{isLoading ? '—' : formatBRL(stats?.totalFaturamento || 0)}</h3>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span className="text-[9px] font-bold text-emerald-500">+15.2%</span>
-                        <span className="text-[9px] font-bold text-[var(--text-support)] uppercase tracking-widest">vendas confirmadas</span>
-                    </div>
-                </div>
-
-                <div className="card card-hover group relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform">
-                        <Activity className="w-16 h-16" />
-                    </div>
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
-                            <Zap className="w-6 h-6 text-blue-500" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Ticket Médio</p>
-                            <h3 className="text-2xl font-black text-[var(--text-main)]">{isLoading ? '—' : formatBRL(stats?.ticketMedio || 0)}</h3>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                        <span className="text-[9px] font-bold text-[var(--text-support)] uppercase tracking-widest">Valor por Negócio</span>
-                    </div>
-                </div>
-
-                <div className="card card-hover group relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform">
-                        <Zap className="w-16 h-16" />
-                    </div>
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
-                            <CheckCircle2 className="w-6 h-6 text-amber-500" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Conversões (Won)</p>
-                            <h3 className="text-2xl font-black text-[var(--text-main)]">{isLoading ? '—' : stats?.totalWon || 0}</h3>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-amber-500 uppercase text-[9px] font-black tracking-widest italic">
-                        Negócios Fechados
-                    </div>
-                </div>
-
-                <div className="card card-hover group relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform">
-                        <Activity className="w-16 h-16" />
-                    </div>
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center border border-accent/20">
-                            <TrendingUp className="w-6 h-6 text-accent" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Win Rate</p>
-                            <h3 className="text-2xl font-black text-[var(--text-main)]">{isLoading ? '—' : (stats?.taxaConversao || 0).toFixed(1)}%</h3>
-                        </div>
-                    </div>
-                    <div className="h-1.5 w-full bg-accent/5 rounded-full overflow-hidden mt-2 border border-[var(--border-main)]">
-                        <div 
-                            className="h-full bg-accent transition-all duration-1000" 
-                            style={{ width: `${stats?.taxaConversao || 0}%` }} 
-                        />
-                    </div>
-                </div>
-            </div>
-
-            {/* Performance Analytics Section - NEW RECOMMENDATION */}
-            <div className="card p-5 md:p-10 rounded-[32px] md:rounded-[48px] relative overflow-hidden">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-5 md:gap-8 mb-8 md:mb-12">
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-xl bg-accent/10 flex items-center justify-center border border-accent/20">
-                                <Users className="w-4 h-4 text-accent" />
-                            </div>
-                            <h2 className="text-xs font-black text-[var(--text-main)] uppercase tracking-[0.4em]">Crescimento da Base</h2>
-                        </div>
-                        <p className="text-[11px] text-[var(--text-muted)] font-bold uppercase tracking-widest">Aquisição de novos leads por período</p>
-                    </div>
-                    <div className="flex gap-4">
-                        <div className="relative group/scale">
-                        <button 
-                            onClick={(e) => {
-                                const dropdown = e.currentTarget.nextElementSibling;
-                                dropdown?.classList.toggle('hidden');
-                            }}
-                            className="flex items-center gap-3 bg-[var(--bg-primary)] border border-[var(--border-main)] hover:border-accent/40 px-5 py-2.5 rounded-2xl text-[9px] font-black text-[var(--text-main)] uppercase tracking-widest cursor-pointer outline-none transition-all duration-300 hover:shadow-lg hover:shadow-accent/5 group/btn"
-                        >
-                            <span className="text-accent group-hover/btn:scale-110 transition-transform">Escala:</span>
-                            <span>{chartScale === 7 ? 'Últimos 7 Dias' : chartScale === 30 ? 'Últimos 30 Dias' : 'Últimos 90 Dias'}</span>
-                            <ChevronDown className="w-3 h-3 text-[var(--text-muted)] transition-transform group-hover/btn:translate-y-0.5" />
-                        </button>
                         
-                        <div className="hidden absolute top-full right-0 mt-2 w-48 bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-300">
-                            {[7, 30, 90].map((val) => (
-                                <button
-                                    key={val}
-                                    onClick={() => {
-                                        setChartScale(val as 7 | 30 | 90);
-                                        document.querySelectorAll('.group\\/scale > div').forEach(d => d.classList.add('hidden'));
-                                    }}
-                                    className={cn(
-                                        "w-full px-5 py-3 text-[9px] font-black uppercase tracking-widest text-left transition-all duration-200 flex items-center justify-between group/item",
-                                        chartScale === val 
-                                            ? "bg-accent/10 text-accent font-black" 
-                                            : "text-[var(--text-muted)] hover:bg-[var(--bg-primary)] hover:text-[var(--text-main)]"
-                                    )}
-                                >
-                                    <span>Últimos {val} Dias</span>
-                                    {chartScale === val && <div className="w-1 h-1 rounded-full bg-accent" />}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-4">
-                    <div className="lg:col-span-3 h-[300px]">
-                        {isChartLoading ? (
-                            <div className="w-full h-full flex flex-col justify-end gap-2 pb-6 px-4">
-                                <div className="absolute inset-0 flex flex-col justify-between opacity-5 pointer-events-none">
-                                    {[1, 2, 3, 4, 5].map(i => <div key={i} className="w-full h-px bg-[var(--text-main)]" />)}
-                                </div>
-                                <div className="flex h-full items-end gap-2 px-6">
-                                {Array.from({ length: 7 }).map((_, i) => (
-                                    <div key={i} className="flex-1 bg-accent/10 shimmer rounded-t-lg" style={{ height: `${Math.max(20, Math.random() * 100)}%` }}></div>
-                                ))}
-                                </div>
-                            </div>
-                        ) : chartError ? (
-                            <div className="w-full h-full flex flex-col items-center justify-center text-center space-y-4">
-                                <Activity className="w-10 h-10 text-red-500/50" />
-                                <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Erro ao carregar dados</p>
-                                <button onClick={fetchChartData} className="px-4 py-2 bg-accent/5 hover:bg-accent/10 rounded-lg text-xs font-black text-[var(--text-main)] uppercase transition-all">Tentar Novamente</button>
-                            </div>
-                        ) : chartData.length === 0 || chartData.every(d => d.leads === 0) ? (
-                            <div className="w-full h-full flex flex-col items-center justify-center text-center space-y-4">
-                                <Users className="w-10 h-10 text-[var(--text-support)]/30" />
-                                <p className="text-xs font-bold text-[var(--text-support)] uppercase tracking-widest">Nenhum novo lead<br/>encontrado para o período</p>
-                            </div>
-                        ) : (
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-main)" opacity={0.5} />
-                                    <XAxis 
-                                        dataKey="day" 
-                                        axisLine={false} 
-                                        tickLine={false} 
-                                        tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 700 }} 
-                                        dy={10}
-                                        minTickGap={20}
-                                    />
-                                    <YAxis 
-                                        axisLine={false} 
-                                        tickLine={false} 
-                                        tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 700 }} 
-                                        dx={-10}
-                                    />
-                                    <Tooltip 
-                                        cursor={{ fill: 'var(--color-accent)', opacity: 0.05 }}
-                                        contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-main)', borderRadius: '12px', color: 'var(--text-main)', fontSize: '11px', fontWeight: 700, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
-                                        itemStyle={{ fontWeight: 800, color: '#2563EB' }}
-                                        labelStyle={{ color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.1em' }}
-                                    />
-                                    <Bar dataKey="leads" name="Novos Leads" fill="#2563EB" radius={[6, 6, 0, 0]} barSize={24} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        )}
-                    </div>
-                    
-                    <div className="lg:col-span-1 flex flex-col justify-center border-l border-[var(--color-dark-border)] pl-8 hidden lg:flex">
-                         <div className="space-y-6">
-                            <div>
-                                <h3 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-4 flex items-center gap-2">
-                                    <Globe className="w-3 h-3 text-accent" /> Origem dos Leads
-                                </h3>
-                                <div className="space-y-3">
-                                    {isChartLoading ? (
-                                        Array.from({ length: 3 }).map((_, i) => (
-                                            <div key={i} className="h-4 w-full shimmer bg-accent/5 rounded-full" />
-                                        ))
-                                    ) : originData.length === 0 ? (
-                                        <p className="text-[9px] font-bold text-[var(--text-support)] uppercase italic">Aguardando dados...</p>
-                                    ) : (
-                                        originData.map((item, idx) => (
-                                            <div key={idx} className="space-y-1.5">
-                                                <div className="flex justify-between text-[9px] font-black uppercase tracking-widest">
-                                                    <span className="text-[var(--text-support)]">{item.name}</span>
-                                                    <span className="text-[var(--text-main)]">{item.value}</span>
-                                                </div>
-                                                <div className="h-1.5 w-full bg-accent/5 rounded-full overflow-hidden border border-[var(--border-main)]">
-                                                    <div 
-                                                        className="h-full bg-accent transition-all duration-1000" 
-                                                        style={{ 
-                                                            width: `${(item.value / originData.reduce((acc, curr) => acc + curr.value, 0)) * 100}%`,
-                                                            opacity: 1 - (idx * 0.2)
-                                                        }} 
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-                         </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Main Content Area */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12 pt-4 md:pt-8">
-                {/* Recent Activities */}
-                <div className="lg:col-span-2 space-y-8">
-                    <div className="flex items-center justify-between px-2">
-                        <div className="flex items-center gap-3">
-                             <div className="w-1.5 h-1.5 rounded-full bg-accent" />
-                             <h2 className="text-xs font-black text-[var(--text-main)] uppercase tracking-[0.3em]">Últimos Contatos do CRM</h2>
-                        </div>
-                        <Link href="/crm" className="text-[10px] font-black text-accent uppercase tracking-widest hover:translate-x-2 transition-all flex items-center gap-2 group">
-                            Ver Funil Completo
-                            <ArrowRight className="w-3 h-3 group-hover:scale-125 transition-transform" />
-                        </Link>
-                    </div>
-
-                    {isLoading ? (
                         <div className="space-y-4">
-                            {Array.from({ length: 3 }).map((_, i) => (
-                                <div key={i} className="card h-24 shimmer opacity-20 rounded-[32px]" />
-                            ))}
+                            <h1 className="text-6xl lg:text-7xl font-black text-white leading-none tracking-tighter uppercase italic">
+                                {greeting()}, <br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-sidebar-primary to-blue-400">
+                                    {stats?.nome?.split(' ')[0] || 'Executive'}
+                                </span>
+                            </h1>
+                            <div className="flex items-center gap-4 text-white/20 font-black uppercase tracking-[0.4em] text-[10px] italic">
+                                <Cpu className="w-4 h-4" /> System Synchronization v4.0.2 Active
+                            </div>
                         </div>
-                    ) : !stats?.contatosRecentes || stats.contatosRecentes.length === 0 ? (
-                        <div className="card border-dashed py-24 text-center space-y-6 rounded-[56px]">
-                            <div className="w-20 h-20 rounded-full bg-accent/5 flex items-center justify-center mx-auto mb-4 border border-accent/10 transition-transform hover:scale-110">
-                                <Activity className="w-10 h-10 text-[var(--text-support)]" />
+                    </div>
+
+                    <Link href="/criar" className="btn-primary px-12 py-7 netlife-glow shadow-none text-xs font-black uppercase tracking-[0.3em] italic group self-start lg:self-auto flex items-center gap-4">
+                        <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-700" />
+                        Initialize Production
+                    </Link>
+                </div>
+
+                {/* Key Metric Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {[
+                        { label: 'Total Revenue', value: formatBRL(stats?.totalFaturamento || 0), icon: DollarSign, color: 'text-sidebar-primary', status: 'Sustained', sub: 'Validated Sales' },
+                        { label: 'Average Ticket', value: formatBRL(stats?.ticketMedio || 0), icon: Zap, color: 'text-blue-400', status: 'Optimized', sub: 'Neural Value' },
+                        { label: 'Conversions (Won)', value: stats?.totalWon || 0, icon: CheckCircle2, color: 'text-emerald-400', status: 'Closed', sub: 'Protocol Success' },
+                        { label: 'Win Efficiency', value: `${(stats?.taxaConversao || 0).toFixed(1)}%`, icon: TrendingUp, color: 'text-sidebar-primary', status: 'Active', sub: 'Conversion Pulse' }
+                    ].map((metric, idx) => (
+                        <motion.div 
+                            key={idx}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.1 }}
+                            className="nl-glass p-10 rounded-[48px] border-white/5 space-y-8 relative overflow-hidden group hover:border-sidebar-primary/20 transition-all duration-700"
+                        >
+                            <div className="absolute inset-0 bg-white/[0.01] opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="flex items-center justify-between">
+                                <div className={cn("w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center transition-all duration-700 group-hover:scale-110", metric.color)}>
+                                    <metric.icon className="w-7 h-7" />
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-[9px] font-black text-white/10 uppercase tracking-widest block mb-1">Status</span>
+                                    <span className={cn("text-[10px] font-black uppercase tracking-widest italic", metric.color)}>{metric.status}</span>
+                                </div>
                             </div>
                             <div className="space-y-2">
-                                <p className="text-[var(--text-muted)] uppercase tracking-[0.3em] font-black text-xs">Sem contatos registrados</p>
-                                <p className="text-[9px] text-[var(--text-support)] font-bold uppercase tracking-widest italic">Aguardando entrada de novos leads</p>
+                                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-1">{metric.label}</p>
+                                <h3 className="text-4xl font-black text-white tracking-tighter italic">
+                                    {isLoading ? <div className="h-10 w-32 bg-white/5 animate-pulse rounded-xl" /> : metric.value}
+                                </h3>
                             </div>
-                        </div>
-                    ) : (
-                        <div className="space-y-4">
-                            {stats.contatosRecentes.map((contato) => (
-                                <div key={contato.id} className="card card-hover flex items-center gap-4 md:gap-6 p-4 md:p-6 transition-all">
-                                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-[var(--border-main)] flex items-center justify-center flex-shrink-0 group-hover:border-accent/30 transition-all bg-[var(--bg-muted)] overflow-hidden">
-                                        <div className="w-full h-full bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center text-accent font-black text-xs uppercase">
-                                            {contato.nome.substring(0, 2)}
-                                        </div>
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-[var(--text-main)] font-black text-xs md:text-sm uppercase tracking-tight truncate group-hover:text-accent transition-colors duration-500">
-                                            {contato.nome}
-                                        </p>
-                                        <div className="flex flex-wrap items-center gap-3 md:gap-6 mt-1 md:mt-2">
-                                            <div className="flex items-center gap-2">
-                                                <Library className="w-3 h-3 text-[var(--text-support)]" />
-                                                <span className="text-[9px] font-black text-[var(--text-support)] uppercase tracking-widest">
-                                                    {contato.empresa || 'Empresa não inf.'}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Clock className="w-3 h-3 text-[var(--text-support)]" />
-                                                <span className="text-[9px] font-black text-[var(--text-support)] uppercase tracking-widest">
-                                                    {formatDateTime(contato.created_at)}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="hidden sm:flex items-center gap-4">
-                                        <span className={cn(
-                                            "inline-flex items-center gap-2 px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border transition-all",
-                                            contato.status_funil === 'cliente' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
-                                            contato.status_funil === 'oportunidade' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 
-                                            'bg-[var(--color-dark-muted)] text-[var(--text-muted)] border-[var(--color-dark-border)]'
-                                        )}>
-                                            {contato.status_funil}
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                            <div className="flex items-center gap-3 pt-4 border-t border-white/5">
+                                <div className={cn("w-2 h-2 rounded-full animate-pulse", metric.color.replace('text-', 'bg-'))} />
+                                <span className="text-[9px] font-black text-white/10 uppercase tracking-widest">{metric.sub}</span>
+                            </div>
+                        </motion.div>
+                    ))}
                 </div>
 
-                {/* Sidebar Quick Actions */}
-                <div className="space-y-10">
-                    <div className="space-y-6">
-                        <h2 className="text-xs font-black text-[var(--text-main)] uppercase tracking-[0.3em] px-2">Comandos Operais</h2>
-                        <div className="space-y-4">
-                            <Link href="/criar" className="block group">
-                                <div className="card-hover bg-accent p-5 md:p-8 flex flex-col gap-4 md:gap-6 shadow-accent/20 rounded-[32px] md:rounded-[40px] group-hover:scale-[1.02] transition-all">
-                                    <div className="w-12 h-12 rounded-2xl bg-black/10 flex items-center justify-center">
-                                        <Zap className="w-6 h-6 text-black" />
-                                    </div>
-                                    <div>
-                                        <p className="font-black text-black uppercase tracking-[0.2em] text-sm italic">Estúdio Criativo</p>
-                                        <p className="text-[10px] text-black/70 font-bold mt-2 uppercase tracking-widest leading-relaxed">Gere ativos de alta conversão agora</p>
-                                    </div>
+                {/* Analytics Matrix Section */}
+                <div className="nl-glass p-12 lg:p-16 rounded-[64px] border-white/5 relative overflow-hidden shadow-[0_100px_200px_rgba(0,0,0,0.8)]">
+                    <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-sidebar-primary/5 rounded-full blur-[150px] -mr-40 -mt-40 pointer-events-none opacity-40" />
+                    
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-12 mb-20 relative z-10">
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-6">
+                                <div className="w-12 h-12 rounded-2xl bg-sidebar-primary/10 border border-sidebar-primary/20 flex items-center justify-center text-sidebar-primary">
+                                    <Users className="w-6 h-6" />
                                 </div>
-                            </Link>
-
-                            <Link href="/biblioteca" className="block group">
-                                <div className="card card-hover p-5 md:p-8 flex flex-col gap-4 md:gap-6 hover:border-blue-500/30 rounded-[32px] md:rounded-[40px] group-hover:scale-[1.02] transition-all">
-                                    <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                        <Library className="w-6 h-6 text-blue-500" />
-                                    </div>
-                                    <div>
-                                        <p className="font-black text-[var(--text-main)] uppercase tracking-[0.2em] text-sm italic">Gerenciador Hub</p>
-                                        <p className="text-[10px] text-[var(--text-support)] font-bold mt-2 uppercase tracking-widest leading-relaxed">Acesse o seu repositório digital</p>
-                                    </div>
+                                <div className="space-y-0.5">
+                                    <h2 className="text-sm font-black text-white uppercase tracking-[0.4em] italic">Acquisition Matrix</h2>
+                                    <p className="text-[10px] font-black text-white/10 uppercase tracking-[0.3em]">Growth Propagation Feed</p>
                                 </div>
-                            </Link>
+                            </div>
+                            <p className="text-white/20 text-xs font-black uppercase tracking-widest max-w-xl leading-relaxed italic">Real-time telemetry of lead infiltration across digital sectors.</p>
+                        </div>
+                        
+                        <div className="relative">
+                            <button 
+                                onClick={() => setShowFilters(!showFilters)}
+                                className="flex items-center gap-8 bg-black/40 border border-white/5 hover:border-sidebar-primary/40 px-10 py-5 rounded-[24px] text-[10px] font-black text-white uppercase tracking-[0.3em] transition-all duration-700 group/btn italic"
+                            >
+                                <span className="text-sidebar-primary">Time Frame:</span>
+                                <span>{chartScale} Days</span>
+                                <ChevronDown className={cn("w-4 h-4 text-white/20 transition-transform duration-700", showFilters && "rotate-180")} />
+                            </button>
+                            
+                            <AnimatePresence>
+                                {showFilters && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                                        className="absolute top-full right-0 mt-4 w-64 nl-glass border-white/10 rounded-[32px] shadow-2xl overflow-hidden z-50 p-3"
+                                    >
+                                        {[7, 30, 90].map((val) => (
+                                            <button
+                                                key={val}
+                                                onClick={() => {
+                                                    setChartScale(val as 7 | 30 | 90);
+                                                    setShowFilters(false);
+                                                }}
+                                                className={cn(
+                                                    "w-full px-8 py-5 text-[10px] font-black uppercase tracking-widest text-left rounded-2xl transition-all duration-500 flex items-center justify-between",
+                                                    chartScale === val 
+                                                        ? "bg-sidebar-primary text-black italic" 
+                                                        : "text-white/20 hover:bg-white/[0.03] hover:text-white"
+                                                )}
+                                            >
+                                                <span>Last {val} Days</span>
+                                                {chartScale === val && <CheckCircle2 className="w-4 h-4" />}
+                                            </button>
+                                        ))}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </div>
 
-                    {/* Pro Tip Card - ENHANCED */}
-                    <div className="bg-gradient-to-br from-accent/10 to-transparent p-6 md:p-10 rounded-[32px] md:rounded-[48px] border border-[var(--border-main)] space-y-4 md:space-y-6 shadow-2xl relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:rotate-12 group-hover:scale-125 transition-all duration-700">
-                            <TrendingUp className="w-24 h-24 text-accent" />
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-16 relative z-10">
+                        <div className="lg:col-span-3 h-[450px]">
+                            {isChartLoading ? (
+                                <div className="w-full h-full flex items-end gap-6 px-10 pb-10">
+                                    {Array.from({ length: 12 }).map((_, i) => (
+                                        <div key={i} className="flex-1 bg-white/[0.02] border border-white/5 rounded-t-3xl animate-pulse" style={{ height: `${Math.max(20, Math.random() * 100)}%`, animationDelay: `${i * 100}ms` }}></div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                                        <defs>
+                                            <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.6} />
+                                                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="white" opacity={0.02} />
+                                        <XAxis 
+                                            dataKey="day" 
+                                            axisLine={false} 
+                                            tickLine={false} 
+                                            tick={{ fill: 'rgba(255,255,255,0.1)', fontSize: 9, fontWeight: 900, textTransform: 'uppercase' }} 
+                                            dy={25}
+                                        />
+                                        <YAxis 
+                                            axisLine={false} 
+                                            tickLine={false} 
+                                            tick={{ fill: 'rgba(255,255,255,0.1)', fontSize: 9, fontWeight: 900 }} 
+                                        />
+                                        <Tooltip 
+                                            cursor={{ fill: 'white', opacity: 0.02 }}
+                                            contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', backdropFilter: 'blur(40px)', padding: '20px' }}
+                                            itemStyle={{ fontWeight: 900, color: 'hsl(var(--primary))', textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.1em' }}
+                                            labelStyle={{ color: 'rgba(255,255,255,0.2)', marginBottom: '8px', fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em' }}
+                                        />
+                                        <Bar dataKey="leads" fill="url(#barGradient)" radius={[16, 16, 0, 0]} barSize={40} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            )}
                         </div>
-                        <div className="flex items-center gap-3">
-                             <Activity className="w-4 h-4 text-accent" />
-                             <p className="text-[10px] font-black text-accent uppercase tracking-[0.2em]">IA Insight Node</p>
+                        
+                        <div className="lg:col-span-1 space-y-12 border-l border-white/5 pl-16 hidden lg:block">
+                            <div>
+                                <h3 className="text-[11px] font-black text-white/20 uppercase tracking-[0.4em] mb-12 flex items-center gap-4">
+                                    <Globe className="w-5 h-5 text-sidebar-primary" /> Sector Traffic
+                                </h3>
+                                <div className="space-y-8">
+                                    {isChartLoading ? (
+                                        Array.from({ length: 4 }).map((_, i) => (
+                                            <div key={i} className="space-y-4">
+                                                <div className="h-2 w-24 bg-white/5 rounded-full" />
+                                                <div className="h-1.5 w-full bg-white/5 rounded-full" />
+                                            </div>
+                                        ))
+                                    ) : originData.map((item, idx) => (
+                                        <div key={idx} className="space-y-4">
+                                            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest italic">
+                                                <span className="text-white/40">{item.name}</span>
+                                                <span className="text-sidebar-primary">{item.value} Nodes</span>
+                                            </div>
+                                            <div className="h-1.5 w-full bg-white/[0.02] rounded-full overflow-hidden border border-white/5 p-[1px]">
+                                                <motion.div 
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${(item.value / originData.reduce((acc, curr) => acc + curr.value, 1)) * 100}%` }}
+                                                    transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
+                                                    className="h-full bg-sidebar-primary netlife-glow shadow-none rounded-full"
+                                                    style={{ opacity: 1 - (idx * 0.15) }} 
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            <div className="pt-12 border-t border-white/5">
+                                <div className="p-8 rounded-[32px] bg-sidebar-primary/5 border border-sidebar-primary/10">
+                                    <p className="text-[9px] font-black text-sidebar-primary uppercase tracking-[0.3em] mb-4">AI Insight</p>
+                                    <p className="text-[11px] font-black text-white leading-relaxed italic uppercase tracking-tighter">
+                                        &quot;Strategic shifts in Sector 4 traffic suggest higher high-ticket potential.&quot;
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        <div className="space-y-4">
-                            <p className="text-[var(--text-main)] font-black text-base leading-tight italic tracking-tighter">
-                                &quot;Ativos gerados em tom 'Persuasivo' apresentam CTR 45% maior para Home Equity.&quot;
-                            </p>
-                            <p className="text-[9px] text-[var(--text-support)] font-bold uppercase tracking-widest">Análise de Dados Consolidada</p>
+                    </div>
+                </div>
+
+                {/* Feed and Quick Actions */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 pt-12">
+                    {/* Intelligence Feed */}
+                    <div className="lg:col-span-2 space-y-12">
+                        <div className="flex items-center justify-between px-6">
+                            <div className="flex items-center gap-6">
+                                <div className="w-12 h-12 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center">
+                                    <Radio className="w-6 h-6 text-sidebar-primary" />
+                                </div>
+                                <div className="space-y-0.5">
+                                    <h2 className="text-sm font-black text-white uppercase tracking-[0.4em] italic">Intelligence Feed</h2>
+                                    <p className="text-[9px] font-black text-white/10 uppercase tracking-[0.3em]">Live Node Synchronization</p>
+                                </div>
+                            </div>
+                            <Link href="/crm" className="text-[10px] font-black text-sidebar-primary uppercase tracking-[0.3em] hover:translate-x-4 transition-all duration-700 flex items-center gap-4 group italic">
+                                Deep Analysis Matrix
+                                <ArrowRight className="w-5 h-5 group-hover:scale-125 transition-transform" />
+                            </Link>
+                        </div>
+
+                        <div className="space-y-6">
+                            {isLoading ? (
+                                Array.from({ length: 4 }).map((_, i) => (
+                                    <div key={i} className="h-24 bg-white/[0.02] border border-white/5 rounded-[40px] animate-pulse" />
+                                ))
+                            ) : (stats?.contatosRecentes || []).map((contato, idx) => (
+                                <motion.div 
+                                    key={contato.id} 
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    className="nl-glass p-8 rounded-[48px] border-white/5 flex items-center gap-8 group hover:border-sidebar-primary/20 transition-all duration-700"
+                                >
+                                    <div className="w-16 h-16 rounded-[24px] bg-black border border-white/5 flex items-center justify-center flex-shrink-0 transition-all duration-700 group-hover:bg-sidebar-primary group-hover:text-black shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                                        <span className="font-black text-lg uppercase italic">{contato.nome.substring(0, 2)}</span>
+                                    </div>
+                                    <div className="flex-1 min-w-0 space-y-3">
+                                        <div className="flex items-center gap-4">
+                                            <p className="text-sm font-black text-white uppercase tracking-tight truncate group-hover:text-sidebar-primary transition-colors duration-700 italic">
+                                                {contato.nome}
+                                            </p>
+                                            <span className={cn(
+                                                "text-[8px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border italic",
+                                                contato.status_funil === 'cliente' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
+                                                'bg-white/5 text-white/20 border-white/10'
+                                            )}>
+                                                {contato.status_funil}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-8">
+                                            <div className="flex items-center gap-3">
+                                                <Globe className="w-3.5 h-3.5 text-white/10" />
+                                                <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">{contato.empresa || 'Strategic Node'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <Clock className="w-3.5 h-3.5 text-white/10" />
+                                                <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">{formatDateTime(contato.created_at)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button className="w-14 h-14 flex items-center justify-center rounded-[24px] bg-white/[0.02] border border-white/5 text-white/10 hover:text-white hover:border-sidebar-primary/40 transition-all duration-700">
+                                        <ArrowUpRight className="w-5 h-5" />
+                                    </button>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Quick Protocols */}
+                    <div className="space-y-16">
+                        <div className="space-y-8">
+                            <h2 className="text-[11px] font-black text-white/20 uppercase tracking-[0.4em] px-6">Executive Protocols</h2>
+                            <div className="grid grid-cols-1 gap-6">
+                                <Link href="/criar" className="block group">
+                                    <div className="nl-glass p-10 rounded-[56px] border-sidebar-primary/20 flex flex-col gap-10 group-hover:scale-[1.03] transition-all duration-700 bg-sidebar-primary shadow-[0_0_50px_rgba(var(--primary-rgb),0.1)]">
+                                        <div className="w-16 h-16 rounded-[24px] bg-black/20 flex items-center justify-center shadow-2xl">
+                                            <Zap className="w-8 h-8 text-black" />
+                                        </div>
+                                        <div className="space-y-3">
+                                            <p className="font-black text-black uppercase tracking-[0.3em] text-sm italic">Neural Studio</p>
+                                            <p className="text-[10px] text-black/40 font-black uppercase tracking-[0.2em] leading-relaxed">Ignite predictive production sequences</p>
+                                        </div>
+                                    </div>
+                                </Link>
+
+                                <Link href="/biblioteca" className="block group">
+                                    <div className="nl-glass p-10 rounded-[56px] border-white/5 flex flex-col gap-10 group-hover:scale-[1.03] transition-all duration-700 hover:border-sidebar-primary/20">
+                                        <div className="w-16 h-16 rounded-[24px] bg-white/[0.02] border border-white/5 flex items-center justify-center group-hover:bg-sidebar-primary/5 transition-all duration-700">
+                                            <Library className="w-8 h-8 text-white/10 group-hover:text-sidebar-primary transition-all duration-700" />
+                                        </div>
+                                        <div className="space-y-3">
+                                            <p className="font-black text-white uppercase tracking-[0.3em] text-sm italic">Digital Asset Vault</p>
+                                            <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.2em] leading-relaxed">Secure optimized asset repository</p>
+                                        </div>
+                                    </div>
+                                </Link>
+                            </div>
+                        </div>
+
+                        {/* Synthesis Card */}
+                        <div className="nl-glass p-12 rounded-[64px] space-y-10 relative overflow-hidden group border-sidebar-primary/20">
+                            <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:rotate-12 group-hover:scale-125 transition-all duration-[2000ms]">
+                                <Target className="w-48 h-48 text-sidebar-primary" />
+                            </div>
+                            <div className="flex items-center gap-4">
+                                 <div className="w-2 h-2 rounded-full bg-sidebar-primary netlife-glow shadow-none" />
+                                 <p className="text-[10px] font-black text-sidebar-primary uppercase tracking-[0.4em] italic">Neural Synthesis</p>
+                            </div>
+                            <div className="space-y-8">
+                                <p className="text-white font-black text-2xl leading-tight italic tracking-tighter uppercase">
+                                    &quot;High-Velocity conversion nodes prioritize aesthetic fidelity as an institutional trust protocol.&quot;
+                                </p>
+                                <div className="pt-8 border-t border-white/5">
+                                    <p className="text-[9px] text-white/10 font-black uppercase tracking-[0.3em] italic leading-loose">Strategy optimized for InvestMais Global Core</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -20,35 +20,45 @@ import {
     Moon,
     Sun,
     Plus,
-    Home
+    Home,
+    Shield,
+    Activity,
+    Cpu,
+    Globe,
+    Target,
+    Layers,
+    Zap,
+    MessageSquare,
+    Sparkles
 } from 'lucide-react'
 import { useSession, signOut } from 'next-auth/react'
 import { useTheme } from 'next-themes'
 import { useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { cn, getInitials } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
 const navItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/pipeline', label: 'Pipeline', icon: Kanban },
-    { href: '/crm', label: 'CRM', icon: Users },
-    { href: '/disparos', label: 'Disparos', icon: Send },
-    { href: '/cnpj', label: 'Leads', icon: Search },
-    { href: '/configuracoes', label: 'Configuração', icon: Settings },
+    { href: '/dashboard', label: 'Executive Pulse', icon: LayoutDashboard },
+    { href: '/pipeline', label: 'Architecture', icon: Kanban },
+    { href: '/crm', label: 'Neural Leads', icon: Users },
+    { href: '/disparos', label: 'Dispatch Hub', icon: Send },
+    { href: '/cnpj', label: 'Recon Matrix', icon: Search },
+    { href: '/configuracoes', label: 'Command Core', icon: Settings },
 ]
 
 const contentItems = [
-    { href: '/criar', label: 'Criar Vídeo', icon: Video },
-    { href: '/biblioteca', label: 'Biblioteca', icon: Library },
+    { href: '/criar', label: 'Neural Studio', icon: Video },
+    { href: '/biblioteca', label: 'Asset Vault', icon: Library },
 ]
 
 // Items that appear in the mobile bottom nav (most important)
 const mobileBottomNav = [
-    { href: '/dashboard', label: 'Início', icon: Home },
-    { href: '/crm', label: 'CRM', icon: Users },
-    { href: '/criar', label: 'Criar', icon: Plus, isPrimary: true },
-    { href: '/biblioteca', label: 'Acervo', icon: Library },
-    { href: '/pipeline', label: 'Pipeline', icon: Kanban },
+    { href: '/dashboard', label: 'Core', icon: Home },
+    { href: '/crm', label: 'Nodes', icon: Users },
+    { href: '/criar', label: 'Forge', icon: Plus, isPrimary: true },
+    { href: '/biblioteca', label: 'Vault', icon: Library },
+    { href: '/pipeline', label: 'Flow', icon: Kanban },
 ]
 
 export function CreatorSidebar() {
@@ -77,7 +87,7 @@ export function CreatorSidebar() {
 
     const handleLogout = async () => {
         await signOut({ redirect: false })
-        toast.success('Logout realizado')
+        toast.success('Protocol terminated')
         router.push('/login')
     }
 
@@ -86,18 +96,30 @@ export function CreatorSidebar() {
         : 0
 
     const SidebarContent = () => (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full bg-black relative overflow-hidden">
+            {/* Ambient Orb inside sidebar */}
+            <div className="absolute -top-24 -left-20 w-80 h-80 bg-sidebar-primary/10 rounded-full blur-[100px] pointer-events-none z-0" />
+            
             {/* Logo */}
-            <div className="px-4 pt-8 pb-7 border-b border-white/5 flex justify-center items-center">
-                <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
-                    <img src="/logo.png" alt="InvestMais Finance" className="h-20 w-auto object-contain hover:opacity-85 transition-opacity duration-300" />
+            <div className="px-8 pt-12 pb-10 flex items-center gap-4 z-10">
+                <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center gap-4 group">
+                    <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center p-2 shadow-[0_0_30px_hsl(var(--primary)/0.2)] transition-all group-hover:scale-110 group-hover:rotate-3 duration-700">
+                         <img src="/logo.png" alt="InvestMais" className="w-full h-full object-contain filter brightness-100" />
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-white font-black text-2xl tracking-tighter leading-none italic uppercase">Invest<span className="text-sidebar-primary">Mais</span></span>
+                        <span className="text-[10px] font-black text-sidebar-primary/40 uppercase tracking-[0.4em] italic leading-none mt-1">Executive Hub</span>
+                    </div>
                 </Link>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-6 space-y-6 overflow-y-auto">
-                <div className="space-y-1">
-                    <p className="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">Monitoramento</p>
+            <nav className="flex-1 px-6 py-8 space-y-12 overflow-y-auto z-10 scrollbar-none">
+                <div className="space-y-3">
+                    <div className="flex items-center gap-4 px-4 mb-6">
+                        <Cpu className="w-3.5 h-3.5 text-white/10" />
+                        <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Neural Protocols</p>
+                    </div>
                     {navItems.map((item) => {
                         const Icon = item.icon
                         const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
@@ -108,41 +130,58 @@ export function CreatorSidebar() {
                                 href={item.href}
                                 onClick={() => setMobileOpen(false)}
                                 className={cn(
-                                    isActive ? 'sidebar-item-active' : 'sidebar-item'
+                                    "group relative flex items-center gap-4 px-6 py-4 rounded-[24px] transition-all duration-700 font-black uppercase tracking-widest text-[10px]",
+                                    isActive 
+                                        ? "bg-white/[0.03] text-sidebar-primary border border-sidebar-primary/20 shadow-[0_0_40px_rgba(0,0,0,0.5)] italic" 
+                                        : "text-white/40 hover:bg-white/[0.02] hover:text-white"
                                 )}
                             >
-                                <Icon className="w-4 h-4 flex-shrink-0" />
+                                <Icon className={cn("w-4.5 h-4.5 flex-shrink-0 transition-all duration-700", isActive ? "drop-shadow-[0_0_10px_hsl(var(--primary)/0.8)] scale-110" : "opacity-40 group-hover:opacity-100 group-hover:scale-110")} />
                                 <span>{item.label}</span>
+                                
                                 {isActive && (
-                                    <div className="ml-auto w-1 h-1 rounded-full bg-accent animate-pulse" />
+                                    <>
+                                        <motion.div 
+                                            layoutId="sidebar-active"
+                                            className="absolute left-0 w-1.5 h-8 bg-sidebar-primary rounded-r-full netlife-glow shadow-none"
+                                        />
+                                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-sidebar-primary netlife-glow-soft animate-pulse shadow-none" />
+                                    </>
                                 )}
                             </Link>
                         )
                     })}
                 </div>
 
-                <div className="space-y-1">
-                    <p className="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">Gerenciador de Conteúdo</p>
-                    {contentItems.map((item, idx) => {
+                <div className="space-y-3">
+                    <div className="flex items-center gap-4 px-4 mb-6">
+                        <Sparkles className="w-3.5 h-3.5 text-white/10" />
+                        <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Synthesis Forge</p>
+                    </div>
+                    {contentItems.map((item) => {
                         const Icon = item.icon
                         const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-                        const isPrimary = idx === 0
                         return (
                             <Link
                                 key={item.href}
                                 href={item.href}
                                 onClick={() => setMobileOpen(false)}
-                                className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl font-black transition-all duration-300 group uppercase tracking-widest text-[10px] ${
-                                    isPrimary
-                                        ? 'bg-accent text-white shadow-accent hover:bg-accent/90 hover:shadow-accent-lg'
-                                        : isActive
-                                            ? 'bg-white/10 text-white border border-white/20'
-                                            : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20'
-                                }`}
+                                className={cn(
+                                    "group relative flex items-center gap-4 px-6 py-4 rounded-[24px] transition-all duration-700 font-black uppercase tracking-widest text-[10px]",
+                                    isActive 
+                                        ? "bg-white/[0.03] text-sidebar-primary border border-sidebar-primary/20 shadow-[0_0_40px_rgba(0,0,0,0.5)] italic" 
+                                        : "text-white/40 hover:bg-white/[0.02] hover:text-white"
+                                )}
                             >
-                                <Icon className="w-4 h-4 flex-shrink-0" />
+                                <Icon className={cn("w-4.5 h-4.5 flex-shrink-0 transition-all duration-700", isActive ? "drop-shadow-[0_0_10px_hsl(var(--primary)/0.8)] scale-110" : "opacity-40 group-hover:opacity-100 group-hover:scale-110")} />
                                 <span>{item.label}</span>
-                                <ChevronRight className="w-4 h-4 ml-auto opacity-40 group-hover:translate-x-1 transition-transform" />
+                                {isActive && (
+                                    <motion.div 
+                                        layoutId="sidebar-active-content"
+                                        className="absolute left-0 w-1.5 h-8 bg-sidebar-primary rounded-r-full netlife-glow shadow-none"
+                                    />
+                                )}
+                                <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-all duration-700 translate-x-2 group-hover:translate-x-0" />
                             </Link>
                         )
                     })}
@@ -150,65 +189,65 @@ export function CreatorSidebar() {
             </nav>
 
             {/* User Footer */}
-            <div className="p-6 border-t border-white/5 space-y-6">
-                {/* Quota */}
+            <div className="p-8 border-t border-white/5 bg-black relative z-10">
                 {user && (
-                    <div className="px-4 py-4 rounded-[20px] bg-white/5 border border-white/5 group hover:border-accent/10 transition-colors">
-                        <div className="flex justify-between items-center mb-3">
-                            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Cota de Processamento</span>
-                            <span className="text-[10px] font-extrabold text-white bg-accent/20 px-2 py-0.5 rounded-full border border-accent/20">
-                                {user.cota_usada}/{user.cota_mensal}
-                            </span>
+                    <div className="mb-10 space-y-6">
+                        <div className="flex items-center gap-4 px-2">
+                            <div className="w-14 h-14 rounded-2xl bg-white/[0.03] p-[1px] shadow-[0_0_30px_rgba(0,0,0,0.5)] border border-white/5">
+                                <div className="w-full h-full rounded-[15px] bg-black flex items-center justify-center overflow-hidden">
+                                    {user.avatar_url ? (
+                                        <img src={user.avatar_url} alt={user.nome} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <span className="text-sidebar-primary text-sm font-black italic">{getInitials(user.nome)}</span>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-xs font-black text-white truncate uppercase tracking-tighter italic leading-none">{user.nome || 'Identified Executive'}</p>
+                                <p className="text-[9px] text-white/20 truncate font-black uppercase tracking-widest mt-2">Active Level 1</p>
+                            </div>
                         </div>
-                        <div className="progress-bar h-1.5 bg-white/5">
-                            <div
-                                className="progress-fill bg-gradient-accent"
-                                style={{ width: `${Math.min(quotaPercent, 100)}%` }}
-                            />
+
+                        <div className="p-6 rounded-[32px] bg-white/[0.02] border border-white/5 group hover:border-sidebar-primary/20 transition-all duration-700 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-sidebar-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="flex justify-between items-center mb-4">
+                                <span className="text-[9px] text-white/20 font-black uppercase tracking-[0.3em]">Synaptic Load</span>
+                                <span className="text-[10px] font-black text-sidebar-primary uppercase tracking-widest italic">{quotaPercent}%</span>
+                            </div>
+                            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden p-[1px]">
+                                <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${Math.min(quotaPercent, 100)}%` }}
+                                    transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+                                    className="h-full bg-sidebar-primary netlife-glow shadow-none rounded-full"
+                                />
+                            </div>
                         </div>
                     </div>
                 )}
 
-                {/* User info */}
-                {user && (
-                    <div className="flex items-center gap-4 px-2">
-                        <div className="w-10 h-10 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0">
-                            {user.avatar_url ? (
-                                <img
-                                    src={user.avatar_url}
-                                    alt={user.nome}
-                                    className="w-full h-full rounded-full object-cover"
-                                />
-                            ) : (
-                                <span className="text-accent text-xs font-black">
-                                    {getInitials(user.nome)}
-                                </span>
-                            )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-xs font-extrabold text-white dark:text-white truncate uppercase tracking-wider">{user.nome}</p>
-                            <p className="text-[10px] text-gray-500 truncate font-medium">{user.email}</p>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            {mounted && (
-                                <button
-                                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                                    className="p-2 text-gray-600 hover:text-accent transition-all rounded-lg hover:bg-white/5"
-                                    title="Alternar Tema"
-                                >
-                                    {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4 text-amber-500" />}
-                                </button>
-                            )}
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                        {mounted && (
                             <button
-                                onClick={handleLogout}
-                                className="text-gray-600 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-white/5"
-                                title="Sair"
+                                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                                className="w-12 h-12 flex items-center justify-center text-white/20 hover:text-sidebar-primary hover:bg-white/[0.03] transition-all duration-700 rounded-2xl border border-white/5 hover:border-sidebar-primary/20"
                             >
-                                <LogOut className="w-4 h-4" />
+                                {theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
                             </button>
-                        </div>
+                        )}
+                        <button
+                            onClick={handleLogout}
+                            className="w-12 h-12 flex items-center justify-center text-white/20 hover:text-red-500 hover:bg-red-500/5 transition-all duration-700 rounded-2xl border border-white/5 hover:border-red-500/20"
+                        >
+                            <LogOut className="w-5 h-5" />
+                        </button>
                     </div>
-                )}
+                    <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                         <span className="text-[9px] font-black text-emerald-500/40 uppercase tracking-[0.2em] italic">Encrypted</span>
+                    </div>
+                </div>
             </div>
         </div>
     )
@@ -216,49 +255,45 @@ export function CreatorSidebar() {
     return (
         <>
             {/* ─────────── DESKTOP SIDEBAR ─────────── */}
-            <aside className="hidden lg:flex flex-col w-72 sidebar-fixed-dark h-screen sticky top-0 flex-shrink-0 z-50">
+            <aside className="hidden lg:flex flex-col w-80 h-screen sticky top-0 flex-shrink-0 z-50 border-r border-white/5 animate-fade-in">
                 <SidebarContent />
             </aside>
 
             {/* ─────────── MOBILE TOP HEADER ─────────── */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 py-3.5 sidebar-fixed-dark border-b border-white/10 safe-top">
-                <Link href="/dashboard" className="flex items-center gap-3">
-                    <img src="/logo.png" alt="InvestMais Finance" className="h-8 w-auto object-contain" />
-                    <span className="text-white font-bold text-lg tracking-tighter">
-                        INVEST<span className="text-accent">MAIS</span>
+            <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-5 bg-black/80 backdrop-blur-3xl border-b border-white/5 safe-top">
+                <Link href="/dashboard" className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-white p-2 flex items-center justify-center">
+                        <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+                    </div>
+                    <span className="text-white font-black text-xl tracking-tighter italic uppercase">
+                        Invest<span className="text-sidebar-primary">Mais</span>
                     </span>
                 </Link>
-                <div className="flex items-center gap-2">
-                    {mounted && (
-                        <button
-                            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                            className="p-2 text-gray-400 hover:text-accent transition-colors rounded-xl"
-                        >
-                            {theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5 text-amber-400" />}
-                        </button>
-                    )}
-                    <button
-                        onClick={() => setMobileOpen(!mobileOpen)}
-                        className="p-2 text-gray-400 hover:text-white transition-colors rounded-xl"
-                        aria-label="Menu completo"
-                    >
-                        {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-                    </button>
-                </div>
+                <button
+                    onClick={() => setMobileOpen(!mobileOpen)}
+                    className="w-12 h-12 flex items-center justify-center text-white/60 bg-white/[0.03] rounded-2xl border border-white/5"
+                >
+                    {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                </button>
             </div>
 
             {/* ─────────── MOBILE DRAWER OVERLAY ─────────── */}
-            {mobileOpen && (
-                <div
-                    className="lg:hidden fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm"
-                    onClick={() => setMobileOpen(false)}
-                />
-            )}
+            <AnimatePresence>
+                {mobileOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="lg:hidden fixed inset-0 z-[60] bg-black/90 backdrop-blur-2xl"
+                        onClick={() => setMobileOpen(false)}
+                    />
+                )}
+            </AnimatePresence>
 
             {/* ─────────── MOBILE DRAWER ─────────── */}
             <aside
                 className={cn(
-                    'lg:hidden fixed top-0 left-0 h-full w-[82vw] max-w-[320px] sidebar-fixed-dark z-[70] transition-transform duration-300 ease-in-out',
+                    'lg:hidden fixed top-0 left-0 h-full w-[85vw] max-w-[320px] bg-black z-[70] transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1) border-r border-white/5',
                     mobileOpen ? 'translate-x-0' : '-translate-x-full'
                 )}
             >
@@ -266,8 +301,8 @@ export function CreatorSidebar() {
             </aside>
 
             {/* ─────────── MOBILE BOTTOM NAVIGATION ─────────── */}
-            <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 sidebar-fixed-dark border-t border-white/10 safe-bottom">
-                <div className="flex items-center justify-around px-2 py-2">
+            <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-3xl border-t border-white/5 safe-bottom">
+                <div className="flex items-center justify-around px-4 py-4">
                     {mobileBottomNav.map((item) => {
                         const Icon = item.icon
                         const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
@@ -278,12 +313,12 @@ export function CreatorSidebar() {
                                 <Link
                                     key={item.href}
                                     href={item.href}
-                                    className="flex flex-col items-center gap-1 -mt-6"
+                                    className="flex flex-col items-center gap-2 -mt-10"
                                 >
-                                    <div className="w-14 h-14 rounded-2xl bg-accent flex items-center justify-center shadow-lg shadow-accent/40 active:scale-95 transition-transform">
-                                        <Icon className="w-6 h-6 text-black" strokeWidth={2.5} />
+                                    <div className="w-16 h-16 rounded-[24px] bg-sidebar-primary flex items-center justify-center shadow-[0_15px_30px_rgba(0,0,0,0.5)] netlife-glow shadow-none active:scale-90 transition-all duration-500">
+                                        <Icon className="w-7 h-7 text-black" strokeWidth={3} />
                                     </div>
-                                    <span className="text-[9px] font-black text-accent uppercase tracking-widest">{item.label}</span>
+                                    <span className="text-[9px] font-black text-sidebar-primary uppercase tracking-[0.3em] italic">{item.label}</span>
                                 </Link>
                             )
                         }
@@ -292,23 +327,23 @@ export function CreatorSidebar() {
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all active:scale-95"
+                                className="flex flex-col items-center gap-2 py-2 px-4 rounded-2xl transition-all active:scale-90"
                             >
                                 <div className={cn(
-                                    "w-8 h-8 rounded-xl flex items-center justify-center transition-all",
-                                    isActive ? "bg-accent/10" : ""
+                                    "w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-700",
+                                    isActive ? "bg-sidebar-primary/10" : ""
                                 )}>
                                     <Icon
                                         className={cn(
-                                            "w-5 h-5 transition-colors",
-                                            isActive ? "text-accent" : "text-gray-500"
+                                            "w-5 h-5 transition-all duration-700",
+                                            isActive ? "text-sidebar-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.6)] scale-110" : "text-white/20"
                                         )}
-                                        strokeWidth={isActive ? 2.5 : 2}
+                                        strokeWidth={isActive ? 3 : 2}
                                     />
                                 </div>
                                 <span className={cn(
-                                    "text-[9px] font-black uppercase tracking-widest transition-colors",
-                                    isActive ? "text-accent" : "text-gray-600"
+                                    "text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-700 italic",
+                                    isActive ? "text-sidebar-primary" : "text-white/10"
                                 )}>{item.label}</span>
                             </Link>
                         )

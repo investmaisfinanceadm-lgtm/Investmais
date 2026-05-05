@@ -4,11 +4,15 @@ import { useState, useEffect, useMemo } from 'react'
 import {
   Plus, X, Play, Trash2, CheckCircle2, Clock,
   Phone, Users, Send, TrendingUp, Activity,
+  Zap, Shield, Cpu, Layers, MessageSquare,
+  Sparkles, ChevronRight, BarChart2, Radio,
+  Smartphone, Monitor, Globe
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import toast from 'react-hot-toast'
+import { cn } from '@/lib/utils'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type ListaStatus = 'nova' | 'em_progresso' | 'concluida'
@@ -31,14 +35,14 @@ interface DisparoConfig {
   dias: string[]
 }
 
-const DEFAULT_MENSAGEM = `Olá {nome}, tudo bem?
+const DEFAULT_MENSAGEM = `Hello {nome}, hope you're doing well.
 
-Vi que você está em {cidade} e gostaria de apresentar uma solução especial para o seu negócio.
+I noticed your operation in {cidade} and would like to present an exclusive solution for your business.
 
-Posso te ajudar?`
+How can I assist you?`
 
-const DIAS_SEMANA = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
-const DIAS_UTEIS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex']
+const DIAS_SEMANA = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const DIAS_UTEIS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 
 function parsePhones(raw: string): string[] {
   return raw.split('\n')
@@ -48,23 +52,23 @@ function parsePhones(raw: string): string[] {
 
 function applyVars(msg: string): string {
   return msg
-    .replace(/\{nome\}/gi, 'João Silva')
-    .replace(/\{cidade\}/gi, 'São Paulo')
-    .replace(/\{estado\}/gi, 'SP')
-    .replace(/\{nicho\}/gi, 'Contabilidade')
+    .replace(/\{nome\}/gi, 'John Doe')
+    .replace(/\{cidade\}/gi, 'New York')
+    .replace(/\{estado\}/gi, 'NY')
+    .replace(/\{nicho\}/gi, 'Technology')
 }
 
 // ─── StatusBadge ─────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: ListaStatus }) {
-  const map: Record<ListaStatus, { label: string; cls: string; icon: React.ReactNode }> = {
-    nova:         { label: 'Nova',         cls: 'bg-[var(--bg-primary)] border-[var(--border-main)] text-[var(--text-muted)]', icon: <Clock className="w-3 h-3" /> },
-    em_progresso: { label: 'Em Progresso', cls: 'bg-accent/10 border-accent/20 text-accent',                  icon: <Activity className="w-3 h-3" /> },
-    concluida:    { label: 'Concluída',    cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',    icon: <CheckCircle2 className="w-3 h-3" /> },
+  const map: Record<ListaStatus, { label: string; cls: string; icon: any }> = {
+    nova:         { label: 'Idle Node',    cls: 'bg-white/5 border-white/10 text-white/40', icon: Clock },
+    em_progresso: { label: 'Transmitting', cls: 'bg-sidebar-primary/10 border-sidebar-primary/20 text-sidebar-primary', icon: Activity },
+    concluida:    { label: 'Delivered',   cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400', icon: CheckCircle2 },
   }
-  const { label, cls, icon } = map[status]
+  const { label, cls, icon: Icon } = map[status]
   return (
-    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${cls}`}>
-      {icon}{label}
+    <span className={cn("inline-flex items-center gap-2 text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full border italic", cls)}>
+      <Icon className="w-3 h-3" />{label}
     </span>
   )
 }
@@ -97,7 +101,6 @@ function IniciarDisparoModal({
   const handleConfirm = async () => {
     setStarting(true)
     try {
-      // Map phone numbers to lead objects expected by n8n automation
       const leads = lista.telefones.map((telefone, i) => ({
         id: `lead-${lista.id}-${i}`,
         nome: 'Lead',
@@ -117,14 +120,13 @@ function IniciarDisparoModal({
         hora_fim: '18:00',
         dias_semana: config.dias.map(d => {
           const map: Record<string, string> = {
-            'Seg': 'seg', 'Ter': 'ter', 'Qua': 'qua',
-            'Qui': 'qui', 'Sex': 'sex', 'Sáb': 'sab', 'Dom': 'dom',
+            'Mon': 'seg', 'Tue': 'ter', 'Wed': 'qua',
+            'Thu': 'qui', 'Fri': 'sex', 'Sat': 'sab', 'Sun': 'dom',
           }
           return map[d] || d.toLowerCase()
         }),
       }
 
-      // Call server-side proxy to avoid CORS issues when calling n8n externally
       const res = await fetch('/api/proxy/disparo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -135,28 +137,28 @@ function IniciarDisparoModal({
 
       if (!res.ok) {
         if (res.status === 400 && data?.error?.includes('não configurado')) {
-          toast.error('Configure o Webhook de Disparo em Configurações > Disparo')
+          toast.error('Configure Dispatch Webhook in Core Settings')
         } else {
-          throw new Error(data?.error || `Erro ${res.status}`)
+          throw new Error(data?.error || `Error ${res.status}`)
         }
         setStarting(false)
         return
       }
 
       onConfirm(lista.id)
-      toast.success('Disparo de WhatsApp iniciado!')
+      toast.success('Autonomous dispatch protocol energized')
       onClose()
     } catch (err: any) {
-      toast.error(err?.message || 'Erro ao iniciar disparo')
+      toast.error(err?.message || 'Dispatch activation failure')
     } finally {
       setStarting(false)
     }
   }
 
   const tabs: { key: DisparoTab; label: string }[] = [
-    { key: 'mensagem', label: 'Mensagem' },
-    { key: 'configuracoes', label: 'Configurações' },
-    { key: 'confirmar', label: 'Confirmar' },
+    { key: 'mensagem', label: 'Payload' },
+    { key: 'configuracoes', label: 'Parameters' },
+    { key: 'confirmar', label: 'Execute' },
   ]
 
   const diasLabel = config.dias
@@ -165,182 +167,180 @@ function IniciarDisparoModal({
     .join(', ')
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <motion.div className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-black/90 backdrop-blur-3xl" onClick={onClose} />
       <motion.div
-        className="relative w-full max-w-lg max-h-[90vh] flex flex-col bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl overflow-hidden shadow-2xl"
-        initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}>
-
+        initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="relative w-full max-w-xl nl-glass border-white/10 rounded-[48px] shadow-[0_100px_200px_rgba(0,0,0,0.8)] overflow-hidden"
+      >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[var(--border-main)] flex items-center justify-between flex-shrink-0">
-          <h2 className="text-sm md:text-base font-black text-[var(--text-main)] flex items-center gap-2 min-w-0">
-            <Send className="w-4 h-4 text-accent flex-shrink-0" />
-            <span className="truncate">Iniciar: <span className="text-accent">{lista.nome}</span></span>
-          </h2>
-          <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors p-2 flex-shrink-0 min-w-[36px] min-h-[36px] flex items-center justify-center">
+        <div className="p-10 border-b border-white/5 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-sidebar-primary/10 flex items-center justify-center border border-sidebar-primary/20">
+                <Send className="w-5 h-5 text-sidebar-primary" />
+            </div>
+            <div className="space-y-0.5">
+                <h2 className="text-sm font-black text-white uppercase tracking-widest italic">Dispatch Initialization</h2>
+                <p className="text-[9px] font-black text-sidebar-primary uppercase tracking-[0.2em]">{lista.nome}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-4 rounded-2xl bg-white/[0.03] text-white/20 hover:text-white transition-all">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-[var(--border-main)]">
+        <div className="flex px-10 gap-2 mt-6">
           {tabs.map(t => (
             <button key={t.key} onClick={() => setActiveTab(t.key)}
-              className={`flex-1 py-3 text-sm font-semibold transition-colors ${
+              className={cn(
+                "flex-1 py-4 text-[9px] font-black uppercase tracking-[0.2em] transition-all rounded-2xl border",
                 activeTab === t.key
-                  ? 'text-[var(--text-main)] border-b-2 border-accent bg-accent/5'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
-              }`}>
+                  ? 'bg-sidebar-primary text-black border-sidebar-primary netlife-glow shadow-none italic'
+                  : 'bg-white/[0.02] text-white/20 border-white/5 hover:border-white/10'
+              )}>
               {t.label}
             </button>
           ))}
         </div>
 
         {/* Tab Content */}
-        <div className="p-6 overflow-y-auto flex-1">
+        <div className="p-10 min-h-[400px]">
           <AnimatePresence mode="wait">
-            {/* ── Mensagem ── */}
             {activeTab === 'mensagem' && (
               <motion.div key="msg" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
-                className="space-y-4">
-                {/* Variables */}
-                <div className="space-y-2">
-                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Variáveis Disponíveis</p>
-                  <div className="flex flex-wrap gap-2">
+                className="space-y-8">
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Injection Variables</label>
+                  <div className="flex flex-wrap gap-3">
                     {['{nome}', '{cidade}', '{estado}', '{nicho}'].map(v => (
                       <button key={v} onClick={() => setConfig(prev => ({ ...prev, mensagem: prev.mensagem + v }))}
-                        className="text-xs px-3 py-1 rounded-lg bg-accent/10 border border-accent/20 text-accent font-mono hover:bg-accent/20 transition-colors">
+                        className="text-[9px] px-4 py-2 rounded-xl bg-black/40 border border-white/5 text-sidebar-primary font-black uppercase tracking-widest hover:border-sidebar-primary/40 transition-all">
                         {v}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Message textarea */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Mensagem</label>
-                    <div className="flex gap-2">
-                      <button onClick={() => setConfig(prev => ({ ...prev, mensagem: DEFAULT_MENSAGEM }))}
-                        className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors flex items-center gap-1">
-                        ↺ Carregar Padrão
-                      </button>
-                      <button onClick={() => { localStorage.setItem('disparo_msg_padrao', config.mensagem); toast.success('Padrão salvo!') }}
-                        className="text-[10px] text-accent hover:text-accent/80 transition-colors flex items-center gap-1 font-semibold">
-                        ✦ Salvar como Padrão
-                      </button>
-                    </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between ml-2">
+                    <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Neural Payload</label>
+                    <button onClick={() => setConfig(prev => ({ ...prev, mensagem: DEFAULT_MENSAGEM }))}
+                      className="text-[9px] text-sidebar-primary font-black uppercase tracking-widest flex items-center gap-2 hover:text-white transition-colors">
+                      <RefreshCw className="w-3 h-3" /> Reset Core
+                    </button>
                   </div>
                   <textarea value={config.mensagem}
                     onChange={e => setConfig(prev => ({ ...prev, mensagem: e.target.value }))}
-                    rows={5} className="input-field text-sm resize-none font-mono" />
-                  <p className="text-[10px] text-gray-600 text-right">{config.mensagem.length} caracteres</p>
+                    rows={6} className="w-full bg-black/40 border border-white/5 text-white placeholder-white/10 px-8 py-6 rounded-[24px] focus:outline-none focus:border-sidebar-primary/40 transition-all text-xs font-black uppercase tracking-widest leading-relaxed resize-none font-mono" />
                 </div>
 
-                {/* Preview */}
-                <div className="space-y-1.5">
-                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Preview</p>
-                  <div className="p-4 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-main)] text-sm text-[var(--text-muted)] whitespace-pre-wrap leading-relaxed">
-                    {applyVars(config.mensagem) || <span className="text-gray-600 italic">Digite uma mensagem acima</span>}
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Real-time Preview</label>
+                  <div className="p-8 rounded-[32px] bg-white/[0.02] border border-white/5 text-[11px] text-white/40 font-black uppercase tracking-widest whitespace-pre-wrap leading-loose italic">
+                    {applyVars(config.mensagem) || "Awaiting Payload Input..."}
                   </div>
                 </div>
               </motion.div>
             )}
 
-            {/* ── Configurações ── */}
             {activeTab === 'configuracoes' && (
               <motion.div key="cfg" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
-                className="space-y-6">
-                {/* Intervalo */}
-                <div className="space-y-2">
-                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
-                    <Clock className="w-3 h-3" />Intervalo entre Envios
-                  </p>
-                  <div className="flex items-center gap-3">
+                className="space-y-10">
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2 flex items-center gap-3">
+                    <Clock className="w-4 h-4 text-sidebar-primary" /> Signal Delay (Seconds)
+                  </label>
+                  <div className="flex items-center gap-6">
                     <input type="number" value={config.intervalo} min={3} max={60}
                       onChange={e => setConfig(prev => ({ ...prev, intervalo: Math.min(60, Math.max(3, Number(e.target.value))) }))}
-                      className="input-field w-24 text-center font-mono text-sm" />
-                    <span className="text-sm text-gray-400">segundos (min: 3, máx: 60)</span>
+                      className="w-32 bg-black/40 border border-white/5 text-white text-center px-8 py-5 rounded-[24px] focus:outline-none focus:border-sidebar-primary/40 transition-all text-sm font-black tracking-widest" />
+                    <span className="text-[10px] text-white/10 font-black uppercase tracking-widest">Recommended: 5-15s per signal</span>
                   </div>
                 </div>
 
-                {/* Horário comercial */}
-                <label className="flex items-center gap-3 cursor-pointer group">
+                <div className="space-y-4">
+                    <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Operation Days</label>
+                    <div className="grid grid-cols-4 md:grid-cols-7 gap-3">
+                        {DIAS_SEMANA.map(dia => (
+                        <button key={dia} onClick={() => toggleDia(dia)}
+                            className={cn(
+                                "py-4 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border",
+                                config.dias.includes(dia)
+                                    ? 'bg-sidebar-primary/10 text-sidebar-primary border-sidebar-primary/40'
+                                    : 'bg-white/[0.02] border-white/5 text-white/10 hover:border-white/20'
+                            )}>
+                            {dia}
+                        </button>
+                        ))}
+                    </div>
+                </div>
+
+                <label className="flex items-center gap-6 p-8 rounded-[32px] bg-black/40 border border-white/5 cursor-pointer group hover:border-sidebar-primary/20 transition-all">
                   <div onClick={() => setConfig(prev => ({ ...prev, horarioComercial: !prev.horarioComercial }))}
-                    className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                      config.horarioComercial ? 'bg-accent border-accent' : 'border-[var(--border-main)] bg-[var(--bg-primary)] group-hover:border-accent/40'
-                    }`}>
-                    {config.horarioComercial && <CheckCircle2 className="w-3 h-3 text-[var(--text-main)]" />}
+                    className={cn(
+                        "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
+                        config.horarioComercial ? 'bg-sidebar-primary border-sidebar-primary netlife-glow shadow-none' : 'border-white/10 bg-black/40'
+                    )}>
+                    {config.horarioComercial && <CheckCircle2 className="w-4 h-4 text-black" />}
                   </div>
-                  <span className="text-sm text-[var(--text-muted)] font-medium">Enviar apenas em horário comercial</span>
+                  <div className="space-y-1">
+                      <span className="text-xs text-white font-black uppercase tracking-widest italic group-hover:text-sidebar-primary transition-colors">Executive Business Hours</span>
+                      <p className="text-[9px] text-white/20 font-black uppercase tracking-widest">Restrict transmission to 08:00 - 18:00</p>
+                  </div>
                 </label>
-
-                {/* Dias da semana */}
-                <div className="space-y-2">
-                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Dias da Semana</p>
-                  <div className="flex flex-wrap gap-2">
-                    {DIAS_SEMANA.map(dia => (
-                      <button key={dia} onClick={() => toggleDia(dia)}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                          config.dias.includes(dia)
-                            ? 'bg-accent text-[var(--text-main)] shadow-accent'
-                            : 'bg-[var(--bg-primary)] border border-[var(--border-main)] text-[var(--text-muted)] hover:border-accent/40'
-                        }`}>
-                        {dia}
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </motion.div>
             )}
 
-            {/* ── Confirmar ── */}
             {activeTab === 'confirmar' && (
               <motion.div key="confirm" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
-                className="space-y-4">
-                <div className="p-4 rounded-xl bg-accent/5 border border-accent/20 space-y-3">
-                  <p className="text-sm font-black text-accent flex items-center gap-2">
-                    <Send className="w-3.5 h-3.5" />Resumo do Disparo
-                  </p>
-                  <div className="space-y-2 text-sm">
+                className="space-y-8">
+                <div className="p-10 rounded-[48px] bg-sidebar-primary/5 border border-sidebar-primary/10 space-y-8 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-8">
+                      <Zap className="w-20 h-20 text-sidebar-primary/5" />
+                  </div>
+                  <h3 className="text-xs font-black text-sidebar-primary uppercase tracking-[0.3em] flex items-center gap-3 italic">
+                    <Activity className="w-4 h-4" /> Ready for Ignition
+                  </h3>
+                  <div className="space-y-6">
                     {[
-                      { label: 'Lista',             value: lista.nome,                              cls: 'text-[var(--text-main)] font-semibold' },
-                      { label: 'Total de Leads',     value: String(lista.total),                    cls: 'text-[var(--text-main)] font-semibold' },
-                      { label: 'Já enviados',        value: String(lista.enviados),                 cls: 'text-[var(--text-main)] font-semibold' },
-                      { label: 'Serão enviados',     value: String(lista.total - lista.enviados),   cls: 'text-accent font-bold' },
-                      { label: 'Intervalo',          value: `${config.intervalo} segundos`,         cls: 'text-[var(--text-main)]' },
-                      { label: 'Horário Comercial',  value: config.horarioComercial ? 'Ativado' : 'Desativado', cls: 'text-[var(--text-main)]' },
-                      { label: 'Dias',               value: diasLabel,                              cls: 'text-[var(--text-main)]' },
+                      { label: 'Target Vault', value: lista.nome, cls: 'text-white' },
+                      { label: 'Signal Batch', value: `${lista.total - lista.enviados} Nodes`, cls: 'text-sidebar-primary font-black' },
+                      { label: 'Neural Delay', value: `${config.intervalo} SECS`, cls: 'text-white' },
+                      { label: 'Operation Window', value: config.horarioComercial ? 'BUSINESS ONLY' : 'FULL 24H', cls: 'text-white' },
+                      { label: 'Transmission Days', value: diasLabel, cls: 'text-white/40 text-[8px]' },
                     ].map(row => (
-                      <div key={row.label} className="flex items-center justify-between gap-4">
-                        <span className="text-gray-400">{row.label}:</span>
-                        <span className={row.cls}>{row.value}</span>
+                      <div key={row.label} className="flex items-center justify-between border-b border-white/5 pb-4">
+                        <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">{row.label}:</span>
+                        <span className={cn("text-[10px] font-black uppercase tracking-widest", row.cls)}>{row.value}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-                <p className="text-[11px] text-gray-500 bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-xl px-4 py-3 leading-relaxed">
-                  O disparo será processado via webhook N8N. Você pode acompanhar o progresso na tabela de listas.
-                </p>
+                <div className="flex items-center gap-6 p-8 rounded-[32px] bg-black/40 border border-white/5">
+                    <Shield className="w-5 h-5 text-white/10" />
+                    <p className="text-[9px] text-white/20 font-black uppercase tracking-[0.3em] leading-loose">
+                        Dispatch authorized via Neural Hub N8N. Progression status will synchronize with the primary matrix automatically.
+                    </p>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
         {/* Footer */}
-        <div className="px-6 pb-6 flex gap-3">
-          <button onClick={onClose} className="btn-secondary flex-1 font-semibold">Cancelar</button>
+        <div className="p-10 border-t border-white/5 flex gap-6 bg-black/40">
+          <button onClick={onClose} className="text-[10px] font-black text-white/20 uppercase tracking-widest hover:text-white transition-all">Abort</button>
           {activeTab !== 'confirmar' ? (
             <button onClick={() => setActiveTab(activeTab === 'mensagem' ? 'configuracoes' : 'confirmar')}
-              className="btn-primary flex-1 font-black text-sm uppercase tracking-wider">
-              Próximo →
+              className="flex-1 btn-primary py-6 netlife-glow shadow-none text-[10px] font-black uppercase tracking-[0.3em]">
+              Next Parameter Phase
             </button>
           ) : (
             <button onClick={handleConfirm} disabled={starting}
-              className="btn-primary flex-1 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-60">
-              {starting ? <Activity className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              Iniciar Disparo de WhatsApp
+              className="flex-1 btn-primary py-6 netlife-glow shadow-none text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 disabled:opacity-40">
+              {starting ? <Activity className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
+              Energize Dispatch Protocol
             </button>
           )}
         </div>
@@ -370,61 +370,66 @@ function CriarListaModal({ onClose, onCreate }: { onClose: () => void; onCreate:
       if (!res.ok) throw new Error()
       const lista = await res.json()
       onCreate(lista)
-      toast.success('Lista criada com sucesso!')
+      toast.success('New Signal Vault initialized')
       onClose()
     } catch {
-      toast.error('Erro ao criar lista. Tente novamente.')
+      toast.error('Vault initialization failure')
     } finally {
       setSaving(false)
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <motion.div className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-black/90 backdrop-blur-3xl" onClick={onClose} />
       <motion.div
-        className="relative w-full max-w-md bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl overflow-hidden shadow-2xl"
-        initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}>
-        <div className="p-6 border-b border-[var(--border-main)] flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-black text-[var(--text-main)] flex items-center gap-2">
-              <Plus className="w-5 h-5 text-accent" />Criar Lista Manual
-            </h2>
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">Adicione telefones manualmente para criar uma nova lista de disparo.</p>
+        initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="relative w-full max-w-xl nl-glass border-white/10 rounded-[48px] shadow-[0_100px_200px_rgba(0,0,0,0.8)] overflow-hidden"
+      >
+        <div className="p-10 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-sidebar-primary/10 flex items-center justify-center border border-sidebar-primary/20">
+                <Plus className="w-5 h-5 text-sidebar-primary" />
+            </div>
+            <div className="space-y-0.5">
+                <h2 className="text-sm font-black text-white uppercase tracking-widest italic">New Signal Vault</h2>
+                <p className="text-[9px] font-black text-white/10 uppercase tracking-[0.2em]">Manual Lead Infiltration</p>
+            </div>
           </div>
-          <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors p-1">
+          <button onClick={onClose} className="p-4 rounded-2xl bg-white/[0.03] text-white/20 hover:text-white transition-all">
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="p-6 space-y-5">
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Nome da Lista *</label>
-            <input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Prospecção Janeiro 2024"
-              className="input-field text-sm" />
+
+        <div className="p-10 space-y-10">
+          <div className="space-y-4">
+            <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Vault Designation</label>
+            <input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Q1 Strategic Prospecion"
+              className="w-full bg-black/40 border border-white/5 text-white placeholder-white/10 px-8 py-6 rounded-[24px] focus:outline-none focus:border-sidebar-primary/40 transition-all text-xs font-black uppercase tracking-widest" />
           </div>
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Phone className="w-3 h-3" />Telefones (um por linha) *
+          <div className="space-y-4">
+            <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2 flex items-center gap-3">
+              <Phone className="w-4 h-4 text-sidebar-primary" /> Neural Signal Vectors (One per line)
             </label>
             <textarea value={rawPhones} onChange={e => setRawPhones(e.target.value)} rows={6}
-              placeholder={'5511987654321\n5521999998888\n55 62 99433-1056'}
-              className="input-field text-sm font-mono resize-none" />
-            <p className="text-[10px] text-gray-600">
-              Formato: DDI + DDD + Número (ex: 5562994331056)
-              <span className="ml-2 text-accent font-bold">
-                {phones.length} válidos / {rawPhones.split('\n').filter(l => l.trim()).length} total
-              </span>
-            </p>
+              placeholder={'5511987654321\n55 62 99433-1056'}
+              className="w-full bg-black/40 border border-white/5 text-white placeholder-white/10 px-8 py-6 rounded-[32px] focus:outline-none focus:border-sidebar-primary/40 transition-all text-xs font-black uppercase tracking-widest font-mono resize-none leading-relaxed" />
+            <div className="flex items-center justify-between px-2">
+                <p className="text-[9px] text-white/10 font-black uppercase tracking-widest">Format: [DDI] [DDD] [NODE]</p>
+                <div className="flex gap-4">
+                    <span className="text-[9px] font-black text-sidebar-primary uppercase tracking-widest italic">{phones.length} Verified Nodes</span>
+                </div>
+            </div>
           </div>
         </div>
-        <div className="px-6 pb-6 flex gap-3">
-          <button onClick={onClose} className="btn-secondary flex-1 font-semibold">Cancelar</button>
+
+        <div className="p-10 flex gap-6 bg-black/40 border-t border-white/5">
+          <button onClick={onClose} className="text-[10px] font-black text-white/20 uppercase tracking-widest hover:text-white transition-all">Cancel</button>
           <button onClick={handleSubmit} disabled={!canSave || saving}
-            className="btn-primary flex-1 font-black text-sm uppercase tracking-wider disabled:opacity-40 flex items-center justify-center gap-2">
+            className="flex-1 btn-primary py-6 netlife-glow shadow-none text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 disabled:opacity-40">
             {saving
-              ? <><Activity className="w-4 h-4 animate-spin" />Criando...</>
-              : `Criar Lista (${phones.length} telefones)`}
+              ? <><Activity className="w-5 h-5 animate-spin" />Syncing...</>
+              : <><Layers className="w-5 h-5" /> Initialize Vault with {phones.length} Nodes</>}
           </button>
         </div>
       </motion.div>
@@ -460,9 +465,9 @@ export default function ListasDisparoPage() {
     try {
       await fetch(`/api/listas-disparo?id=${id}`, { method: 'DELETE' })
       setListas(prev => prev.filter(l => l.id !== id))
-      toast.success('Lista removida')
+      toast.success('Signal Vault purged')
     } catch {
-      toast.error('Erro ao remover lista')
+      toast.error('Purge failure')
     } finally {
       setDeletingId(null)
     }
@@ -473,119 +478,150 @@ export default function ListasDisparoPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 lg:p-12 space-y-6 md:space-y-8 max-w-7xl mx-auto animate-fade-in pb-20">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="space-y-1 md:space-y-2">
-          <h1 className="text-3xl md:text-4xl font-black text-[var(--text-main)] tracking-tighter">Listas de Disparo</h1>
-          <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">
-            Gerencie suas listas e dispare mensagens WhatsApp para leads
-          </p>
-        </div>
-        <button onClick={() => setCriarOpen(true)}
-          className="btn-primary flex items-center gap-2 font-black text-xs md:text-sm uppercase tracking-wider whitespace-nowrap self-start sm:self-auto">
-          <Plus className="w-4 h-4" />Criar Lista
-        </button>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: 'Listas Ativas',   value: stats.ativas,            icon: <Send className="w-5 h-5" />,       color: 'text-accent' },
-          { label: 'Em Progresso',    value: stats.emProgresso,       icon: <Activity className="w-5 h-5" />,   color: 'text-blue-400' },
-          { label: 'Taxa de Sucesso', value: `${stats.taxaSucesso}%`, icon: <TrendingUp className="w-5 h-5" />, color: 'text-emerald-400' },
-          { label: 'Pendentes',       value: stats.pendentes,         icon: <Users className="w-5 h-5" />,      color: 'text-amber-400' },
-        ].map(s => (
-          <div key={s.label} className="card card-hover p-5 rounded-2xl flex items-center gap-4 shadow-sm">
-            <div className={`${s.color} opacity-60`}>{s.icon}</div>
-            <div>
-              <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
-              <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">{s.label}</p>
-            </div>
+    <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
+      <div className="ambient-bg" />
+      
+      <div className="relative z-10 flex-1 flex flex-col p-8 lg:p-12 max-w-7xl mx-auto w-full space-y-12">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-black text-white uppercase tracking-tighter italic leading-none">Autonomous Dispatch Hub</h1>
+            <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.5em]">Neural Signal Transmission Command</p>
           </div>
-        ))}
-      </div>
-
-      {/* Table */}
-      <div className="card rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-[var(--border-main)] flex items-center gap-2">
-          <Send className="w-4 h-4 text-accent" />
-          <h3 className="text-sm font-black text-[var(--text-main)] uppercase tracking-wider">Listas de Disparo</h3>
-          <span className="badge badge-accent text-[10px] ml-1">{listas.length}</span>
+          
+          <button onClick={() => setCriarOpen(true)}
+            className="btn-primary flex items-center gap-4 px-10 py-6 netlife-glow shadow-none text-xs font-black uppercase tracking-[0.3em] italic">
+            <Plus className="w-5 h-5" /> Initialize New Vault
+          </button>
         </div>
 
-        {loading ? (
-          <div className="p-6 space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="shimmer h-14 rounded-xl" />)}</div>
-        ) : listas.length === 0 ? (
-          <div className="py-20 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-main)] flex items-center justify-center mx-auto mb-4">
-              <Send className="w-6 h-6 text-[var(--text-support)]" />
+        {/* Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+          {[
+            { label: 'Active Vaults',   value: stats.ativas,            icon: Send,       color: 'text-sidebar-primary' },
+            { label: 'Live Transmission',    value: stats.emProgresso,       icon: Activity,   color: 'text-sidebar-primary' },
+            { label: 'Sync Efficiency', value: `${stats.taxaSucesso}%`, icon: TrendingUp, color: 'text-emerald-400' },
+            { label: 'Pending Signals',       value: stats.pendentes,         icon: Users,      color: 'text-white' },
+          ].map((s, idx) => (
+            <motion.div 
+              key={s.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              className="nl-glass p-8 rounded-[40px] border-white/5 space-y-6 relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-white/[0.01] opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="w-10 h-10 rounded-xl bg-white/[0.03] flex items-center justify-center text-white/10 group-hover:text-white transition-colors">
+                  <s.icon className="w-5 h-5" />
+              </div>
+              <div className="space-y-1 text-center">
+                  <p className={`text-3xl font-black italic tracking-tighter ${s.color}`}>{s.value}</p>
+                  <p className="text-[9px] text-white/20 font-black uppercase tracking-[0.4em] mt-1">{s.label}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Table Area */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="nl-glass rounded-[48px] border-white/5 overflow-hidden">
+          <div className="px-10 py-8 border-b border-white/5 flex items-center gap-4 bg-white/[0.02]">
+            <div className="w-10 h-10 rounded-2xl bg-sidebar-primary/10 border border-sidebar-primary/20 flex items-center justify-center text-sidebar-primary">
+                <Radio className="w-5 h-5" />
             </div>
-            <p className="text-[var(--text-muted)] font-semibold">Nenhuma lista criada ainda</p>
-            <p className="text-[var(--text-support)] text-sm mt-1">Crie sua primeira lista de disparo para começar</p>
-            <button onClick={() => setCriarOpen(true)} className="btn-primary mt-5 inline-flex items-center gap-2 text-sm font-black uppercase tracking-wider">
-              <Plus className="w-4 h-4" />Criar Lista Manual
-            </button>
+            <div className="space-y-0.5">
+                <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Signal Transmission Matrix</h3>
+                <p className="text-[9px] font-black text-white/10 uppercase tracking-[0.3em]">Vault Inventory & Propagation</p>
+            </div>
+            <span className="px-3 py-1 rounded-full bg-sidebar-primary/10 border border-sidebar-primary/20 text-[9px] font-black text-sidebar-primary ml-auto">{listas.length} Active Nodes</span>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-[var(--border-main)] bg-[var(--bg-primary)]/50">
-                  <th className="table-header">Nome</th>
-                  <th className="table-header text-center">Leads</th>
-                  <th className="table-header">Progresso</th>
-                  <th className="table-header text-center">Status</th>
-                  <th className="table-header">Criado em</th>
-                  <th className="table-header text-center">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                <AnimatePresence>
-                  {listas.map(lista => {
-                    const pct = lista.total > 0 ? Math.round(lista.enviados / lista.total * 100) : 0
-                    return (
-                      <motion.tr key={lista.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="table-row">
-                        <td className="table-cell font-bold text-[var(--text-main)]">{lista.nome}</td>
-                        <td className="table-cell text-center text-sm text-[var(--text-muted)]">
-                          <span className="font-black text-[var(--text-main)]">{lista.enviados}</span>/{lista.total}
-                        </td>
-                        <td className="table-cell min-w-[140px]">
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1 h-1.5 bg-[var(--border-main)] rounded-full overflow-hidden">
-                              <div className="h-full bg-accent rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+
+          {loading ? (
+            <div className="p-10 space-y-4">{[...Array(4)].map((_, i) => <div key={i} className="h-20 rounded-[32px] bg-white/[0.02] border border-white/5 animate-pulse" />)}</div>
+          ) : listas.length === 0 ? (
+            <div className="py-40 text-center space-y-8">
+              <div className="w-20 h-20 rounded-[40px] bg-white/[0.02] border border-white/5 flex items-center justify-center mx-auto mb-4 group hover:border-sidebar-primary/40 transition-all duration-700">
+                <Send className="w-10 h-10 text-white/5 group-hover:text-sidebar-primary group-hover:scale-110 transition-all" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.5em] italic">No Signal Vaults Detected</p>
+                <p className="text-[8px] font-black text-white/10 uppercase tracking-[0.3em]">Initialize your first infiltration batch to begin transmission.</p>
+              </div>
+              <button onClick={() => setCriarOpen(true)} className="btn-primary px-10 py-5 netlife-glow shadow-none inline-flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.3em] italic">
+                <Plus className="w-5 h-5" /> Initialize First Vault
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto scrollbar-none">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-black/40 border-b border-white/5">
+                    <th className="px-10 py-6 text-[9px] font-black text-white/20 uppercase tracking-[0.4em]">Vault Entity</th>
+                    <th className="px-10 py-6 text-[9px] font-black text-white/20 uppercase tracking-[0.4em] text-center">Node Count</th>
+                    <th className="px-10 py-6 text-[9px] font-black text-white/20 uppercase tracking-[0.4em]">Propagation Flux</th>
+                    <th className="px-10 py-6 text-[9px] font-black text-white/20 uppercase tracking-[0.4em] text-center">Protocol Status</th>
+                    <th className="px-10 py-6 text-[9px] font-black text-white/20 uppercase tracking-[0.4em]">Initialized</th>
+                    <th className="px-10 py-6 text-[9px] font-black text-white/20 uppercase tracking-[0.4em] text-center">Vectors</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  <AnimatePresence>
+                    {listas.map((lista, idx) => {
+                      const pct = lista.total > 0 ? Math.round(lista.enviados / lista.total * 100) : 0
+                      return (
+                        <motion.tr key={lista.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.05 }}
+                          className="group hover:bg-white/[0.03] transition-all duration-700">
+                          <td className="px-10 py-8">
+                              <div className="flex items-center gap-6">
+                                  <div className="w-10 h-10 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center group-hover:bg-sidebar-primary group-hover:text-black transition-all">
+                                      <Layers className="w-5 h-5 opacity-40 group-hover:opacity-100" />
+                                  </div>
+                                  <span className="text-xs font-black text-white uppercase tracking-widest italic group-hover:text-sidebar-primary transition-colors">{lista.nome}</span>
+                              </div>
+                          </td>
+                          <td className="px-10 py-8 text-center">
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[11px] font-black text-white tracking-widest">{lista.enviados}<span className="text-white/10 mx-2">/</span>{lista.total}</span>
+                                <span className="text-[8px] font-black text-white/10 uppercase tracking-[0.2em]">NODES SYNCED</span>
                             </div>
-                            <span className="text-[10px] text-gray-500 w-8 text-right">{pct}%</span>
-                          </div>
-                        </td>
-                        <td className="table-cell text-center"><StatusBadge status={lista.status} /></td>
-                        <td className="table-cell text-[var(--text-muted)] text-xs font-medium">
-                          {format(parseISO(lista.created_at), 'dd/MM/yyyy', { locale: ptBR })}
-                        </td>
-                        <td className="table-cell text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            {lista.status === 'nova' && (
-                              <button onClick={() => setIniciarLista(lista)} title="Iniciar disparo"
-                                className="p-1.5 rounded-lg bg-accent/10 border border-accent/20 text-accent hover:bg-accent/20 transition-colors">
-                                <Play className="w-3.5 h-3.5" />
+                          </td>
+                          <td className="px-10 py-8 min-w-[200px]">
+                            <div className="flex flex-col gap-3">
+                              <div className="flex justify-between items-center">
+                                  <span className="text-[8px] font-black text-sidebar-primary uppercase tracking-widest italic">Signal Flux</span>
+                                  <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">{pct}%</span>
+                              </div>
+                              <div className="h-1.5 bg-white/[0.05] rounded-full overflow-hidden border border-white/5">
+                                <div className="h-full bg-sidebar-primary netlife-glow shadow-none rounded-full transition-all duration-1000" style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-10 py-8 text-center"><StatusBadge status={lista.status} /></td>
+                          <td className="px-10 py-8 text-[10px] font-black text-white/10 uppercase tracking-widest italic">
+                            {format(parseISO(lista.created_at), 'dd MMM yy', { locale: ptBR })}
+                          </td>
+                          <td className="px-10 py-8">
+                            <div className="flex items-center justify-center gap-3">
+                              {lista.status === 'nova' && (
+                                <button onClick={() => setIniciarLista(lista)}
+                                  className="w-12 h-12 rounded-2xl bg-sidebar-primary/5 border border-sidebar-primary/20 text-sidebar-primary hover:bg-sidebar-primary hover:text-black transition-all flex items-center justify-center group/btn shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)]">
+                                  <Play className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                                </button>
+                              )}
+                              <button onClick={() => handleDelete(lista.id)} disabled={deletingId === lista.id}
+                                className="w-12 h-12 rounded-2xl bg-white/[0.02] border border-white/5 text-white/10 hover:text-red-500 hover:border-red-500/40 hover:bg-red-500/5 transition-all flex items-center justify-center group/btn">
+                                {deletingId === lista.id ? <Activity className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />}
                               </button>
-                            )}
-                            <button onClick={() => handleDelete(lista.id)} disabled={deletingId === lista.id}
-                              title="Excluir lista"
-                              className="p-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-40">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </motion.tr>
-                    )
-                  })}
-                </AnimatePresence>
-              </tbody>
-            </table>
-          </div>
-        )}
+                            </div>
+                          </td>
+                        </motion.tr>
+                      )
+                    })}
+                  </AnimatePresence>
+                </tbody>
+              </table>
+            </div>
+          )}
+        </motion.div>
       </div>
 
       {/* Modals */}
