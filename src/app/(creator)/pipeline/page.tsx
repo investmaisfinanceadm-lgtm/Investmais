@@ -37,6 +37,7 @@ import { cn } from '@/lib/utils'
 import { format, parseISO, isPast } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import toast from 'react-hot-toast'
+import { normalizeWhatsApp, formatCurrency as formatBRL, SELLER_COLORS } from '@/lib/crm-utils'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -54,19 +55,23 @@ interface KanbanCard {
   value: number
   description: string
   columnId: string
-  product?: string
-  companyBranch?: string
-  monthlyRevenue?: number
+  status: 'open' | 'won' | 'lost'
+  lostReason?: string
+  closedAt?: string
   origin?: string
-  createdAt?: string
-  updatedAt?: string
-  linkedContact?: { name: string; phone: string }
+  createdAt: string
+  updatedAt: string
+  contactId?: string
+  vendedorId?: string
+  linkedContact?: { name: string; phone: string; email?: string }
 }
 
 interface KanbanColumn {
   id: string
   name: string
   color: string
+  probabilidade: number
+  slaHoras?: number
   cards: KanbanCard[]
 }
 
@@ -86,10 +91,10 @@ const DEFAULT_BOARDS: BoardName[] = ['Vendas', 'Projetos', 'Suporte']
 const MOCK_HISTORY: HistoryEntry[] = []
 
 const initialColumns: KanbanColumn[] = [
-  { id: 'leads',       name: 'Leads',        color: '#3B82F6', cards: [] },
-  { id: 'qualificacao',name: 'Qualificação', color: '#F59E0B', cards: [] },
-  { id: 'proposta',    name: 'Proposta',     color: '#2563EB', cards: [] },
-  { id: 'fechado',     name: 'Fechado',      color: '#8B5CF6', cards: [] },
+  { id: 'leads',       name: 'Leads',        color: '#3B82F6', probabilidade: 100, cards: [] },
+  { id: 'qualificacao',name: 'Qualificação', color: '#F59E0B', probabilidade: 100, cards: [] },
+  { id: 'proposta',    name: 'Proposta',     color: '#2563EB', probabilidade: 100, cards: [] },
+  { id: 'fechado',     name: 'Fechado',      color: '#8B5CF6', probabilidade: 100, cards: [] },
 ]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -186,12 +191,31 @@ function Avatar({ initials, color, size = 'sm' }: { initials: string; color: str
 function KanbanCardItem({
   card,
   onClick,
+  onSelect,
+  isSelected,
+  selectionMode,
+  columnSla,
 }: {
   card: KanbanCard
   onClick: () => void
+  onSelect: (id: string) => void
+  isSelected: boolean
+  selectionMode: boolean
+  columnSla?: number
 }) {
   const overdue = isOverdue(card.dueDate)
   const catClass = categoryColorMap[card.categoryColor] || categoryColorMap.blue
+
+  // SLA Logic
+  const createdAt = parseISO(card.createdAt)
+  const hoursInStage = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60))
+  const slaStatus: 'normal' | 'near' | 'over' = !columnSla 
+    ? 'normal' 
+    : hoursInStage >= columnSla 
+      ? 'over' 
+      : hoursInStage >= columnSla * 0.8 
+        ? 'near' 
+        : 'normal'
 
   return (
     <motion.div
@@ -200,35 +224,74 @@ function KanbanCardItem({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ y: -2, scale: 1.01 }}
-      onClick={onClick}
-      className="bg-[var(--bg-card)] border border-[var(--border-main)] shadow-light-card rounded-xl p-4 cursor-pointer hover:border-accent/40 hover:shadow-card transition-all duration-200 group"
+      onClick={() => selectionMode ? onSelect(card.id) : onClick()}
+      className={cn(
+        "bg-[var(--bg-card)] border border-[var(--border-main)] shadow-light-card rounded-xl p-4 cursor-pointer hover:border-accent/40 hover:shadow-card transition-all duration-200 group relative overflow-hidden",
+        isSelected && "border-accent ring-1 ring-accent",
+        "border-l-[4px]"
+      )}
+      style={{ borderLeftColor: card.responsible.color }}
     >
+      {selectionMode && (
+        <div className="absolute top-2 right-2 z-10">
+          <div className={cn("w-5 h-5 rounded border flex items-center justify-center transition-colors", isSelected ? "bg-accent border-accent text-black" : "bg-black/20 border-white/20")}>
+            {isSelected && <Check className="w-3.5 h-3.5 font-bold" />}
+          </div>
+        </div>
+      )}
+
       {/* Title & category */}
-      <div className="flex items-start justify-between gap-2 mb-3">
+      <div className="flex items-start justify-between gap-2 mb-2">
         <p className="text-sm font-semibold text-[var(--text-main)] leading-snug group-hover:text-accent transition-colors line-clamp-2">
           {card.title}
         </p>
-        <span className={`badge ${catClass} whitespace-nowrap flex-shrink-0 text-[10px]`}>
+        <span className={`badge ${catClass} whitespace-nowrap flex-shrink-0 text-[9px] py-0.5`}>
           {card.category}
         </span>
       </div>
 
-      {/* Priority */}
-      <div className="mb-3">
-        <PriorityDot priority={card.priority} />
-      </div>
+      {/* Contact Info (NetLife Style) */}
+      {card.linkedContact && (
+        <div className="flex flex-col gap-1 mb-3">
+          <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-main)] font-medium">
+            <User className="w-3 h-3 text-gray-500" />
+            {card.linkedContact.name}
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] text-[var(--text-muted)]">
+            <Phone className="w-3 h-3 text-gray-500" />
+            {card.linkedContact.phone}
+          </div>
+        </div>
+      )}
 
-      {/* Value */}
-      <div className="flex items-center gap-1.5 mb-3">
-        <DollarSign className="w-3 h-3 text-accent flex-shrink-0" />
-        <span className="text-xs font-black text-accent">{formatCurrency(card.value)}</span>
+      {/* Value & SLA */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-1.5">
+          <DollarSign className="w-3 h-3 text-accent flex-shrink-0" />
+          <span className="text-xs font-black text-accent">{formatCurrency(card.value)}</span>
+        </div>
+        
+        {columnSla && (
+          <div className={cn(
+            "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold",
+            slaStatus === 'over' ? "bg-red-500/20 text-red-400 border border-red-500/30" : 
+            slaStatus === 'near' ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" :
+            "bg-emerald-500/10 text-emerald-500"
+          )}>
+            <Clock className="w-2.5 h-2.5" />
+            {hoursInStage}h
+          </div>
+        )}
       </div>
 
       {/* Footer: responsible + due date */}
       <div className="flex items-center justify-between pt-2 border-t border-[var(--border-main)]">
         <div className="flex items-center gap-1.5 min-w-0">
           <Avatar initials={card.responsible.initials} color={card.responsible.color} />
-          <span className="text-[10px] text-[var(--text-muted)] truncate">{card.responsible.name.split(' ')[0]}</span>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[9px] text-[var(--text-muted)] truncate">{card.responsible.name}</span>
+            <PriorityDot priority={card.priority} />
+          </div>
         </div>
         <div className={`flex items-center gap-1 ${overdue ? 'text-red-400' : 'text-[var(--text-support)]'}`}>
           {overdue ? (
@@ -249,32 +312,44 @@ function KanbanColumnComponent({
   column,
   onCardClick,
   onAddCard,
+  selectionMode,
+  selectedCardIds,
+  onSelectCard,
 }: {
   column: KanbanColumn
   onCardClick: (card: KanbanCard) => void
   onAddCard: () => void
+  selectionMode: boolean
+  selectedCardIds: string[]
+  onSelectCard: (id: string) => void
 }) {
   const totalValue = column.cards.reduce((sum, c) => sum + c.value, 0)
 
   return (
-    <div className="flex-shrink-0 w-72 flex flex-col gap-3">
+    <div className="flex-shrink-0 w-80 flex flex-col gap-3">
       {/* Column header */}
-      <div className="bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl p-4 shadow-sm">
+      <div className="bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl p-4 shadow-sm border-t-[3px]" style={{ borderTopColor: column.color }}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <span
-              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-              style={{ backgroundColor: column.color, boxShadow: `0 0 8px ${column.color}60` }}
-            />
             <span className="text-sm font-black text-[var(--text-main)] uppercase tracking-wider">{column.name}</span>
+            {column.probabilidade < 100 && (
+              <span className="text-[10px] text-[var(--text-muted)] font-bold">({column.probabilidade}%)</span>
+            )}
           </div>
           <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[var(--bg-primary)] text-[10px] font-black text-[var(--text-muted)]">
             {column.cards.length}
           </span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <TrendingUp className="w-3 h-3 text-accent" />
-          <span className="text-[11px] font-bold text-accent">{formatCurrency(totalValue)}</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <TrendingUp className="w-3 h-3 text-accent" />
+            <span className="text-[11px] font-bold text-accent">{formatCurrency(totalValue)}</span>
+          </div>
+          {column.slaHoras && (
+            <div className="flex items-center gap-1 text-[9px] font-black text-gray-500 uppercase tracking-widest">
+              <Clock className="w-2.5 h-2.5" /> SLA: {column.slaHoras}h
+            </div>
+          )}
         </div>
       </div>
 
@@ -292,7 +367,15 @@ function KanbanColumnComponent({
             </motion.div>
           ) : (
             column.cards.map((card) => (
-              <KanbanCardItem key={card.id} card={card} onClick={() => onCardClick(card)} />
+              <KanbanCardItem 
+                key={card.id} 
+                card={card} 
+                onClick={() => onCardClick(card)} 
+                onSelect={onSelectCard}
+                isSelected={selectedCardIds.includes(card.id)}
+                selectionMode={selectionMode}
+                columnSla={column.slaHoras}
+              />
             ))
           )}
         </AnimatePresence>
@@ -562,7 +645,7 @@ function CardDetailModal({
 
         {/* ── Tab Navigation ── */}
         <div className="px-6 flex items-center gap-6 border-b border-[var(--border-main)] shrink-0 overflow-x-auto no-scrollbar">
-          {(['dados', 'atividades', 'historico', 'comentarios'] as DrawerTab[]).map((tab) => (
+          {(['dados', 'atividades', 'comentarios', 'utm', 'historico'] as DrawerTab[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -571,7 +654,10 @@ function CardDetailModal({
                 activeTab === tab ? "text-accent" : "text-[var(--text-muted)] hover:text-[var(--text-main)]"
               )}
             >
-              {tab}
+              {tab === 'dados' ? 'Visão Geral' : 
+               tab === 'atividades' ? 'Atividades' : 
+               tab === 'comentarios' ? 'Anotações' : 
+               tab === 'utm' ? 'UTM' : 'Histórico'}
               {activeTab === tab && (
                 <motion.div layoutId="drawer-tab" className="absolute bottom-0 left-0 w-full h-0.5 bg-accent" />
               )}
@@ -689,6 +775,19 @@ function CardDetailModal({
             </motion.div>
           )}
 
+          {/* TAB: UTM */}
+          {activeTab === 'utm' && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 animate-fade-in">
+              <div className="grid grid-cols-1 gap-6">
+                <EditableField field="utm_source" label="Source (Origem)" value={editedCard.origin || 'Não identificado'} />
+                <EditableField field="utm_medium" label="Medium (Meio)" value="cpc" />
+                <EditableField field="utm_campaign" label="Campaign (Campanha)" value="Pesquisa_Branding_2024" />
+                <EditableField field="utm_content" label="Content (Conteúdo)" value="Banner_A" />
+                <EditableField field="utm_term" label="Term (Termo)" value="investimento cdi" />
+              </div>
+            </motion.div>
+          )}
+
           {/* TAB: HISTÓRICO */}
           {activeTab === 'historico' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="animate-fade-in pl-2 space-y-6 relative before:absolute before:inset-y-0 before:left-[17px] before:w-px before:bg-[var(--border-main)]">
@@ -713,26 +812,20 @@ function CardDetailModal({
             </motion.div>
           )}
 
-          {/* TAB: COMENTÁRIOS */}
+          {/* TAB: ANOTAÇÕES */}
           {activeTab === 'comentarios' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 animate-fade-in flex flex-col h-full">
               <div className="flex-1 space-y-4">
                 {comments.map((c) => (
-                  <div key={c.id} className="bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-2xl p-4">
-                    <div className="flex items-center justify-between mb-2 pb-2 border-b border-[var(--border-main)]">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center font-black text-[9px]">{c.user.substring(0,2).toUpperCase()}</div>
-                        <span className="text-xs font-black text-[var(--text-main)]">{c.user}</span>
-                      </div>
-                      <span className="text-[10px] text-gray-600 uppercase tracking-widest">{formatDateTime(c.date)}</span>
+                  <div key={c.id} className="p-4 bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-2xl">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-black text-accent uppercase tracking-widest">{c.user}</span>
+                      <span className="text-[9px] text-gray-500">{formatDateTime(c.date)}</span>
                     </div>
-                    <p className="text-sm text-[var(--text-muted)] leading-relaxed font-medium">{c.text}</p>
+                    <p className="text-sm text-[var(--text-main)] leading-relaxed">{c.text}</p>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 pt-4 border-t border-[var(--border-main)] flex gap-3">
-                <input
-                  type="text"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendComment()}
@@ -986,80 +1079,125 @@ function NewCardModal({
   columns: KanbanColumn[]
   defaultColumnId: string
   onClose: () => void
-  onAdd: (card: KanbanCard) => void
+  onAdd: (card: any) => void
 }) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [value, setValue] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [priority, setPriority] = useState<Priority>('media')
-  const [responsible, setResponsible] = useState('')
   const [columnId, setColumnId] = useState(defaultColumnId)
+  const [contactId, setContactId] = useState('')
+  const [contacts, setContacts] = useState<any[]>([])
+  const [search, setSearch] = useState('')
+  const [loadingContacts, setLoadingContacts] = useState(false)
+
+  useEffect(() => {
+    async function fetchContacts() {
+      setLoadingContacts(true)
+      try {
+        const res = await fetch('/api/creator/crm')
+        if (res.ok) setContacts(await res.json())
+      } finally {
+        setLoadingContacts(false)
+      }
+    }
+    fetchContacts()
+  }, [])
+
+  const filteredContacts = contacts.filter(c => 
+    c.nome.toLowerCase().includes(search.toLowerCase()) || 
+    c.telefone?.includes(search)
+  ).slice(0, 5)
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!title.trim()) return
-    const initials = responsible.trim()
-      ? responsible.trim().split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
-      : 'US'
+    if (!title.trim() || !contactId) {
+      toast.error('Título e Contato são obrigatórios!')
+      return
+    }
+    
     onAdd({
-      id: String(Date.now()),
       title: title.trim(),
       description: description.trim(),
-      category: 'Novo',
-      categoryColor: 'blue',
-      priority,
-      responsible: { name: responsible.trim() || 'Sem responsável', initials, color: '#30CB7B' },
-      dueDate: dueDate || new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
       value: parseFloat(value.replace(',', '.')) || 0,
-      columnId,
+      dueDate: dueDate || new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
+      priority,
+      coluna_id: columnId,
+      contato_id: contactId,
+      categoria: 'Lead',
+      origem: 'manual'
     })
     onClose()
   }
 
   return (
     <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
-      />
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]" />
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 z-[70] flex items-center justify-center p-4"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-base font-black text-[var(--text-main)] uppercase tracking-wider">Novo Card</h3>
-            <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg border border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all">
-              <X className="w-3.5 h-3.5" />
-            </button>
+            <h3 className="text-base font-black text-[var(--text-main)] uppercase tracking-wider">Nova Negociação</h3>
+            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[var(--bg-primary)]"><X className="w-5 h-5" /></button>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="label">Título *</label>
-              <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} className="input-field" placeholder="Nome da oportunidade" />
+              <label className="label">Título da Negociação *</label>
+              <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} className="input-field" placeholder="Ex: Projeto Padaria Pão Quente" />
             </div>
-            <div>
-              <label className="label">Descrição</label>
-              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="input-field resize-none" placeholder="Detalhes do card..." />
+
+            <div className="space-y-2">
+              <label className="label">Contato Vinculado *</label>
+              <div className="relative">
+                <input 
+                  value={search} 
+                  onChange={(e) => { setSearch(e.target.value); if(!e.target.value) setContactId('') }} 
+                  className="input-field pl-10" 
+                  placeholder="Buscar por nome ou telefone..." 
+                />
+                <User className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                
+                {search && !contactId && (
+                  <div className="absolute top-full left-0 w-full mt-1 bg-[var(--bg-card)] border border-[var(--border-main)] rounded-xl shadow-2xl z-20 overflow-hidden">
+                    {loadingContacts ? (
+                      <div className="p-4 text-center text-xs text-gray-500">Buscando...</div>
+                    ) : filteredContacts.length > 0 ? (
+                      filteredContacts.map(c => (
+                        <button 
+                          key={c.id} 
+                          type="button"
+                          onClick={() => { setContactId(c.id); setSearch(c.nome) }}
+                          className="w-full text-left p-3 hover:bg-[var(--bg-primary)] border-b border-[var(--border-main)] last:border-0 transition-colors"
+                        >
+                          <p className="text-xs font-bold text-[var(--text-main)]">{c.nome}</p>
+                          <p className="text-[10px] text-gray-500">{c.telefone || c.email}</p>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-xs text-gray-500">Nenhum contato encontrado.</div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="label">Valor (R$)</label>
+                <label className="label">Valor Estimado</label>
                 <input value={value} onChange={(e) => setValue(e.target.value)} className="input-field" placeholder="0,00" />
               </div>
               <div>
-                <label className="label">Vencimento</label>
+                <label className="label">Expectativa de Fechamento</label>
                 <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="input-field" />
               </div>
             </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="label">Prioridade</label>
@@ -1070,19 +1208,16 @@ function NewCardModal({
                 </select>
               </div>
               <div>
-                <label className="label">Coluna</label>
+                <label className="label">Etapa Inicial</label>
                 <select value={columnId} onChange={(e) => setColumnId(e.target.value)} className="input-field">
                   {columns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
             </div>
-            <div>
-              <label className="label">Responsável</label>
-              <input value={responsible} onChange={(e) => setResponsible(e.target.value)} className="input-field" placeholder="Nome do responsável" />
-            </div>
-            <div className="flex gap-3 pt-2">
-              <button type="button" onClick={onClose} className="btn-secondary flex-1 text-sm py-2.5">Cancelar</button>
-              <button type="submit" disabled={!title.trim()} className="btn-primary flex-1 text-sm py-2.5 disabled:opacity-40">Criar Card</button>
+
+            <div className="flex gap-3 pt-4">
+              <button type="button" onClick={onClose} className="btn-secondary flex-1 py-3 font-black uppercase text-[10px] tracking-widest">Cancelar</button>
+              <button type="submit" disabled={!title.trim() || !contactId} className="btn-primary flex-1 py-3 font-black uppercase text-[10px] tracking-widest disabled:opacity-40">Criar Negociação</button>
             </div>
           </form>
         </div>
@@ -1091,7 +1226,172 @@ function NewCardModal({
   )
 }
 
+// ─── Lost Reason Dialog ──────────────────────────────────────────────────────
+function LostReasonDialog({ 
+  onClose, 
+  onConfirm 
+}: { 
+  onClose: () => void; 
+  onConfirm: (reason: string) => void 
+}) {
+  const [reason, setReason] = useState('')
+  const reasons = ['Sem orçamento', 'Comprou do concorrente', 'Não respondeu', 'Fora do perfil', 'Outro']
+
+  return (
+    <>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]" />
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+          <h3 className="text-lg font-black text-[var(--text-main)] uppercase tracking-wider mb-4">Motivo da Perda</h3>
+          <p className="text-xs text-gray-500 mb-6">Por favor, selecione o motivo pelo qual esta negociação foi perdida.</p>
+          
+          <div className="space-y-2 mb-6">
+            {reasons.map(r => (
+              <button 
+                key={r}
+                onClick={() => setReason(r)}
+                className={cn(
+                  "w-full text-left p-3 rounded-xl border text-xs font-bold transition-all",
+                  reason === r ? "bg-red-500/10 border-red-500/40 text-red-400" : "bg-[var(--bg-primary)] border-[var(--border-main)] text-[var(--text-muted)] hover:border-red-500/20"
+                )}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex gap-3">
+            <button onClick={onClose} className="flex-1 btn-secondary py-2.5 text-[10px] font-black uppercase tracking-widest">Cancelar</button>
+            <button 
+              onClick={() => onConfirm(reason)} 
+              disabled={!reason}
+              className="flex-1 bg-red-500 text-black py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-40"
+            >
+              Confirmar Perda
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </>
+  )
+}
+
 // ─── New Board Modal ───────────────────────────────────────────────────────────
+
+// ─── Bulk Actions Bar ────────────────────────────────────────────────────────
+function BulkActionBar({ 
+  selectedCount, 
+  onClose, 
+  onAction 
+}: { 
+  selectedCount: number; 
+  onClose: () => void; 
+  onAction: (action: string) => void 
+}) {
+  return (
+    <motion.div
+      initial={{ y: 100 }}
+      animate={{ y: 0 }}
+      exit={{ y: 100 }}
+      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-6 px-6 py-3 bg-[var(--bg-card)] border border-accent/30 shadow-[0_0_40px_rgba(59,130,246,0.2)] rounded-2xl"
+    >
+      <div className="flex items-center gap-3 pr-6 border-r border-[var(--border-main)]">
+        <div className="w-8 h-8 rounded-full bg-accent text-black flex items-center justify-center font-black text-sm">
+          {selectedCount}
+        </div>
+        <span className="text-xs font-black uppercase tracking-widest text-[var(--text-main)]">Selecionados</span>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button onClick={() => onAction('move')} className="p-2 hover:bg-accent/10 rounded-xl text-[var(--text-muted)] hover:text-accent transition-colors flex flex-col items-center gap-1">
+          <MoveRight className="w-4 h-4" />
+          <span className="text-[8px] font-black uppercase">Mover</span>
+        </button>
+        <button onClick={() => onAction('user')} className="p-2 hover:bg-accent/10 rounded-xl text-[var(--text-muted)] hover:text-accent transition-colors flex flex-col items-center gap-1">
+          <User className="w-4 h-4" />
+          <span className="text-[8px] font-black uppercase">Vendedor</span>
+        </button>
+        <button onClick={() => onAction('priority')} className="p-2 hover:bg-accent/10 rounded-xl text-[var(--text-muted)] hover:text-accent transition-colors flex flex-col items-center gap-1">
+          <TrendingUp className="w-4 h-4" />
+          <span className="text-[8px] font-black uppercase">Prioridade</span>
+        </button>
+        <button onClick={() => onAction('delete')} className="p-2 hover:bg-red-500/10 rounded-xl text-[var(--text-muted)] hover:text-red-400 transition-colors flex flex-col items-center gap-1">
+          <Trash2 className="w-4 h-4" />
+          <span className="text-[8px] font-black uppercase">Excluir</span>
+        </button>
+      </div>
+
+      <button onClick={onClose} className="ml-4 p-2 rounded-xl border border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)]">
+        <X className="w-4 h-4" />
+      </button>
+    </motion.div>
+  )
+}
+
+// ─── Archived Modal ──────────────────────────────────────────────────────────
+function ArchivedModal({ 
+  onClose,
+  onRestore
+}: { 
+  onClose: () => void;
+  onRestore: (cardId: string) => void;
+}) {
+  const [archived, setArchived] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchArchived() {
+      try {
+        const res = await fetch('/api/creator/pipeline/cards/archived')
+        if (res.ok) setArchived(await res.json())
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchArchived()
+  }, [])
+
+  return (
+    <>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]" />
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 z-[70] flex items-center justify-center p-4" onClick={(e) => e.stopPropagation()}>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-main)] rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl overflow-hidden">
+          <div className="p-6 border-b border-[var(--border-main)] flex items-center justify-between">
+            <h3 className="text-xl font-black text-[var(--text-main)] uppercase tracking-wider flex items-center gap-3">
+              <ShoppingBag className="w-5 h-5 text-accent" /> Negociações Arquivadas
+            </h3>
+            <button onClick={onClose} className="p-2 rounded-xl hover:bg-[var(--bg-primary)]"><X className="w-5 h-5" /></button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-6 space-y-3">
+            {loading ? (
+              <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" /></div>
+            ) : archived.length === 0 ? (
+              <p className="text-center text-gray-500 py-10">Nenhuma negociação arquivada encontrada.</p>
+            ) : archived.map(card => (
+              <div key={card.id} className="flex items-center justify-between p-4 bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-xl group">
+                <div>
+                  <p className="font-bold text-[var(--text-main)]">{card.titulo}</p>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className={cn("text-[9px] font-black px-2 py-0.5 rounded uppercase", card.status === 'won' ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400")}>
+                      {card.status === 'won' ? 'GANHO' : 'PERDIDO'}
+                    </span>
+                    <span className="text-[10px] text-gray-500">{card.vendedor?.nome}</span>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => onRestore(card.id)}
+                  className="px-4 py-2 rounded-lg border border-[var(--border-main)] text-[10px] font-black uppercase tracking-widest hover:border-accent hover:text-accent transition-all"
+                >
+                  Reabrir
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </>
+  )
+}
 
 function NewBoardModal({ onClose, onAdd }: { onClose: () => void; onAdd: (name: string) => void }) {
   const [name, setName] = useState('')
@@ -1168,6 +1468,10 @@ export default function PipelinePage() {
   const [isNewBoardOpen, setIsNewBoardOpen] = useState(false)
   const [activeColumnId, setActiveColumnId] = useState<string>('')
   const [loading, setLoading] = useState(true)
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selectedCardIds, setSelectedCardIds] = useState<string[]>([])
+  const [isArchivedOpen, setIsArchivedOpen] = useState(false)
+  const [defaultBoardId, setDefaultBoardId] = useState<string | null>(null)
 
   // Fetch boards and columns on mount
   useEffect(() => {
@@ -1195,7 +1499,9 @@ export default function PipelinePage() {
     id: col.id,
     name: col.nome,
     color: col.cor,
-    cards: (col.cards || []).map((card: any) => ({
+    probabilidade: col.probabilidade ?? 100,
+    slaHoras: col.sla_horas,
+    cards: (col.cards || []).filter((c: any) => c.status === 'open' || !c.status).map((card: any) => ({
       id: card.id,
       title: card.titulo,
       description: card.descricao,
@@ -1203,9 +1509,17 @@ export default function PipelinePage() {
       dueDate: card.vencimento ? String(card.vencimento).split('T')[0] : '',
       priority: (card.prioridade as Priority) || 'media',
       columnId: card.coluna_id,
+      status: card.status || 'open',
       category: card.categoria || 'Lead',
       categoryColor: 'blue',
-      responsible: { name: card.responsavel || 'Sem responsável', initials: (card.responsavel || 'US').slice(0, 2).toUpperCase(), color: '#30CB7B' }
+      createdAt: card.created_at || new Date().toISOString(),
+      updatedAt: card.updated_at || new Date().toISOString(),
+      responsible: { 
+        name: card.responsavel || 'Sem responsável', 
+        initials: (card.responsavel || 'US').slice(0, 2).toUpperCase(), 
+        color: card.vendedor?.cor || '#3B82F6' 
+      },
+      linkedContact: card.contato ? { name: card.contato.nome, phone: card.contato.telefone } : undefined
     }))
   })) || []
 
@@ -1324,20 +1638,35 @@ export default function PipelinePage() {
   }
 
   async function handleDeleteCard(cardId: string) {
+    setIsLostDialogOpen(true)
+    setActiveCardId(cardId)
+  }
+
+  const [isLostDialogOpen, setIsLostDialogOpen] = useState(false)
+  const [activeCardId, setActiveCardId] = useState<string | null>(null)
+
+  async function handleConfirmLost(reason: string) {
+    if (!activeCardId) return
     try {
-      const res = await fetch(`/api/creator/pipeline/cards/${cardId}`, { method: 'DELETE' })
+      const res = await fetch(`/api/creator/pipeline/cards/${activeCardId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'lost', lost_reason: reason })
+      })
       if (res.ok) {
         setBoardsData(prev => prev.map(b => ({
           ...b,
           colunas: (b.colunas || []).map((col: any) => ({
             ...col,
-            cards: (col.cards || []).filter((c: any) => c.id !== cardId)
+            cards: (col.cards || []).filter((c: any) => c.id !== activeCardId)
           }))
         })))
+        setIsLostDialogOpen(false)
         handleCloseModal()
+        toast.success('Negociação marcada como PERDIDA.')
       }
     } catch (err) {
-      console.error('Error deleting card:', err)
+      console.error('Error marking as lost:', err)
     }
   }
 
@@ -1415,13 +1744,36 @@ export default function PipelinePage() {
                 if (b) setSelectedBoardId(b.id)
             }} 
           />
+          
+          <div className="h-10 w-px bg-[var(--border-main)] mx-1 hidden md:block" />
+
+          <button 
+            onClick={() => {
+              setSelectionMode(!selectionMode)
+              setSelectedCardIds([])
+            }} 
+            className={cn(
+              "btn-secondary flex items-center gap-2 text-sm py-2.5 px-4",
+              selectionMode && "bg-accent/20 border-accent/40 text-accent"
+            )}
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            {selectionMode ? "Sair Seleção" : "Modo Seleção"}
+          </button>
+
+          <button onClick={() => setIsArchivedOpen(true)} className="btn-secondary flex items-center gap-2 text-sm py-2.5 px-4">
+            <ShoppingBag className="w-4 h-4" />
+            Arquivados
+          </button>
+
+          <button className="btn-secondary flex items-center gap-2 text-sm py-2.5 px-4">
+            <ArrowUpRight className="w-4 h-4" />
+            Importar
+          </button>
+
           <button onClick={() => setIsNewColumnOpen(true)} className="btn-primary flex items-center gap-2 text-sm py-2.5 px-4">
             <Plus className="w-4 h-4" />
             Nova Coluna
-          </button>
-          <button onClick={() => setIsNewBoardOpen(true)} className="btn-secondary flex items-center gap-2 text-sm py-2.5 px-4">
-            <Plus className="w-4 h-4" />
-            Novo Board
           </button>
         </div>
       </div>
@@ -1438,6 +1790,13 @@ export default function PipelinePage() {
               column={col}
               onCardClick={handleCardClick}
               onAddCard={() => openNewCard(col.id)}
+              selectionMode={selectionMode}
+              selectedCardIds={selectedCardIds}
+              onSelectCard={(id) => {
+                setSelectedCardIds(prev => 
+                  prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+                )
+              }}
             />
           ))}
 
@@ -1495,6 +1854,48 @@ export default function PipelinePage() {
           <NewBoardModal
             onClose={() => setIsNewBoardOpen(false)}
             onAdd={handleAddBoard}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Bulk Actions Bar ── */}
+      <AnimatePresence>
+        {selectionMode && selectedCardIds.length > 0 && (
+          <BulkActionBar 
+            selectedCount={selectedCardIds.length} 
+            onClose={() => { setSelectionMode(false); setSelectedCardIds([]) }}
+            onAction={(action) => {
+              if (action === 'delete') {
+                if (confirm(`Deseja excluir ${selectedCardIds.length} cards permanentemente?`)) {
+                   // logic for bulk delete
+                }
+              }
+              toast.success(`Ação "${action}" em massa implementada em breve!`)
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Archived Modal ── */}
+      <AnimatePresence>
+        {isArchivedOpen && (
+          <ArchivedModal 
+            onClose={() => setIsArchivedOpen(false)}
+            onRestore={async (id) => {
+              await handleUpdateCard({ id, status: 'open' } as any)
+              setIsArchivedOpen(false)
+              toast.success('Negociação reaberta!')
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Lost Reason Dialog ── */}
+      <AnimatePresence>
+        {isLostDialogOpen && (
+          <LostReasonDialog 
+            onClose={() => setIsLostDialogOpen(false)}
+            onConfirm={handleConfirmLost}
           />
         )}
       </AnimatePresence>

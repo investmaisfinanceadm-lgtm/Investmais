@@ -15,6 +15,8 @@ model Profile {
   avatar_url    String?
   perfil        Role      @default(criador)
   status        Status    @default(ativo)
+  cor           String    @default("#3B82F6") // Cor do vendedor (NetLife style)
+  time_id       String?
   cota_mensal   Int       @default(10)
   cota_usada    Int       @default(0)
   last_activity DateTime?
@@ -29,6 +31,9 @@ model Profile {
   contatos         Contato[]
   consultas_cnpj   ConsultaCNPJ[]
   listas_disparo   ListaDisparo[]
+  deals_atribuidos PipelineCard[]       @relation("VendedorDeals")
+  movimentacoes    DealStageHistory[]
+  time             Team?                @relation(fields: [time_id], references: [id])
 
   @@map("profiles")
 }
@@ -41,6 +46,15 @@ enum Role {
 enum Status {
   ativo
   inativo
+}
+
+model Team {
+  id         String   @id @default(uuid())
+  nome       String
+  created_at DateTime @default(now())
+  membros    Profile[]
+
+  @@map("teams")
 }
 
 model Video {
@@ -130,6 +144,7 @@ model PipelineBoard {
   user_id    String
   nome       String
   descricao  String?
+  is_default Boolean          @default(false)
   created_at DateTime         @default(now())
   user       Profile          @relation(fields: [user_id], references: [id], onDelete: Cascade)
   colunas    PipelineColuna[]
@@ -138,34 +153,67 @@ model PipelineBoard {
 }
 
 model PipelineColuna {
-  id         String        @id @default(uuid())
-  board_id   String
-  nome       String
-  ordem      Int           @default(0)
-  cor        String        @default("#30CB7B")
-  created_at DateTime      @default(now())
-  board      PipelineBoard @relation(fields: [board_id], references: [id], onDelete: Cascade)
-  cards      PipelineCard[]
+  id            String        @id @default(uuid())
+  board_id      String
+  nome          String
+  ordem         Int           @default(0)
+  cor           String        @default("#30CB7B")
+  probabilidade Int           @default(100)
+  sla_horas     Int?
+  created_at    DateTime      @default(now())
+  board         PipelineBoard @relation(fields: [board_id], references: [id], onDelete: Cascade)
+  cards         PipelineCard[]
 
   @@map("pipeline_colunas")
+}
+
+enum DealStatus {
+  open
+  won
+  lost
 }
 
 model PipelineCard {
   id            String         @id @default(uuid())
   coluna_id     String
+  contato_id    String?        // Temporariamente opcional para migração
+  vendedor_id   String?
   titulo        String
   descricao     String?
-  responsavel   String?
+  responsavel   String?        // Mantido para compatibilidade, mas vendedor_id é o novo padrão
   valor         Float?
   vencimento    DateTime?
   prioridade    String         @default("media")
   categoria     String?
+  origem        String?
+  status        DealStatus     @default(open)
+  lost_reason   String?
+  fechado_em    DateTime?
   ordem         Int            @default(0)
-  historico     Json?
+  historico     Json?          // Mantido para dados legados, DealStageHistory é o novo padrão
   created_at    DateTime       @default(now())
+  
   coluna        PipelineColuna @relation(fields: [coluna_id], references: [id], onDelete: Cascade)
+  contato       Contato?       @relation(fields: [contato_id], references: [id])
+  vendedor      Profile?       @relation("VendedorDeals", fields: [vendedor_id], references: [id])
+  movimentacoes DealStageHistory[]
 
   @@map("pipeline_cards")
+}
+
+model DealStageHistory {
+  id                String   @id @default(uuid())
+  deal_id           String
+  etapa_origem_id   String?
+  etapa_destino_id  String
+  user_id           String
+  fonte             String   @default("manual") // manual, drag, bulk, automation
+  created_at        DateTime @default(now())
+
+  deal    PipelineCard @relation(fields: [deal_id], references: [id], onDelete: Cascade)
+  usuario Profile      @relation(fields: [user_id], references: [id])
+
+  @@map("deal_stage_history")
 }
 
 model Contato {
@@ -191,6 +239,7 @@ model Contato {
   updated_at      DateTime      @updatedAt
   user            Profile       @relation(fields: [user_id], references: [id], onDelete: Cascade)
   atividades      AtividadeCRM[]
+  deals           PipelineCard[]
 
   @@map("contatos")
 }
@@ -220,7 +269,6 @@ model ConsultaCNPJ {
   @@map("consultas_cnpj")
 }
 
-// Tabela espelho da leads_cnpj do Supabase (alimentada pelo n8n e pela API de consulta CNPJ)
 model LeadCNPJ {
   id             String   @id @default(uuid())
   cnpj           String

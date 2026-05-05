@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts'
 import { Video, Clock, Library, Plus, ArrowRight, TrendingUp, BarChart3, Activity, Zap, ChevronDown, Users, Globe } from 'lucide-react'
 import { cn, formatDateTime, getStatusColor, getStatusLabel } from '@/lib/utils'
+import { formatCurrency as formatBRL } from '@/lib/crm-utils'
 
 interface DashboardVideo {
     id: string
@@ -25,12 +26,12 @@ interface DashboardContact {
 
 interface UserStats {
     nome: string
-    cota_mensal: number
-    cota_usada: number
-    videosTotal: number
     totalLeads: number
     leadsHoje: number
-    conversoes: number
+    totalFaturamento: number
+    totalWon: number
+    ticketMedio: number
+    taxaConversao: number
     contatosRecentes: DashboardContact[]
 }
 
@@ -117,7 +118,7 @@ export default function DashboardPage() {
                 </Link>
             </div>
 
-            {/* Metric Cards - Lead Performance Grid */}
+            {/* Metric Cards - CRM Performance Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
                 <div className="card card-hover group relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform">
@@ -125,53 +126,16 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex items-center gap-4 mb-4">
                         <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center border border-accent/20">
-                            <TrendingUp className="w-6 h-6 text-accent" />
+                            <DollarSign className="w-6 h-6 text-accent" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Base Leads</p>
-                            <h3 className="text-2xl font-black text-[var(--text-main)]">{isLoading ? '—' : stats?.totalLeads || 0}</h3>
+                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Faturamento Total</p>
+                            <h3 className="text-2xl font-black text-[var(--text-main)]">{isLoading ? '—' : formatBRL(stats?.totalFaturamento || 0)}</h3>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className="text-[9px] font-bold text-emerald-500">+12%</span>
-                        <span className="text-[9px] font-bold text-[var(--text-support)] uppercase tracking-widest">vs mês anterior</span>
-                    </div>
-                </div>
-
-                <div className="card card-hover group relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform">
-                        <Plus className="w-16 h-16" />
-                    </div>
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-                            <Plus className="w-6 h-6 text-emerald-500" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Novos Hoje</p>
-                            <h3 className="text-2xl font-black text-[var(--text-main)]">{isLoading ? '—' : stats?.leadsHoje || 0}</h3>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[9px] font-bold text-[var(--text-support)] uppercase tracking-widest">Atividade em tempo real</span>
-                    </div>
-                </div>
-
-                <div className="card card-hover group relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform">
-                        <Zap className="w-16 h-16" />
-                    </div>
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
-                            <Zap className="w-6 h-6 text-amber-500" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Conversões</p>
-                            <h3 className="text-2xl font-black text-[var(--text-main)]">{isLoading ? '—' : stats?.conversoes || 0}</h3>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-amber-500 uppercase text-[9px] font-black tracking-widest italic">
-                        Win Rate Estável
+                        <span className="text-[9px] font-bold text-emerald-500">+15.2%</span>
+                        <span className="text-[9px] font-bold text-[var(--text-support)] uppercase tracking-widest">vendas confirmadas</span>
                     </div>
                 </div>
 
@@ -181,17 +145,54 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex items-center gap-4 mb-4">
                         <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
-                            <Activity className="w-6 h-6 text-blue-500" />
+                            <Zap className="w-6 h-6 text-blue-500" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Taxa de Conversão</p>
-                            <h3 className="text-2xl font-black text-[var(--text-main)]">{isLoading ? '—' : stats ? ((stats.conversoes / (stats.totalLeads || 1)) * 100).toFixed(1) : 0}%</h3>
+                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Ticket Médio</p>
+                            <h3 className="text-2xl font-black text-[var(--text-main)]">{isLoading ? '—' : formatBRL(stats?.ticketMedio || 0)}</h3>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                        <span className="text-[9px] font-bold text-[var(--text-support)] uppercase tracking-widest">Valor por Negócio</span>
+                    </div>
+                </div>
+
+                <div className="card card-hover group relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform">
+                        <Zap className="w-16 h-16" />
+                    </div>
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                            <CheckCircle2 className="w-6 h-6 text-amber-500" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Conversões (Won)</p>
+                            <h3 className="text-2xl font-black text-[var(--text-main)]">{isLoading ? '—' : stats?.totalWon || 0}</h3>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-amber-500 uppercase text-[9px] font-black tracking-widest italic">
+                        Negócios Fechados
+                    </div>
+                </div>
+
+                <div className="card card-hover group relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform">
+                        <Activity className="w-16 h-16" />
+                    </div>
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center border border-accent/20">
+                            <TrendingUp className="w-6 h-6 text-accent" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Win Rate</p>
+                            <h3 className="text-2xl font-black text-[var(--text-main)]">{isLoading ? '—' : (stats?.taxaConversao || 0).toFixed(1)}%</h3>
                         </div>
                     </div>
                     <div className="h-1.5 w-full bg-accent/5 rounded-full overflow-hidden mt-2 border border-[var(--border-main)]">
                         <div 
-                            className="h-full bg-blue-500 transition-all duration-1000" 
-                            style={{ width: stats ? `${(stats.conversoes / (stats.totalLeads || 1)) * 100}%` : '0%' }} 
+                            className="h-full bg-accent transition-all duration-1000" 
+                            style={{ width: `${stats?.taxaConversao || 0}%` }} 
                         />
                     </div>
                 </div>

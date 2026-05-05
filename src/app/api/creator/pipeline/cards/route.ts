@@ -15,7 +15,12 @@ export async function GET(req: Request) {
           board: {
             user_id: userId
           }
-        }
+        },
+        status: 'open'
+      },
+      include: {
+        contato: { select: { id: true, nome: true, telefone: true, email: true } },
+        vendedor: { select: { id: true, nome: true, cor: true } }
       },
       orderBy: { ordem: 'asc' }
     })
@@ -34,20 +39,38 @@ export async function POST(req: Request) {
     const userId = (session.user as any).id
 
     const data = await req.json()
-    const { titulo, descricao, responsavel, valor, vencimento, prioridade, categoria, coluna_id, ordem } = data
+    const { 
+      titulo, descricao, valor, vencimento, 
+      prioridade, categoria, coluna_id, 
+      contato_id, vendedor_id, origem, ordem 
+    } = data
 
     const card = await prisma.pipelineCard.create({
       data: {
         coluna_id,
         titulo,
         descricao,
-        responsavel,
         valor: parseFloat(valor) || 0,
         vencimento: vencimento ? new Date(vencimento) : null,
         prioridade: prioridade || 'media',
         categoria,
+        contato_id,
+        vendedor_id: vendedor_id || userId,
+        origem: origem || 'manual',
         ordem: ordem || 0,
+        status: 'open',
+        movimentacoes: {
+          create: {
+            etapa_destino_id: coluna_id,
+            user_id: userId,
+            fonte: 'manual'
+          }
+        }
       },
+      include: {
+        contato: { select: { id: true, nome: true, telefone: true, email: true } },
+        vendedor: { select: { id: true, nome: true, cor: true } }
+      }
     })
 
     return NextResponse.json(card)

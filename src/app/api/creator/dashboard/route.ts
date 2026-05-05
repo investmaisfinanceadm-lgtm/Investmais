@@ -19,28 +19,31 @@ export async function GET() {
       const startOfDay = new Date()
       startOfDay.setHours(0, 0, 0, 0)
 
-      const [profile, totalLeads, leadsHoje, conversoes, contatosRecentes] = await Promise.all([
+      const [
+        profile, 
+        totalLeads, 
+        leadsHoje, 
+        dealsStats,
+        contatosRecentes
+      ] = await Promise.all([
         prisma.profile.findUnique({
           where: { id: userId },
           select: { nome: true, cota_mensal: true, cota_usada: true },
         }),
-        // @ts-ignore
         prisma.contato.count({ where: { user_id: userId } }),
-        // @ts-ignore
         prisma.contato.count({ 
           where: { 
             user_id: userId,
             created_at: { gte: startOfDay }
           } 
         }),
-        // @ts-ignore
-        prisma.contato.count({ 
-          where: { 
-            user_id: userId,
-            status_funil: 'cliente'
-          } 
+        prisma.pipelineCard.aggregate({
+          where: {
+            coluna: { board: { user_id: userId } }
+          },
+          _sum: { valor: true },
+          _count: { id: true },
         }),
-        // @ts-ignore
         prisma.contato.findMany({
           where: { user_id: userId },
           select: { 
@@ -56,13 +59,30 @@ export async function GET() {
         }),
       ])
 
+      const wonDeals = await prisma.pipelineCard.aggregate({
+        where: {
+          coluna: { board: { user_id: userId } },
+          status: 'won'
+        },
+        _sum: { valor: true },
+        _count: { id: true }
+      })
+
+      const totalFaturamento = wonDeals._sum.valor || 0
+      const totalWon = wonDeals._count.id || 0
+      const ticketMedio = totalWon > 0 ? totalFaturamento / totalWon : 0
+      const taxaConversao = dealsStats._count.id > 0 ? (totalWon / dealsStats._count.id) * 100 : 0
+
       return NextResponse.json({
         profile: profile
           ? {
               ...profile,
               totalLeads,
               leadsHoje,
-              conversoes,
+              totalFaturamento,
+              totalWon,
+              ticketMedio,
+              taxaConversao,
               contatosRecentes: contatosRecentes.map((c: any) => ({
                 ...c,
                 created_at: c.created_at.toISOString()

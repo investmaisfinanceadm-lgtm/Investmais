@@ -16,7 +16,15 @@ export async function GET() {
     include: { 
       colunas: { 
         orderBy: { ordem: 'asc' },
-        include: { cards: { orderBy: { ordem: 'asc' } } }
+        include: { 
+          cards: { 
+            orderBy: { ordem: 'asc' },
+            include: {
+              contato: { select: { id: true, nome: true, telefone: true, email: true } },
+              vendedor: { select: { id: true, nome: true, cor: true } }
+            }
+          } 
+        }
       } 
     },
   })
@@ -79,6 +87,8 @@ export async function POST(req: Request) {
         board_id: boardId,
         nome,
         cor: color || '#3B82F6',
+        probabilidade: data.probabilidade ?? 100,
+        sla_horas: data.sla_horas,
         ordem: lastCol ? lastCol.ordem + 1 : 0
       },
       include: { cards: true }
