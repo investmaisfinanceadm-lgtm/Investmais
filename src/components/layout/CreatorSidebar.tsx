@@ -34,7 +34,7 @@ import {
 import { useSession, signOut } from 'next-auth/react'
 import { useTheme } from 'next-themes'
 import { useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { cn, getInitials } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
