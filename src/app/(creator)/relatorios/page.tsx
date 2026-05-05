@@ -17,7 +17,8 @@ import {
   Download,
   Database,
   PieChart,
-  Zap
+  Zap,
+  ChevronRight
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
