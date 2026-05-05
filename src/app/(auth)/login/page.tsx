@@ -6,14 +6,15 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
-import { Eye, EyeOff, Loader2, Lock, Mail, ChevronRight, UserPlus, Shield, Activity, Zap } from 'lucide-react'
+import { Eye, EyeOff, Loader2, Lock, Mail, ChevronRight, UserPlus, Shield } from 'lucide-react'
 import Link from 'next/link'
 import { signIn, getSession } from 'next-auth/react'
 import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 
 const loginSchema = z.object({
-    email: z.string().email('Invalid institutional email address'),
-    senha: z.string().min(1, 'Security key is mandatory'),
+    email: z.string().email('E-mail institucional inválido'),
+    senha: z.string().min(1, 'A chave de segurança é obrigatória'),
 })
 
 type LoginForm = z.infer<typeof loginSchema>
@@ -42,19 +43,19 @@ export default function LoginPage() {
 
             if (result?.error) {
                 if (result.error === 'Conta inativa') {
-                    toast.error('ACCESS DENIED: Account Deactivated.')
+                    toast.error('ACESSO NEGADO: Conta Desativada.')
                 } else {
-                    toast.error('INVALID CREDENTIALS: Verify Email/Key.')
+                    toast.error('CREDENCIAIS INVÁLIDAS: Verifique E-mail e Senha.')
                 }
                 return
             }
 
             if (!result?.ok) {
-                toast.error('AUTHENTICATION ERROR: Protocol Failure.')
+                toast.error('ERRO DE AUTENTICAÇÃO: Falha no Protocolo.')
                 return
             }
 
-            toast.success('AUTHENTICATION SECURED: Entering Studio.')
+            toast.success('AUTENTICAÇÃO REALIZADA: Acessando Dashboard.')
 
             const session = await getSession()
             if ((session?.user as any)?.perfil === 'admin') {
@@ -64,130 +65,115 @@ export default function LoginPage() {
             }
             router.refresh()
         } catch {
-            toast.error('UNEXPECTED SYSTEM ERROR: Network Failure.')
+            toast.error('ERRO INESPERADO DO SISTEMA: Falha na Rede.')
         } finally {
             setIsLoading(false)
         }
     }
 
     return (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
-            <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                     <div className="w-10 h-10 rounded-2xl bg-sidebar-primary/10 flex items-center justify-center border border-sidebar-primary/20">
-                        <Shield className="w-5 h-5 text-sidebar-primary" />
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+            <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 text-primary">
+                        <Lock className="w-4 h-4" />
                      </div>
-                     <div className="space-y-0.5">
-                        <span className="text-[10px] font-black text-sidebar-primary uppercase tracking-[0.4em] italic">Secure Vector Active</span>
-                        <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic leading-none">Access Studio</h2>
-                     </div>
+                     <h2 className="text-2xl font-bold text-white tracking-tight">Login</h2>
                 </div>
-                <p className="text-white/20 font-black uppercase tracking-[0.2em] text-[10px] leading-relaxed italic max-w-sm">
-                    Synchronize your executive credentials <br /> to authorize access to the neural core.
+                <p className="text-white/40 font-medium text-sm">
+                    Entre com suas credenciais para acessar a plataforma.
                 </p>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
-                {/* Email */}
-                <div className="space-y-4">
-                    <label htmlFor="email" className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] block ml-2">
-                        Institutional E-mail
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <div className="space-y-2">
+                    <label htmlFor="email" className="text-xs font-bold text-white/40 uppercase tracking-wider ml-1">
+                        E-mail Institucional
                     </label>
-                    <div className="relative group">
-                        <Mail className="absolute left-8 top-1/2 -translate-y-1/2 w-5 h-5 text-white/10 group-focus-within:text-sidebar-primary transition-colors duration-500" />
+                    <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/10" />
                         <input
                             id="email"
                             type="email"
                             autoComplete="email"
-                            placeholder="executive@investmais.net"
+                            placeholder="executivo@investmais.com"
                             className={cn(
-                                "w-full bg-black/40 border rounded-[28px] py-6 pl-16 pr-8 text-white font-black text-xs uppercase tracking-widest focus:bg-black/60 transition-all outline-none duration-700",
-                                errors.email ? 'border-red-500/40' : 'border-white/5 focus:border-sidebar-primary/40'
+                                "w-full bg-white/[0.02] border rounded-2xl py-4 pl-12 pr-4 text-white font-medium text-sm transition-all outline-none",
+                                errors.email ? 'border-red-500/40' : 'border-white/10 focus:border-primary/50 focus:bg-white/[0.04]'
                             )}
                             {...register('email')}
                         />
                     </div>
                     {errors.email && (
-                        <p className="mt-3 text-[9px] uppercase font-black text-red-400 tracking-widest ml-2 italic">! {errors.email.message}</p>
+                        <p className="mt-1 text-[10px] font-bold text-red-400 ml-1"> {errors.email.message}</p>
                     )}
                 </div>
 
-                {/* Password */}
-                <div className="space-y-4">
-                    <label htmlFor="senha" className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] block ml-2">
-                        Security Key
-                    </label>
-                    <div className="relative group">
-                        <Lock className="absolute left-8 top-1/2 -translate-y-1/2 w-5 h-5 text-white/10 group-focus-within:text-sidebar-primary transition-colors duration-500" />
+                <div className="space-y-2">
+                    <div className="flex justify-between items-center px-1">
+                        <label htmlFor="senha" className="text-xs font-bold text-white/40 uppercase tracking-wider">
+                            Senha de Segurança
+                        </label>
+                        <Link
+                            href="/esqueci-senha"
+                            className="text-[10px] font-bold uppercase tracking-wider text-white/10 hover:text-primary transition-all"
+                        >
+                            Esqueceu a senha?
+                        </Link>
+                    </div>
+                    <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/10" />
                         <input
                             id="senha"
                             type={showPassword ? 'text' : 'password'}
                             autoComplete="current-password"
                             placeholder="••••••••"
                             className={cn(
-                                "w-full bg-black/40 border rounded-[28px] py-6 pl-16 pr-16 text-white font-black text-xs uppercase tracking-widest focus:bg-black/60 transition-all outline-none duration-700",
-                                errors.senha ? 'border-red-500/40' : 'border-white/5 focus:border-sidebar-primary/40'
+                                "w-full bg-white/[0.02] border rounded-2xl py-4 pl-12 pr-12 text-white font-medium text-sm transition-all outline-none",
+                                errors.senha ? 'border-red-500/40' : 'border-white/10 focus:border-primary/50 focus:bg-white/[0.04]'
                             )}
                             {...register('senha')}
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-8 top-1/2 -translate-y-1/2 text-white/10 hover:text-white transition-colors duration-500"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-white/10 hover:text-white transition-colors"
                         >
-                            {showPassword ? (
-                                <EyeOff className="w-5 h-5" />
-                            ) : (
-                                <Eye className="w-5 h-5" />
-                            )}
+                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
                     </div>
                     {errors.senha && (
-                        <p className="mt-3 text-[9px] uppercase font-black text-red-400 tracking-widest ml-2 italic">! {errors.senha.message}</p>
+                        <p className="mt-1 text-[10px] font-bold text-red-400 ml-1"> {errors.senha.message}</p>
                     )}
-                    <div className="flex justify-end pr-2">
-                         <Link
-                            href="/esqueci-senha"
-                            className="text-[9px] font-black uppercase tracking-widest text-white/10 hover:text-sidebar-primary transition-all italic"
-                        >
-                            Rotate Security Key?
-                        </Link>
-                    </div>
                 </div>
 
-                {/* Submit */}
-                <div className="pt-6">
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="btn-primary w-full flex items-center justify-center gap-4 py-7 netlife-glow shadow-none group transition-all duration-700"
-                    >
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                                <span className="uppercase tracking-[0.4em] font-black text-[11px] italic">Securing Protocol...</span>
-                            </>
-                        ) : (
-                            <>
-                                <span className="uppercase tracking-[0.4em] font-black text-[11px] italic">Authorize Neural Access</span>
-                                <ChevronRight className="w-5 h-5 group-hover:translate-x-3 transition-transform duration-700" />
-                            </>
-                        )}
-                    </button>
-                </div>
+                <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                >
+                    {isLoading ? (
+                        <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            <span>Autenticando...</span>
+                        </>
+                    ) : (
+                        <>
+                            <span>Acessar Plataforma</span>
+                            <ChevronRight className="w-4 h-4" />
+                        </>
+                    )}
+                </button>
             </form>
 
-            <div className="pt-12 border-t border-white/5 text-center">
-                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/10 italic">
-                    New Partner Entity?{' '}
-                    <Link href="/cadastro" className="text-sidebar-primary hover:text-white transition-all ml-6 group inline-flex items-center gap-3">
-                        <UserPlus className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                        Initialize Credential
+            <div className="pt-6 border-t border-white/5 text-center">
+                <p className="text-xs font-medium text-white/20">
+                    Ainda não tem uma conta?{' '}
+                    <Link href="/cadastro" className="text-primary hover:underline font-bold ml-1">
+                        Solicitar Acesso
                     </Link>
                 </p>
             </div>
         </motion.div>
     )
 }
-
-import { motion } from 'framer-motion'

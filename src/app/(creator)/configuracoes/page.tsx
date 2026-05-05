@@ -33,21 +33,21 @@ type PasswordForm = z.infer<typeof passwordSchema>
 
 // ── tabs ───────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'perfil',      label: 'Identity Matrix', icon: User, desc: 'Executive profile & security' },
-  { id: 'pipelines',   label: 'Architecture',    icon: Kanban, desc: 'Strategic flow configuration' },
-  { id: 'integracoes', label: 'Neural Nodes',    icon: Webhook, desc: 'External vector connections' },
-  { id: 'agente_ia',   label: 'AI Core',         icon: Bot, desc: 'Neural intelligence parameters' },
-  { id: 'busca_leads', label: 'Infiltration',    icon: Search, desc: 'Lead recon protocols' },
-  { id: 'disparo',     label: 'Dispatch Hub',    icon: MessageCircle, desc: 'Outbound signal vectors' },
+  { id: 'perfil',      label: 'Perfil', icon: User, desc: 'Dados e segurança da conta' },
+  { id: 'pipelines',   label: 'Pipeline', icon: Kanban, desc: 'Configuração do funil' },
+  { id: 'integracoes', label: 'Integrações', icon: Webhook, desc: 'Conexão com ferramentas externas' },
+  { id: 'agente_ia',   label: 'Agente IA', icon: Bot, desc: 'Parâmetros da inteligência artificial' },
+  { id: 'busca_leads', label: 'Busca Leads', icon: Search, desc: 'Configuração de captura' },
+  { id: 'disparo',     label: 'Disparos', icon: MessageCircle, desc: 'Configuração de envios' },
 ]
 
 // ── components ─────────────────────────────────────────────────────────────
 function Field({ label, children, error }: { label: string; children: React.ReactNode; error?: string }) {
   return (
-    <div className="space-y-4">
-      <label className="block text-[10px] font-black text-white/20 uppercase tracking-[0.4em] ml-4 italic">{label}</label>
+    <div className="space-y-2">
+      <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1">{label}</label>
       {children}
-      {error && <p className="text-red-400 text-[9px] font-black uppercase tracking-widest mt-2 ml-4 italic">! {error}</p>}
+      {error && <p className="text-red-400 text-[10px] font-bold mt-1 ml-1">{error}</p>}
     </div>
   )
 }
@@ -55,7 +55,7 @@ function Field({ label, children, error }: { label: string; children: React.Reac
 function InputPremium({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className={cn('w-full bg-black/40 border border-white/5 text-white placeholder-white/5 px-8 py-5 rounded-[24px] focus:outline-none focus:border-sidebar-primary/40 focus:bg-black/60 transition-all text-xs font-black uppercase tracking-widest italic', className)}
+      className={cn('w-full bg-white/[0.02] border border-white/10 text-white placeholder-white/10 px-6 py-4 rounded-2xl focus:outline-none focus:border-primary/50 transition-all text-sm font-medium', className)}
       {...props}
     />
   )
@@ -236,10 +236,10 @@ export default function ConfiguracoesPage() {
                 <div className="w-2 h-2 rounded-full bg-sidebar-primary netlife-glow shadow-none animate-pulse" />
                 <span className="text-[10px] font-black text-sidebar-primary uppercase tracking-[0.5em] italic">Command Core Active</span>
             </div>
-            <div className="space-y-4">
-                <h1 className="text-6xl lg:text-7xl font-black text-white leading-none tracking-tighter uppercase italic leading-none">Command Center</h1>
-                <p className="text-white/20 font-black uppercase tracking-[0.4em] text-[10px] italic flex items-center gap-4">
-                    <Fingerprint className="w-4 h-4" /> System Executive Configuration v4.1.0
+            <div className="space-y-2">
+                <h1 className="text-3xl font-bold text-white tracking-tight">Configurações</h1>
+                <p className="text-white/40 text-sm flex items-center gap-2">
+                    <Fingerprint className="w-4 h-4" /> Gerencie sua conta e plataforma
                 </p>
             </div>
           </div>

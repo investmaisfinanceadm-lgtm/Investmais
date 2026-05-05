@@ -39,26 +39,30 @@ import { cn, getInitials } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
 const navItems = [
-    { href: '/dashboard', label: 'Executive Pulse', icon: LayoutDashboard },
-    { href: '/pipeline', label: 'Architecture', icon: Kanban },
-    { href: '/crm', label: 'Neural Leads', icon: Users },
-    { href: '/disparos', label: 'Dispatch Hub', icon: Send },
-    { href: '/cnpj', label: 'Recon Matrix', icon: Search },
-    { href: '/configuracoes', label: 'Command Core', icon: Settings },
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/pipeline', label: 'Pipeline', icon: Kanban },
+    { href: '/crm', label: 'Contatos', icon: Users },
+    { href: '/cnpj', label: 'Busca de Leads', icon: Search },
+    { href: '/disparos', label: 'Disparos', icon: Send },
+    { href: '/relatorios', label: 'Relatórios', icon: Library },
+    { href: '/atividades', label: 'Atividades', icon: Activity },
+    { href: '/utm', label: 'Marketing', icon: Target },
+    { href: '/insights', label: 'Insights', icon: Sparkles },
+    { href: '/configuracoes', label: 'Configurações', icon: Settings },
 ]
 
 const contentItems = [
-    { href: '/criar', label: 'Neural Studio', icon: Video },
-    { href: '/biblioteca', label: 'Asset Vault', icon: Library },
+    { href: '/criar', label: 'Estúdio de Vídeo', icon: Video },
+    { href: '/biblioteca', label: 'Biblioteca', icon: Library },
 ]
 
 // Items that appear in the mobile bottom nav (most important)
 const mobileBottomNav = [
-    { href: '/dashboard', label: 'Core', icon: Home },
-    { href: '/crm', label: 'Nodes', icon: Users },
-    { href: '/criar', label: 'Forge', icon: Plus, isPrimary: true },
-    { href: '/biblioteca', label: 'Vault', icon: Library },
-    { href: '/pipeline', label: 'Flow', icon: Kanban },
+    { href: '/dashboard', label: 'Início', icon: Home },
+    { href: '/crm', label: 'Contatos', icon: Users },
+    { href: '/criar', label: 'Novo', icon: Plus, isPrimary: true },
+    { href: '/biblioteca', label: 'Biblioteca', icon: Library },
+    { href: '/pipeline', label: 'Pipeline', icon: Kanban },
 ]
 
 export function CreatorSidebar() {
@@ -107,8 +111,8 @@ export function CreatorSidebar() {
                          <img src="/logo.png" alt="InvestMais" className="w-full h-full object-contain filter brightness-100" />
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-white font-black text-2xl tracking-tighter leading-none italic uppercase">Invest<span className="text-sidebar-primary">Mais</span></span>
-                        <span className="text-[10px] font-black text-sidebar-primary/40 uppercase tracking-[0.4em] italic leading-none mt-1">Executive Hub</span>
+                        <span className="text-white font-bold text-xl tracking-tight leading-none uppercase">Invest<span className="text-sidebar-primary">Mais</span></span>
+                        <span className="text-[10px] font-medium text-white/40 uppercase tracking-widest mt-1">Finance Hub</span>
                     </div>
                 </Link>
             </div>
@@ -116,9 +120,8 @@ export function CreatorSidebar() {
             {/* Navigation */}
             <nav className="flex-1 px-6 py-8 space-y-12 overflow-y-auto z-10 scrollbar-none">
                 <div className="space-y-3">
-                    <div className="flex items-center gap-4 px-4 mb-6">
-                        <Cpu className="w-3.5 h-3.5 text-white/10" />
-                        <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Neural Protocols</p>
+                    <div className="flex items-center gap-4 px-4 mb-4">
+                        <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Menu Principal</p>
                     </div>
                     {navItems.map((item) => {
                         const Icon = item.icon
@@ -130,23 +133,17 @@ export function CreatorSidebar() {
                                 href={item.href}
                                 onClick={() => setMobileOpen(false)}
                                 className={cn(
-                                    "group relative flex items-center gap-4 px-6 py-4 rounded-[24px] transition-all duration-700 font-black uppercase tracking-widest text-[10px]",
+                                    "group relative flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 font-medium text-sm",
                                     isActive 
-                                        ? "bg-white/[0.03] text-sidebar-primary border border-sidebar-primary/20 shadow-[0_0_40px_rgba(0,0,0,0.5)] italic" 
-                                        : "text-white/40 hover:bg-white/[0.02] hover:text-white"
+                                        ? "bg-sidebar-primary/10 text-sidebar-primary border border-sidebar-primary/20" 
+                                        : "text-white/60 hover:bg-white/[0.03] hover:text-white"
                                 )}
                             >
-                                <Icon className={cn("w-4.5 h-4.5 flex-shrink-0 transition-all duration-700", isActive ? "drop-shadow-[0_0_10px_hsl(var(--primary)/0.8)] scale-110" : "opacity-40 group-hover:opacity-100 group-hover:scale-110")} />
+                                <Icon className={cn("w-5 h-5 flex-shrink-0 transition-all", isActive ? "text-sidebar-primary" : "opacity-40 group-hover:opacity-100")} />
                                 <span>{item.label}</span>
                                 
                                 {isActive && (
-                                    <>
-                                        <motion.div 
-                                            layoutId="sidebar-active"
-                                            className="absolute left-0 w-1.5 h-8 bg-sidebar-primary rounded-r-full netlife-glow shadow-none"
-                                        />
-                                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-sidebar-primary netlife-glow-soft animate-pulse shadow-none" />
-                                    </>
+                                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-sidebar-primary" />
                                 )}
                             </Link>
                         )
@@ -156,7 +153,7 @@ export function CreatorSidebar() {
                 <div className="space-y-3">
                     <div className="flex items-center gap-4 px-4 mb-6">
                         <Sparkles className="w-3.5 h-3.5 text-white/10" />
-                        <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Synthesis Forge</p>
+                        <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Criação de Conteúdo</p>
                     </div>
                     {contentItems.map((item) => {
                         const Icon = item.icon
@@ -167,21 +164,17 @@ export function CreatorSidebar() {
                                 href={item.href}
                                 onClick={() => setMobileOpen(false)}
                                 className={cn(
-                                    "group relative flex items-center gap-4 px-6 py-4 rounded-[24px] transition-all duration-700 font-black uppercase tracking-widest text-[10px]",
+                                    "group relative flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 font-medium text-sm",
                                     isActive 
-                                        ? "bg-white/[0.03] text-sidebar-primary border border-sidebar-primary/20 shadow-[0_0_40px_rgba(0,0,0,0.5)] italic" 
-                                        : "text-white/40 hover:bg-white/[0.02] hover:text-white"
+                                        ? "bg-sidebar-primary/10 text-sidebar-primary border border-sidebar-primary/20" 
+                                        : "text-white/60 hover:bg-white/[0.03] hover:text-white"
                                 )}
                             >
-                                <Icon className={cn("w-4.5 h-4.5 flex-shrink-0 transition-all duration-700", isActive ? "drop-shadow-[0_0_10px_hsl(var(--primary)/0.8)] scale-110" : "opacity-40 group-hover:opacity-100 group-hover:scale-110")} />
+                                <Icon className={cn("w-5 h-5 flex-shrink-0 transition-all", isActive ? "text-sidebar-primary" : "opacity-40 group-hover:opacity-100")} />
                                 <span>{item.label}</span>
                                 {isActive && (
-                                    <motion.div 
-                                        layoutId="sidebar-active-content"
-                                        className="absolute left-0 w-1.5 h-8 bg-sidebar-primary rounded-r-full netlife-glow shadow-none"
-                                    />
+                                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-sidebar-primary" />
                                 )}
-                                <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-all duration-700 translate-x-2 group-hover:translate-x-0" />
                             </Link>
                         )
                     })}
@@ -203,16 +196,16 @@ export function CreatorSidebar() {
                                 </div>
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-xs font-black text-white truncate uppercase tracking-tighter italic leading-none">{user.nome || 'Identified Executive'}</p>
-                                <p className="text-[9px] text-white/20 truncate font-black uppercase tracking-widest mt-2">Active Level 1</p>
+                                <p className="text-sm font-bold text-white truncate">{user.nome || 'Usuário InvestMais'}</p>
+                                <p className="text-[10px] text-white/20 truncate font-bold uppercase tracking-widest mt-1">Nível Executivo</p>
                             </div>
                         </div>
 
                         <div className="p-6 rounded-[32px] bg-white/[0.02] border border-white/5 group hover:border-sidebar-primary/20 transition-all duration-700 relative overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-r from-sidebar-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <div className="flex justify-between items-center mb-4">
-                                <span className="text-[9px] text-white/20 font-black uppercase tracking-[0.3em]">Synaptic Load</span>
-                                <span className="text-[10px] font-black text-sidebar-primary uppercase tracking-widest italic">{quotaPercent}%</span>
+                            <div className="flex justify-between items-center mb-3">
+                                <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Uso da Cota</span>
+                                <span className="text-[11px] font-bold text-sidebar-primary uppercase italic">{quotaPercent}%</span>
                             </div>
                             <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden p-[1px]">
                                 <motion.div
@@ -244,8 +237,8 @@ export function CreatorSidebar() {
                         </button>
                     </div>
                     <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                         <span className="text-[9px] font-black text-emerald-500/40 uppercase tracking-[0.2em] italic">Encrypted</span>
+                         <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                         <span className="text-[9px] font-bold text-emerald-500/40 uppercase tracking-widest">Protegido</span>
                     </div>
                 </div>
             </div>

@@ -50,12 +50,12 @@ export interface Contact {
 }
 
 const FUNIL_STAGES: { key: FunilStatus; label: string }[] = [
-  { key: 'lead', label: 'Lead Infiltration' },
-  { key: 'qualificado', label: 'Neural Qualification' },
-  { key: 'reuniao', label: 'Executive Meeting' },
-  { key: 'proposta', label: 'Proposal Protocol' },
-  { key: 'cliente', label: 'Converted Entity' },
-  { key: 'inativo', label: 'Deactivated Sector' },
+  { key: 'lead', label: 'Lead' },
+  { key: 'qualificado', label: 'Qualificado' },
+  { key: 'reuniao', label: 'Reunião' },
+  { key: 'proposta', label: 'Proposta' },
+  { key: 'cliente', label: 'Cliente' },
+  { key: 'inativo', label: 'Inativo' },
 ]
 
 // ─── Shared Utilities ─────────────────────────────────────────────────────────
@@ -76,35 +76,31 @@ export function safeDistance(date: Date | string | null | undefined): string {
   } catch { return '—' }
 }
 
-export function ContactAvatar({ contact, size = 'md' }: { contact: Contact; size?: 'sm' | 'md' | 'lg' }) {
-  const initials = contact.nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() || '?'
+export function ContactAvatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' | 'lg' }) {
+  const initials = name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() || '?'
   
   const sizes = {
     sm: 'w-10 h-10 text-[10px]',
-    md: 'w-16 h-16 text-xs',
-    lg: 'w-24 h-24 text-2xl'
+    md: 'w-12 h-12 text-xs',
+    lg: 'w-20 h-20 text-xl'
   }
 
   return (
-    <div className={cn("rounded-[24px] netlife-gradient p-[1px] group-hover:scale-105 transition-all duration-1000 shadow-2xl", sizes[size])}>
-      <div className="w-full h-full rounded-[23px] bg-black flex items-center justify-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-sidebar-primary/5" />
-        <span className="font-black text-sidebar-primary uppercase tracking-tighter relative z-10 italic">{initials}</span>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.2)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-      </div>
+    <div className={cn("rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold", sizes[size])}>
+        {initials}
     </div>
   )
 }
 
 export function getStatusConfig(status: FunilStatus | undefined | null) {
   switch (status) {
-    case 'lead': return { label: 'Infiltration', classes: 'bg-white/5 text-white/40 border-white/10' }
-    case 'qualificado': return { label: 'Qualified', classes: 'bg-blue-500/10 text-blue-400 border-blue-500/20 netlife-glow shadow-none' }
-    case 'reuniao': return { label: 'Meeting', classes: 'bg-purple-500/10 text-purple-400 border-purple-500/20 netlife-glow shadow-none' }
-    case 'proposta': return { label: 'Proposal', classes: 'bg-amber-500/10 text-amber-400 border-amber-500/20 netlife-glow shadow-none' }
-    case 'cliente': return { label: 'Client', classes: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 netlife-glow shadow-none' }
-    case 'inativo': return { label: 'Inactive', classes: 'bg-red-500/10 text-red-500 border-red-500/20' }
-    default: return { label: 'Syncing', classes: 'bg-sidebar-primary/10 text-sidebar-primary border-sidebar-primary/20' }
+    case 'lead': return { label: 'Lead', classes: 'bg-white/5 text-white/40 border-white/10' }
+    case 'qualificado': return { label: 'Qualificado', classes: 'bg-blue-500/10 text-blue-400 border-blue-500/20' }
+    case 'reuniao': return { label: 'Reunião', classes: 'bg-purple-500/10 text-purple-400 border-purple-500/20' }
+    case 'proposta': return { label: 'Proposta', classes: 'bg-amber-500/10 text-amber-400 border-amber-500/20' }
+    case 'cliente': return { label: 'Cliente', classes: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' }
+    case 'inativo': return { label: 'Inativo', classes: 'bg-red-500/10 text-red-500 border-red-500/20' }
+    default: return { label: 'Sincronizando', classes: 'bg-primary/10 text-primary border-primary/20' }
   }
 }
 
@@ -148,27 +144,27 @@ function getActivityIcon(type: ActivityType) {
 
 function SectionTitle({ title, icon }: { title: string; icon?: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-4 mb-10">
-      <div className="flex items-center gap-4">
-        {icon && <div className="text-sidebar-primary/40">{icon}</div>}
-        <h3 className="text-[11px] font-black text-white/20 uppercase tracking-[0.4em] italic leading-none">{title}</h3>
+    <div className="flex flex-col gap-4 mb-8">
+      <div className="flex items-center gap-3">
+        {icon && <div className="text-primary/60">{icon}</div>}
+        <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest leading-none">{title}</h3>
       </div>
-      <div className="h-px bg-gradient-to-r from-white/[0.05] via-white/[0.02] to-transparent w-full" />
+      <div className="h-px bg-white/5 w-full" />
     </div>
   )
 }
 
 function DetailField({ icon, label, value, children }: { icon: React.ReactNode; label: string; value?: string; children?: React.ReactNode }) {
   return (
-    <div className="space-y-3 group/field">
-      <div className="flex items-center gap-3 text-[10px] font-black text-white/20 uppercase tracking-[0.3em] italic group-hover/field:text-sidebar-primary/40 transition-all duration-700">
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 text-[10px] font-bold text-white/20 uppercase tracking-wider">
         {icon}
         {label}
       </div>
-      <div className="pl-9">
+      <div className="pl-6">
         {children ? children : (
-          <span className={cn("text-sm font-black uppercase tracking-widest block truncate italic", !value || value === "—" || value === "Não informado" ? "text-white/5 font-medium italic" : "text-white/80 group-hover/field:text-sidebar-primary transition-colors duration-700")}>
-            {value || 'Not Defined'}
+          <span className={cn("text-sm font-bold block truncate", !value || value === "—" || value === "Não informado" ? "text-white/10 font-normal italic" : "text-white/80")}>
+            {value || 'Não informado'}
           </span>
         )}
       </div>
@@ -223,7 +219,7 @@ export function LeadDetailModal({
     onUpdate(updated)
     setActivityDesc('')
     setIsAddingActivity(false)
-    toast.success('Activity Logged')
+    toast.success('Atividade registrada')
   }
 
   const handleCopyPhone = (phone: string) => {
@@ -251,76 +247,66 @@ export function LeadDetailModal({
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 lg:p-20 overflow-hidden">
-      <div className="absolute inset-0 bg-black/98 backdrop-blur-3xl" onClick={onClose} />
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 overflow-hidden">
+      <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={onClose} />
       
-      <motion.div initial={{ opacity: 0, scale: 0.95, y: 50 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 50 }} transition={{ type: 'spring', damping: 30, stiffness: 200 }}
-        className="relative w-full sm:max-w-7xl bg-black border border-white/5 rounded-t-[64px] sm:rounded-[80px] shadow-[0_100px_200px_rgba(0,0,0,1)] overflow-hidden flex flex-col h-full max-h-[92vh] outline-none group/modal"
+      <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="relative w-full max-w-5xl bg-[#0a0a0a] border border-white/5 rounded-[40px] shadow-2xl overflow-hidden flex flex-col h-full max-h-[90vh]"
       >
-        <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-sidebar-primary/[0.08] via-transparent to-transparent pointer-events-none" />
-        <div className="absolute top-0 right-0 p-20 opacity-5 pointer-events-none group-hover/modal:scale-110 transition-transform duration-[5000ms]"> <Shield className="w-96 h-96 text-sidebar-primary" /> </div>
-
-        {/* Modal Header */}
-        <div className="p-16 lg:px-20 lg:py-20 border-b border-white/5 relative z-10">
-           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-12">
-              <div className="flex items-center gap-12">
-                  <ContactAvatar contact={contact} size="lg" />
-
-                 <div className="space-y-6">
-                    <div className="flex items-center gap-6">
-                       <span className={cn('px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.3em] border italic transition-all duration-700', statusConfig.classes)}>
-                          {statusConfig.label}
-                       </span>
-                       <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
-                       <div className="flex items-center gap-3 px-4 py-1.5 rounded-xl bg-white/[0.02] border border-white/5">
-                          {getCanalIcon(contact.canal)} 
-                          <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] italic">{contact.canal}</span>
-                       </div>
-                    </div>
-
-                    <h2 className="text-5xl lg:text-7xl font-black text-white tracking-tighter leading-none uppercase italic">
-                      {readOnly && contact.empresa ? contact.empresa : contact.nome}
-                    </h2>
-
-                    <div className="flex items-center gap-8 text-white/40 text-[12px] font-black uppercase tracking-[0.3em] italic">
-                       <div className="flex items-center gap-4 group/item">
-                          <Building2 className="w-5 h-5 text-sidebar-primary/20 group-hover/item:text-sidebar-primary transition-colors" />
-                          <span className="group-hover/item:text-white transition-colors">{(readOnly && contact.empresa) ? contact.nome : contact.empresa}</span>
-                       </div>
-                       {contact.cargo && (
-                         <>
-                           <div className="w-1.5 h-1.5 rounded-full bg-white/5" />
-                           <div className="flex items-center gap-4 group/item">
-                              <Briefcase className="w-5 h-5 text-sidebar-primary/20 group-hover/item:text-sidebar-primary transition-colors" />
-                              <span className="group-hover/item:text-white transition-colors">{contact.cargo}</span>
-                           </div>
-                         </>
-                       )}
-                    </div>
-                 </div>
+        {/* Header */}
+        <div className="p-8 lg:p-12 border-b border-white/5 bg-white/[0.01]">
+           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
+              <div className="flex items-center gap-8">
+                  <ContactAvatar name={contact.nome} size="lg" />
+                  <div className="space-y-4">
+                     <div className="flex items-center gap-4">
+                        <span className={cn('px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border', statusConfig.classes)}>
+                           {statusConfig.label}
+                        </span>
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-white/[0.03] border border-white/5">
+                           {getCanalIcon(contact.canal)} 
+                           <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{contact.canal}</span>
+                        </div>
+                     </div>
+                     <h2 className="text-3xl lg:text-4xl font-bold text-white tracking-tight">
+                       {contact.nome}
+                     </h2>
+                     <div className="flex items-center gap-6 text-white/40 text-xs font-medium">
+                        <div className="flex items-center gap-2">
+                           <Building2 className="w-4 h-4" />
+                           <span>{contact.empresa || 'Individual'}</span>
+                        </div>
+                        {contact.cargo && (
+                          <div className="flex items-center gap-2">
+                              <Briefcase className="w-4 h-4" />
+                              <span>{contact.cargo}</span>
+                          </div>
+                        )}
+                     </div>
+                  </div>
               </div>
 
-              <div className="flex items-center gap-6 self-end lg:self-center">
+              <div className="flex items-center gap-4">
                   {!simpleMode && !readOnly && onDelete && (
-                    <button onClick={() => { onDelete(contact.id); onClose() }} className="w-16 h-16 rounded-[28px] bg-red-500/5 border border-red-500/10 text-red-500/20 hover:text-red-500 hover:bg-red-500/10 transition-all duration-700 flex items-center justify-center group/del"> 
-                      <Trash2 className="w-7 h-7 group-hover/del:scale-110 transition-transform" /> 
+                    <button onClick={() => { onDelete(contact.id); onClose() }} className="w-12 h-12 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-500/40 hover:text-red-500 transition-all flex items-center justify-center"> 
+                      <Trash2 className="w-5 h-5" /> 
                     </button>
                   )}
-                  <button onClick={onClose} className="w-16 h-16 rounded-[28px] bg-white/[0.03] border border-white/5 text-white/10 hover:text-white transition-all duration-700 flex items-center justify-center"> 
-                    <X className="w-8 h-8" /> 
+                  <button onClick={onClose} className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/5 text-white/40 hover:text-white transition-all flex items-center justify-center"> 
+                    <X className="w-6 h-6" /> 
                   </button>
                </div>
            </div>
 
-           {/* Tabs Navigation */}
+           {/* Tabs */}
            {!simpleMode && !readOnly && (
-             <div className="flex gap-4 mt-20 p-2 bg-black/40 border border-white/5 rounded-[36px] w-fit shadow-2xl">
+             <div className="flex gap-2 mt-10 p-1 bg-white/[0.02] border border-white/5 rounded-2xl w-fit">
                 {[
-                  { id: 'overview', label: 'Executive Matrix', icon: <Target className="w-4.5 h-4.5" /> },
-                  { id: 'activities', label: 'Neural Logs', icon: <Activity className="w-4.5 h-4.5" /> },
-                  { id: 'matrix', label: 'Institutional Node', icon: <Cpu className="w-4.5 h-4.5" /> }
+                  { id: 'overview', label: 'Visão Geral', icon: <Target className="w-4 h-4" /> },
+                  { id: 'activities', label: 'Atividades', icon: <Activity className="w-4 h-4" /> },
+                  { id: 'matrix', label: 'Dados Técnicos', icon: <Cpu className="w-4 h-4" /> }
                 ].map((tab) => (
-                  <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={cn('px-10 py-4.5 rounded-[28px] text-[10px] font-black uppercase tracking-[0.4em] transition-all duration-1000 flex items-center gap-4 italic border', activeTab === tab.id ? 'bg-sidebar-primary text-black border-sidebar-primary netlife-glow shadow-none scale-105' : 'text-white/20 border-transparent hover:text-white/40')}>
+                  <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={cn('px-6 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-3', activeTab === tab.id ? 'bg-primary text-white shadow-lg' : 'text-white/20 hover:text-white/40')}>
                     {tab.icon} {tab.label}
                   </button>
                 ))}
@@ -328,24 +314,23 @@ export function LeadDetailModal({
            )}
         </div>
 
-        {/* Modal Body */}
-        <div className="overflow-y-auto flex-1 p-16 lg:p-20 scrollbar-none relative z-10">
+        {/* Content */}
+        <div className="overflow-y-auto flex-1 p-8 lg:p-12 scrollbar-thin">
           <AnimatePresence mode="wait">
             {activeTab === 'overview' && (
-              <motion.div key="visao" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-24">
-                {/* Pipeline State Machine */}
+              <motion.div key="visao" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-16">
+                {/* Status Pipeline */}
                 {!simpleMode && !readOnly && (
-                   <div className="space-y-12">
-                      <SectionTitle title="Funnel Architecture" icon={<Layers className="w-5 h-5" />} />
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                   <div className="space-y-6">
+                      <SectionTitle title="Estágio no Funil" icon={<Layers className="w-4 h-4" />} />
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                          {FUNIL_STAGES.map((s, idx) => {
                             const currentIdx = FUNIL_STAGES.findIndex(fs => fs.key === contact.status)
                             const isPast = idx < currentIdx
                             const isActive = idx === currentIdx
                             return (
-                               <button key={s.key} onClick={() => updateStatus(s.key)} className={cn("relative py-6 rounded-[28px] text-[10px] font-black uppercase tracking-widest border transition-all duration-1000 overflow-hidden group/stage italic", isActive ? "bg-sidebar-primary text-black border-sidebar-primary netlife-glow shadow-none scale-105" : isPast ? "bg-sidebar-primary/10 text-sidebar-primary border-sidebar-primary/20" : "bg-black/40 text-white/5 border-white/5 hover:border-white/10 hover:text-white/20")}>
-                                  <span className="relative z-10">{s.label}</span>
-                                  {isActive && <div className="absolute inset-0 bg-white/20 animate-pulse" />}
+                               <button key={s.key} onClick={() => updateStatus(s.key)} className={cn("py-3 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all", isActive ? "bg-primary text-white border-primary shadow-lg" : isPast ? "bg-primary/10 text-primary border-primary/20" : "bg-white/[0.02] text-white/10 border-white/5 hover:border-white/10 hover:text-white/20")}>
+                                  {s.label}
                                </button>
                             )
                          })}
@@ -353,191 +338,179 @@ export function LeadDetailModal({
                    </div>
                  )}
 
-                {/* Data Matrix */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-24">
-                    <div className="space-y-12">
-                        <SectionTitle title="Neural Connectivity" icon={<Zap className="w-5 h-5" />} />
-                        <div className="grid gap-12">
-                            <DetailField icon={<Phone className="w-5 h-5" />} label="Terminal Signal">
+                {/* Info Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <div className="space-y-8">
+                        <SectionTitle title="Contatos" icon={<Zap className="w-4 h-4" />} />
+                        <div className="grid gap-8">
+                            <DetailField icon={<Phone className="w-4 h-4" />} label="Telefone / WhatsApp">
                                <div className="flex items-center justify-between">
-                                  <span className="text-xl font-black text-white/90 tracking-[0.2em] italic">{contact.telefone || 'SIGNAL LOST'}</span>
+                                  <span className="text-lg font-bold text-white/90">{contact.telefone || 'Não informado'}</span>
                                   {contact.telefone && (
-                                     <div className="flex items-center gap-4">
-                                        <button onClick={() => handleCopyPhone(contact.telefone)} className="w-14 h-14 rounded-2xl bg-black border border-white/5 hover:border-sidebar-primary/40 text-white/10 hover:text-sidebar-primary transition-all duration-700 flex items-center justify-center relative shadow-2xl">
-                                           <Copy className="w-6 h-6" />
-                                           <AnimatePresence> {showCopyTooltip && <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute -top-14 left-1/2 -translate-x-1/2 bg-sidebar-primary text-black text-[10px] font-black uppercase px-4 py-2 rounded-xl shadow-2xl whitespace-nowrap italic">HASH COPIED</motion.span>} </AnimatePresence>
+                                     <div className="flex items-center gap-3">
+                                        <button onClick={() => handleCopyPhone(contact.telefone)} className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/5 hover:border-primary/40 text-white/20 hover:text-primary transition-all flex items-center justify-center relative">
+                                           <Copy className="w-4 h-4" />
+                                           <AnimatePresence> {showCopyTooltip && <motion.span initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute -top-10 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-lg whitespace-nowrap">Copiado</motion.span>} </AnimatePresence>
                                         </button>
-                                        <button onClick={() => handleWhatsApp(contact.telefone)} className="w-14 h-14 rounded-2xl bg-black border border-white/5 hover:border-emerald-500/40 text-white/10 hover:text-emerald-500 transition-all duration-700 flex items-center justify-center shadow-2xl">
-                                           <MessageCircle className="w-6 h-6" />
+                                        <button onClick={() => handleWhatsApp(contact.telefone)} className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20 transition-all flex items-center justify-center">
+                                           <MessageCircle className="w-5 h-5" />
                                         </button>
                                      </div>
                                   )}
                                </div>
                             </DetailField>
-                            <DetailField icon={<Mail className="w-5 h-5" />} label="Digital Handshake" value={contact.email} />
-                            <DetailField icon={<Briefcase className="w-5 h-5" />} label="Infiltration Protocol" value={contact.cargo} />
-                            <DetailField icon={getCanalIcon(contact.canal)} label="Ingress Vector" value={contact.canal} />
+                            <DetailField icon={<Mail className="w-4 h-4" />} label="E-mail" value={contact.email} />
+                            <DetailField icon={<Briefcase className="w-4 h-4" />} label="Cargo" value={contact.cargo} />
                         </div>
                     </div>
-                    <div className="space-y-12">
-                        <SectionTitle title="Corporate Infiltration" icon={<Building2 className="w-5 h-5" />} />
-                        <div className="grid gap-12">
-                            <DetailField icon={<Building2 className="w-5 h-5" />} label="Institutional Entity" value={contact.empresa} />
-                            <DetailField icon={<MapPin className="w-5 h-5" />} label="Geospatial Target">
-                                <span className={cn("text-sm font-black uppercase tracking-widest leading-relaxed block italic", !formatAddress() ? "text-white/5 italic" : "text-white/60 group-hover/field:text-white transition-colors duration-700")}>
-                                   {formatAddress() || 'GLOBAL NETWORK NODE'}
+                    <div className="space-y-8">
+                        <SectionTitle title="Localização e Empresa" icon={<Building2 className="w-4 h-4" />} />
+                        <div className="grid gap-8">
+                            <DetailField icon={<Building2 className="w-4 h-4" />} label="Empresa" value={contact.empresa} />
+                            <DetailField icon={<MapPin className="w-4 h-4" />} label="Endereço">
+                                <span className={cn("text-sm font-bold block", !formatAddress() ? "text-white/5 italic" : "text-white/60")}>
+                                   {formatAddress() || 'Não informado'}
                                 </span>
                             </DetailField>
-                            <DetailField icon={<Globe className="w-5 h-5" />} label="Cyber Domain">
+                            <DetailField icon={<Globe className="w-4 h-4" />} label="Site / URL">
                                 {contact.site ? (
-                                   <a href={contact.site.startsWith('http') ? contact.site : `https://${contact.site}`} target="_blank" rel="noopener noreferrer" className="text-sidebar-primary hover:text-white underline font-black uppercase tracking-[0.2em] text-sm flex items-center gap-3 transition-all duration-700 group/link italic">
-                                      {contact.site} <ArrowUpRight className="w-4.5 h-4.5 group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform" />
+                                   <a href={contact.site.startsWith('http') ? contact.site : `https://${contact.site}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-bold text-sm flex items-center gap-2 group transition-all">
+                                      {contact.site} <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                                    </a>
-                                ) : <span className="text-white/5 font-black uppercase tracking-widest text-sm italic">UNSECURED DOMAIN</span>}
+                                ) : <span className="text-white/5 font-bold text-sm italic">Não informado</span>}
                             </DetailField>
-                            <DetailField icon={<Target className="w-5 h-5" />} label="Sector Vector" value={contact.nicho || 'GENERAL MARKET PROTOCOL'} />
                         </div>
                     </div>
                 </div>
 
-                {/* Intelligence Feed */}
-                <div className="nl-glass rounded-[48px] p-12 border-white/5 relative overflow-hidden group shadow-2xl bg-black/40">
-                  <div className="absolute inset-0 bg-gradient-to-br from-sidebar-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-                  <SectionTitle title="Strategy Dossier" icon={<FileText className="w-5 h-5" />} />
-                  <div className="relative pl-10">
-                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-sidebar-primary/20 rounded-full group-hover:bg-sidebar-primary/40 transition-colors duration-700" />
-                    <p className="text-lg text-white/40 leading-loose whitespace-pre-wrap font-medium italic group-hover:text-white/60 transition-colors duration-1000">
-                       {contact.notas ? `"${contact.notas}"` : 'AWAITING NEURAL NOTES INFILTRATION...'}
-                    </p>
-                  </div>
+                {/* Notes */}
+                <div className="bg-white/[0.02] rounded-3xl p-8 border border-white/5 space-y-4">
+                  <SectionTitle title="Notas e Observações" icon={<FileText className="w-4 h-4" />} />
+                  <p className="text-white/60 text-sm leading-relaxed whitespace-pre-wrap">
+                     {contact.notas || 'Nenhuma nota registrada para este contato.'}
+                  </p>
                 </div>
               </motion.div>
             )}
 
             {activeTab === 'activities' && (
-              <motion.div key="atividades" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-16">
-                <div className="flex items-center justify-between border-b border-white/5 pb-10">
-                   <div className="space-y-1">
-                      <h4 className="text-[11px] font-black text-white/20 uppercase tracking-[0.4em] italic">Neural Activity Stream</h4>
-                      <p className="text-[9px] font-black text-white/10 uppercase tracking-[0.3em] italic">Real-time Protocol Log v2.0</p>
-                   </div>
-                   <button onClick={() => setIsAddingActivity(!isAddingActivity)} className="btn-primary px-10 py-5 netlife-glow shadow-none text-[10px] font-black uppercase tracking-[0.3em] italic flex items-center gap-4 group">
-                      <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-700" /> {isAddingActivity ? 'ABORT PROTOCOL' : 'INJECT NEW LOG'}
+              <motion.div key="atividades" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-8">
+                <div className="flex items-center justify-between">
+                   <h4 className="text-sm font-bold text-white/40 uppercase tracking-widest">Histórico de Interações</h4>
+                   <button onClick={() => setIsAddingActivity(!isAddingActivity)} className="bg-white/[0.05] hover:bg-white/[0.1] px-6 py-2 rounded-xl text-xs font-bold text-white flex items-center gap-2 transition-all">
+                      <Plus className="w-4 h-4" /> {isAddingActivity ? 'Cancelar' : 'Nova Atividade'}
                    </button>
                 </div>
 
                 <AnimatePresence>
                   {isAddingActivity && (
-                    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="nl-glass rounded-[48px] p-12 border-sidebar-primary/20 shadow-[0_50px_100px_rgba(0,0,0,0.8)] relative z-20">
-                      <div className="space-y-12">
-                        <div className="grid grid-cols-2 lg:grid-cols-5 gap-6">
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-white/[0.03] rounded-3xl p-8 border border-white/10 space-y-8 overflow-hidden">
+                        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
                           {(['phone', 'email', 'message', 'meeting', 'note'] as ActivityType[]).map((t) => (
-                            <button key={t} onClick={() => setActivityType(t)} className={cn('py-6 px-4 rounded-[28px] text-[10px] font-black uppercase tracking-[0.4em] italic flex flex-col items-center gap-5 border transition-all duration-1000 group/btn', activityType === t ? getActivityColor(t) + ' scale-105 shadow-2xl border-opacity-40' : 'border-white/5 text-white/10 hover:bg-black hover:border-white/10')}>
-                              <div className="p-4 rounded-2xl bg-current/10 group-hover/btn:scale-110 transition-transform duration-700">{getActivityIcon(t)}</div>
+                            <button key={t} onClick={() => setActivityType(t)} className={cn('py-4 rounded-xl text-[10px] font-bold uppercase tracking-widest flex flex-col items-center gap-3 border transition-all', activityType === t ? getActivityColor(t) + ' border-opacity-40 shadow-lg' : 'border-white/5 text-white/10 hover:border-white/10')}>
+                              {getActivityIcon(t)}
                               {t}
                             </button>
                           ))}
                         </div>
-                        <textarea className="w-full bg-black border border-white/10 rounded-[48px] px-10 py-10 text-sm font-black uppercase tracking-widest text-white/60 outline-none focus:border-sidebar-primary/40 transition-all resize-none leading-loose italic placeholder-white/5 duration-700" rows={4} placeholder="TRANSCRIBE MISSION LOG..." value={activityDesc} onChange={(e) => setActivityDesc(e.target.value)} />
-                        <div className="flex gap-6">
-                          <button onClick={() => setIsAddingActivity(false)} className="flex-1 py-7 rounded-[32px] bg-white/[0.02] border border-white/5 text-[10px] font-black uppercase tracking-[0.4em] italic text-white/10 hover:text-white transition-all duration-700">ABORT INJECTION</button>
-                          <button onClick={addActivity} className="flex-1 py-7 rounded-[32px] btn-primary netlife-glow shadow-none text-[10px] font-black uppercase tracking-[0.4em] italic">COMMIT PROTOCOL</button>
+                        <textarea className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-sm text-white outline-none focus:border-primary/50 transition-all resize-none placeholder-white/5" rows={3} placeholder="Descreva o que aconteceu..." value={activityDesc} onChange={(e) => setActivityDesc(e.target.value)} />
+                        <div className="flex gap-4">
+                          <button onClick={() => setIsAddingActivity(false)} className="flex-1 py-3 rounded-xl bg-white/[0.02] text-xs font-bold text-white/20 hover:text-white transition-all">Descartar</button>
+                          <button onClick={addActivity} className="flex-1 py-3 rounded-xl bg-primary text-xs font-bold text-white shadow-lg">Salvar Atividade</button>
                         </div>
-                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                <div className="relative pl-16 space-y-16">
-                   <div className="absolute left-[31px] top-6 bottom-6 w-px bg-gradient-to-b from-sidebar-primary via-white/5 to-transparent opacity-40" />
+                <div className="relative pl-10 space-y-10">
+                   <div className="absolute left-[19px] top-4 bottom-4 w-px bg-white/5" />
                    {contact.activities.length === 0 ? (
-                      <div className="text-center py-32 space-y-10">
-                         <div className="w-24 h-24 rounded-[48px] bg-white/[0.02] border border-white/5 flex items-center justify-center mx-auto opacity-10"> <Activity className="w-10 h-10" /> </div>
-                         <p className="text-[12px] font-black text-white/10 uppercase tracking-[0.5em] italic">Awaiting First Neural Signal</p>
+                      <div className="text-center py-20 opacity-10 space-y-4">
+                         <Activity className="w-10 h-10 mx-auto" />
+                         <p className="text-xs font-bold uppercase tracking-widest">Nenhuma atividade registrada</p>
                       </div>
-                   ) : contact.activities.map((activity, idx) => (
-                      <motion.div key={activity.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.1 }} className="relative group/activity">
-                         <div className={cn('absolute -left-[63px] top-0 w-16 h-16 rounded-[28px] flex items-center justify-center border-[6px] border-black shadow-2xl z-10 transition-all duration-1000 group-hover/activity:scale-110', getActivityColor(activity.type))}>
+                   ) : contact.activities.map((activity) => (
+                      <div key={activity.id} className="relative group">
+                         <div className={cn('absolute -left-[31px] top-1 w-6 h-6 rounded-lg flex items-center justify-center border border-black z-10', getActivityColor(activity.type))}>
                             {getActivityIcon(activity.type)}
                          </div>
-                         <div className="nl-glass rounded-[48px] p-10 border-white/5 group-hover/activity:border-white/10 transition-all duration-1000 group-hover/activity:bg-black/60 shadow-2xl">
-                            <p className="text-base text-white/60 font-medium leading-loose mb-8 italic">"{activity.description}"</p>
-                            <div className="flex items-center justify-between pt-8 border-t border-white/5">
-                               <div className="flex items-center gap-4 text-[10px] font-black text-white/20 uppercase tracking-[0.3em] italic">
-                                  <Clock className="w-4.5 h-4.5" />
+                         <div className="bg-white/[0.02] rounded-2xl p-6 border border-white/5 hover:bg-white/[0.04] transition-all">
+                            <p className="text-sm text-white/80 leading-relaxed mb-4">{activity.description}</p>
+                            <div className="flex items-center justify-between text-[10px] font-bold text-white/20 uppercase tracking-wider">
+                               <div className="flex items-center gap-2">
+                                  <Clock className="w-3.5 h-3.5" />
                                   <span>{safeFormat(activity.date, "dd MMM yyyy · HH:mm")}</span>
                                 </div>
-                                <span className="px-5 py-2 rounded-xl bg-white/[0.03] text-[9px] font-black text-white/10 uppercase tracking-[0.4em] italic">{activity.type} ENCRYPTION</span>
+                                <span>{activity.type}</span>
                             </div>
                          </div>
-                      </motion.div>
+                      </div>
                    ))}
                 </div>
               </motion.div>
             )}
 
             {activeTab === 'matrix' && (
-              <motion.div key="matrix" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="space-y-16">
-                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
-                    <div className="lg:col-span-2 space-y-12">
+              <motion.div key="matrix" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }} className="space-y-12">
+                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 space-y-8">
                        {contact.cnpj ? (
-                          <div className="nl-glass p-16 rounded-[64px] border-white/5 relative overflow-hidden group shadow-[0_50px_100px_rgba(0,0,0,0.8)] bg-black/40">
-                             <div className="absolute inset-0 bg-gradient-to-br from-sidebar-primary/[0.04] to-transparent opacity-0 group-hover:opacity-100 transition-all duration-[2000ms]" />
-                             <div className="flex items-center gap-10 mb-16 relative z-10">
-                                <div className="w-24 h-24 rounded-[40px] bg-sidebar-primary/10 flex items-center justify-center border border-sidebar-primary/20 shadow-2xl group-hover:scale-110 transition-all duration-1000">
-                                   <Building2 className="w-12 h-12 text-sidebar-primary" />
+                          <div className="bg-white/[0.03] p-10 rounded-[40px] border border-white/5 space-y-10 shadow-xl">
+                             <div className="flex items-center gap-6">
+                                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 text-primary">
+                                   <Building2 className="w-8 h-8" />
                                 </div>
-                                <div className="space-y-2">
-                                   <h4 className="text-4xl font-black text-white uppercase tracking-tighter leading-none italic">{contact.empresa}</h4>
-                                   <div className="flex items-center gap-4 px-5 py-2 rounded-xl bg-black border border-white/5 w-fit">
-                                      <Fingerprint className="w-4.5 h-4.5 text-sidebar-primary/40" />
-                                      <p className="text-[11px] text-sidebar-primary font-black tracking-[0.4em] uppercase italic">{contact.cnpj}</p>
+                                <div className="space-y-1">
+                                   <h4 className="text-2xl font-bold text-white tracking-tight">{contact.empresa}</h4>
+                                   <div className="flex items-center gap-2 text-primary font-mono text-xs font-bold">
+                                      <Fingerprint className="w-4 h-4 opacity-50" />
+                                      <span>{contact.cnpj}</span>
                                    </div>
                                 </div>
                              </div>
                              
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
-                                <div className="p-8 rounded-[32px] bg-black border border-white/5 space-y-4 hover:border-sidebar-primary/20 transition-all duration-1000 group/data">
-                                   <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic">Geospatial Vector</p>
-                                   <div className="flex items-center gap-4">
-                                      <MapPin className="w-5 h-5 text-sidebar-primary/40 group-hover/data:text-sidebar-primary transition-colors" />
-                                      <p className="text-sm font-black text-white/60 uppercase tracking-widest italic">{contact.cidade || 'EXTRADETERRIORIAL'} / {contact.estado || 'CLD'}</p>
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="p-6 rounded-2xl bg-black/40 border border-white/5 space-y-2">
+                                   <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Cidade / Estado</p>
+                                   <div className="flex items-center gap-3">
+                                      <MapPin className="w-4 h-4 text-primary" />
+                                      <p className="text-sm font-bold text-white/80">{contact.cidade || 'Não inf.'} / {contact.estado || '--'}</p>
                                    </div>
                                 </div>
-                                <div className="p-8 rounded-[32px] bg-black border border-white/5 space-y-4 hover:border-sidebar-primary/20 transition-all duration-1000 group/data">
-                                   <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic">Industry Intelligence</p>
-                                   <div className="flex items-center gap-4">
-                                      <Target className="w-5 h-5 text-sidebar-primary/40 group-hover/data:text-sidebar-primary transition-colors" />
-                                      <p className="text-sm font-black text-white/60 uppercase tracking-widest italic">{contact.nicho || 'UNCLASSIFIED VECTOR'}</p>
+                                <div className="p-6 rounded-2xl bg-black/40 border border-white/5 space-y-2">
+                                   <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Nicho de Atuação</p>
+                                   <div className="flex items-center gap-3">
+                                      <Target className="w-4 h-4 text-primary" />
+                                      <p className="text-sm font-bold text-white/80">{contact.nicho || 'Não inf.'}</p>
                                    </div>
                                 </div>
                              </div>
                           </div>
                        ) : (
-                          <div className="py-40 rounded-[64px] border-2 border-dashed border-white/5 flex flex-col items-center justify-center gap-10 opacity-20 hover:opacity-40 hover:border-sidebar-primary/20 transition-all duration-1000">
-                             <div className="w-24 h-24 rounded-[48px] bg-white/[0.02] border border-white/5 flex items-center justify-center shadow-2xl"> <Shield className="w-12 h-12" /> </div>
-                             <div className="text-center space-y-4">
-                                <p className="text-[14px] font-black uppercase tracking-[0.5em] italic">No Identity Linkage</p>
-                                <p className="text-[10px] font-black uppercase tracking-[0.3em] italic">Initialize CNPJ Infiltration to secure this node.</p>
+                          <div className="py-32 rounded-[40px] border-2 border-dashed border-white/5 flex flex-col items-center justify-center gap-6 opacity-20">
+                             <Shield className="w-12 h-12" />
+                             <div className="text-center">
+                                <p className="text-sm font-bold uppercase tracking-widest">Sem vínculo com CNPJ</p>
+                                <p className="text-xs">Realize uma busca de leads para obter dados completos.</p>
                              </div>
                           </div>
                        )}
                     </div>
                     
-                    <div className="nl-glass rounded-[64px] p-12 border-white/5 space-y-12 shadow-2xl bg-black/40">
-                       <SectionTitle title="Matrix Security Protocol" icon={<Lock className="w-5 h-5" />} />
-                       <div className="space-y-10">
-                          <div className="flex items-center gap-5 group/sec">
-                             <div className="w-3 h-3 rounded-full bg-emerald-500 netlife-glow shadow-none group-hover/sec:animate-ping" />
-                             <p className="text-[11px] font-black text-white/40 uppercase tracking-[0.4em] italic">Real-time DB Synchronization</p>
+                    <div className="bg-white/[0.03] rounded-[40px] p-8 border border-white/5 space-y-8">
+                       <SectionTitle title="Segurança do Sistema" icon={<Lock className="w-4 h-4" />} />
+                       <div className="space-y-6">
+                          <div className="flex items-center gap-3">
+                             <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                             <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest">DB Sync Active</p>
                           </div>
-                          <div className="flex items-center gap-5 group/sec">
-                             <div className="w-3 h-3 rounded-full bg-sidebar-primary netlife-glow shadow-none group-hover/sec:animate-ping" />
-                             <p className="text-[11px] font-black text-white/40 uppercase tracking-[0.4em] italic">Neural Uplink Active</p>
+                          <div className="flex items-center gap-3">
+                             <div className="w-2 h-2 rounded-full bg-primary" />
+                             <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest">Cloud Relay Stable</p>
                           </div>
-                          <div className="space-y-6 pt-10 border-t border-white/5">
-                             <p className="text-[10px] font-black text-white/10 uppercase tracking-[0.4em] italic">Session Encryption Hash</p>
-                             <p className="text-[10px] font-mono text-white/20 break-all leading-relaxed uppercase">{contact.id.repeat(4)}</p>
+                          <div className="pt-6 border-t border-white/5">
+                             <p className="text-[9px] font-bold text-white/10 uppercase tracking-widest mb-2">Hash de Referência</p>
+                             <p className="text-[10px] font-mono text-white/10 break-all">{contact.id.repeat(2)}</p>
                           </div>
                        </div>
                     </div>
@@ -547,21 +520,21 @@ export function LeadDetailModal({
           </AnimatePresence>
         </div>
 
-        {/* Modal Footer */}
-        <div className="px-16 py-10 bg-black border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-10 relative z-10">
-           <div className="flex items-center gap-6">
-              <div className="flex items-center gap-3 px-5 py-2 rounded-full bg-white/[0.02] border border-white/5">
-                  <Clock className="w-4 h-4 text-white/20" />
-                  <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] italic">Last Activity: {safeDistance(contact.lastActivity)}</span>
-              </div>
-              <div className="w-px h-6 bg-white/5" />
-              <div className="px-5 py-2 rounded-full bg-white/[0.02] border border-white/5">
-                  <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] italic">Matrix ID: {contact.id}</span>
-              </div>
+        {/* Footer */}
+        <div className="px-8 lg:px-12 py-6 bg-white/[0.01] border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+           <div className="flex items-center gap-4 text-[10px] font-bold text-white/20 uppercase tracking-widest">
+                <div className="flex items-center gap-2">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Última Atividade: {safeDistance(contact.lastActivity)}</span>
+                </div>
+                <div className="w-px h-4 bg-white/5" />
+                <span>ID: {contact.id}</span>
            </div>
-           <div className="text-sidebar-primary/20 text-[11px] font-black uppercase tracking-[0.6em] italic animate-pulse">Investmais Neural OS v4.0.0</div>
+           <div className="text-primary/20 text-[10px] font-bold uppercase tracking-widest">Investmais CRM v4.0.0</div>
         </div>
       </motion.div>
     </motion.div>
   )
 }
+
+import { Linkedin as LucideLinkedin } from 'lucide-react'

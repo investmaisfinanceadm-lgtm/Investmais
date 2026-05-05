@@ -129,9 +129,9 @@ function MetricCard({
         )}
       </div>
       
-      <div className="relative z-10 space-y-2">
-        <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic ml-1">{label}</p>
-        <p className="text-4xl font-black text-white leading-none tracking-tighter group-hover:text-sidebar-primary transition-colors duration-700 italic">{value}</p>
+      <div className="relative z-10 space-y-1">
+        <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider ml-1">{label}</p>
+        <p className="text-3xl font-bold text-white tracking-tight">{value}</p>
       </div>
     </motion.div>
   )
@@ -183,8 +183,8 @@ function AddContactModal({ onClose, onAdd }: { onClose: () => void; onAdd: (cont
                 <Plus className="w-7 h-7 text-sidebar-primary" />
             </div>
             <div className="space-y-1">
-                <h2 className="text-sm font-black text-white uppercase tracking-[0.4em] italic leading-none">Initialize Profile</h2>
-                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] italic">Commit manual node to Matrix</p>
+                <h2 className="text-xl font-bold text-white tracking-tight">Adicionar Contato</h2>
+                <p className="text-xs text-white/40">Preencha os dados do novo lead</p>
             </div>
           </div>
           <button onClick={onClose} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/[0.03] border border-white/5 text-white/20 hover:text-white transition-all">
@@ -441,31 +441,31 @@ export default function CRMPage() {
                 <div className="w-2 h-2 rounded-full bg-sidebar-primary netlife-glow shadow-none animate-pulse" />
                 <span className="text-[10px] font-black text-sidebar-primary uppercase tracking-[0.5em] italic">Lead Intelligence Active</span>
             </div>
-            <div className="space-y-4">
-                <h1 className="text-6xl lg:text-7xl font-black text-white leading-none tracking-tighter uppercase italic leading-none">Executive Matrix</h1>
-                <p className="text-white/20 font-black uppercase tracking-[0.4em] text-[10px] italic flex items-center gap-4">
-                    <Shield className="w-4 h-4" /> Secure Hub Synchronization Protocol v4.0.0
+            <div className="space-y-2">
+                <h1 className="text-3xl font-bold text-white tracking-tight">Gestão de Contatos</h1>
+                <p className="text-white/40 text-sm flex items-center gap-2">
+                    <Shield className="w-4 h-4" /> CRM Seguro e Sincronizado
                 </p>
             </div>
           </div>
 
           <div className="flex items-center gap-6 flex-wrap">
-            <button onClick={() => setIsScrapeOpen(true)} className="px-10 py-6 rounded-[32px] bg-white/[0.03] border border-white/5 text-white/40 hover:text-sidebar-primary hover:border-sidebar-primary/20 transition-all font-black uppercase text-[10px] tracking-[0.3em] italic flex items-center gap-4">
-                <Globe className="w-5 h-5" /> Infiltrate Maps
+            <button onClick={() => setIsScrapeOpen(true)} className="px-8 py-4 rounded-2xl bg-white/[0.03] border border-white/5 text-white/60 hover:text-white transition-all font-bold text-xs flex items-center gap-3">
+                <Globe className="w-4 h-4" /> Busca de Leads
             </button>
-            <button onClick={() => setIsAddOpen(true)} className="btn-primary px-12 py-7 netlife-glow shadow-none text-xs font-black uppercase tracking-[0.3em] italic group flex items-center gap-4">
-                <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-700" />
-                Initialize Identity
+            <button onClick={() => setIsAddOpen(true)} className="bg-primary hover:bg-primary/90 px-8 py-4 rounded-2xl text-white text-xs font-bold flex items-center gap-3 transition-all">
+                <Plus className="w-4 h-4" />
+                Novo Contato
             </button>
           </div>
         </div>
 
         {/* Metric Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <MetricCard icon={Users} iconColor="text-sidebar-primary" label="Matrix Population" value={totalContacts} sub="Total Nodes" delay={0} />
-            <MetricCard icon={Target} iconColor="text-blue-400" label="Active Infiltration" value={activeLeads} sub="Live Signals" delay={0.1} />
-            <MetricCard icon={Zap} iconColor="text-emerald-400" label="Node Conversion" value={clients} sub="Delivered" delay={0.2} />
-            <MetricCard icon={Activity} iconColor="text-sidebar-primary" label="Sync Efficiency" value={`${conversionRate}%`} sub="Performance" delay={0.3} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <MetricCard icon={Users} iconColor="text-primary" label="Total de Contatos" value={totalContacts} sub="Nodes" delay={0} />
+            <MetricCard icon={Target} iconColor="text-blue-400" label="Leads Ativos" value={activeLeads} sub="Sinais" delay={0.1} />
+            <MetricCard icon={Zap} iconColor="text-emerald-400" label="Clientes" value={clients} sub="Ganhos" delay={0.2} />
+            <MetricCard icon={Activity} iconColor="text-primary" label="Conversão" value={`${conversionRate}%`} sub="Performance" delay={0.3} />
         </div>
 
         {/* Search & Filters */}
@@ -476,13 +476,13 @@ export default function CRMPage() {
                         key={tab} 
                         onClick={() => setActiveFilter(tab)}
                         className={cn(
-                            "px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all duration-700 italic border",
+                            "px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border",
                             activeFilter === tab 
-                                ? "bg-sidebar-primary text-black border-sidebar-primary netlife-glow shadow-none" 
-                                : "bg-white/[0.03] border-white/5 text-white/20 hover:text-white"
+                                ? "bg-primary text-white border-primary" 
+                                : "bg-white/[0.03] border-white/5 text-white/40 hover:text-white"
                         )}
                     >
-                        {tab === 'todos' ? 'All Signals' : tab === 'leads' ? 'Active Leaks' : tab === 'clientes' ? 'Secure Nodes' : 'Purged'}
+                        {tab === 'todos' ? 'Todos' : tab === 'leads' ? 'Leads' : tab === 'clientes' ? 'Clientes' : 'Inativos'}
                     </button>
                 ))}
             </div>

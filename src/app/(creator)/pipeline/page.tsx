@@ -143,8 +143,8 @@ const categoryColorMap: Record<string, string> = {
 function PriorityBadge({ priority }: { priority: Priority }) {
   const cfg = priorityConfig[priority] || priorityConfig['media']
   return (
-    <span className={cn("inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border italic", cfg.bgClass)}>
-      <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", cfg.dotClass)} />
+    <span className={cn("inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border", cfg.bgClass)}>
+      <div className={cn("w-1.5 h-1.5 rounded-full", cfg.dotClass)} />
       {cfg.label}
     </span>
   )
@@ -207,7 +207,7 @@ function KanbanCardItem({
       {/* Header */}
       <div className="space-y-4 mb-6 relative z-10">
         <div className="flex items-center justify-between gap-3">
-             <span className={cn("inline-block px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border italic", catClass)}>
+             <span className={cn("inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border", catClass)}>
                 {card.category}
             </span>
             <div className="flex -space-x-2">
@@ -216,7 +216,7 @@ function KanbanCardItem({
                 </div>
             </div>
         </div>
-        <p className="text-xs font-black text-white leading-relaxed group-hover:text-sidebar-primary transition-colors duration-700 uppercase tracking-tighter line-clamp-2 italic">
+        <p className="text-sm font-bold text-white leading-snug group-hover:text-primary transition-colors duration-300">
           {card.title}
         </p>
       </div>
@@ -237,18 +237,13 @@ function KanbanCardItem({
       <div className="flex items-center justify-between mb-6 relative z-10">
         <div className="flex items-center gap-3">
           <DollarSign className="w-3 h-3 text-sidebar-primary" />
-          <span className="text-xs font-black text-white tracking-tighter italic">{formatCurrency(card.value)}</span>
+          <span className="text-sm font-bold text-white">{formatCurrency(card.value)}</span>
         </div>
         
         {columnSla && (
           <div className={cn(
-            "flex items-center gap-2 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border transition-all duration-700 italic",
-            slaStatus === 'over' ? "bg-red-500/10 text-red-500 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.2)]" : 
-            slaStatus === 'near' ? "bg-amber-500/10 text-amber-500 border-amber-500/20" :
-            "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-          )}>
             <Activity className="w-3 h-3" />
-            {hoursInStage}H PULSE
+            {hoursInStage}h no estágio
           </div>
         )}
       </div>
@@ -364,10 +359,10 @@ function KanbanColumnComponent({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 const initialColumns: KanbanColumn[] = [
-  { id: 'leads',       name: 'Infiltration',   color: '#3B82F6', probabilidade: 100, cards: [] },
-  { id: 'qualificacao',name: 'Verification',   color: '#F59E0B', probabilidade: 100, cards: [] },
-  { id: 'proposta',    name: 'Neural Offer',   color: '#2563EB', probabilidade: 100, cards: [] },
-  { id: 'fechado',     name: 'Synchronized',   color: '#8B5CF6', probabilidade: 100, cards: [] },
+  { id: 'leads',       name: 'Leads',          color: '#3B82F6', probabilidade: 100, cards: [] },
+  { id: 'qualificacao',name: 'Qualificação',   color: '#F59E0B', probabilidade: 100, cards: [] },
+  { id: 'proposta',    name: 'Proposta',       color: '#2563EB', probabilidade: 100, cards: [] },
+  { id: 'fechado',     name: 'Ganhos',         color: '#8B5CF6', probabilidade: 100, cards: [] },
 ]
 
 export default function PipelinePage() {
@@ -416,8 +411,8 @@ export default function PipelinePage() {
                     <Kanban className="w-5 h-5" />
                 </div>
                 <div className="space-y-0.5">
-                    <h1 className="text-4xl font-black text-white uppercase tracking-tighter italic leading-none">Architecture Matrix</h1>
-                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.5em] italic">Strategic Pipeline Visualization</p>
+                    <h1 className="text-2xl font-bold text-white">Pipeline de Vendas</h1>
+                    <p className="text-xs font-medium text-white/40">Visualize e gerencie seus deals</p>
                 </div>
              </div>
           </div>
@@ -434,9 +429,8 @@ export default function PipelinePage() {
                 />
              </div>
 
-             <button className="btn-primary px-10 py-5 netlife-glow shadow-none text-[10px] font-black uppercase tracking-[0.3em] italic group flex items-center gap-4">
-                <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-700" />
-                Forge Deal
+                <Plus className="w-4 h-4" />
+                Novo Deal
              </button>
           </div>
         </div>
@@ -454,8 +448,8 @@ export default function PipelinePage() {
                         <stat.icon className="w-6 h-6" />
                     </div>
                     <div className="space-y-1">
-                        <p className="text-[8px] font-black text-white/20 uppercase tracking-widest leading-none italic">{stat.label}</p>
-                        <p className={cn("text-xl font-black italic tracking-tighter", stat.color)}>{stat.value}</p>
+                        <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest leading-none">{stat.label}</p>
+                        <p className={cn("text-xl font-bold", stat.color)}>{stat.value}</p>
                     </div>
                 </div>
             ))}
