@@ -392,7 +392,93 @@ function KanbanColumnComponent({
 
 // ─── Modal / Detail Drawer ────────────────────────────────────────────────────
 
-type DrawerTab = 'dados' | 'atividades' | 'historico' | 'comentarios'
+type DrawerTab = 'dados' | 'atividades' | 'comentarios' | 'utm' | 'historico'
+
+function EditableField({ 
+  field, 
+  label, 
+  value, 
+  type = 'text', 
+  options = [],
+  prefix = '',
+  isEditingGlobal,
+  editingField,
+  setEditingField,
+  handleSaveField
+}: { 
+  field: keyof KanbanCard | string, 
+  label: string, 
+  value: string | number | undefined, 
+  type?: 'text' | 'number' | 'date' | 'select'
+  options?: string[]
+  prefix?: string
+  isEditingGlobal: boolean
+  editingField: string | null
+  setEditingField: (f: string | null) => void
+  handleSaveField: (field: keyof KanbanCard, value: any) => void
+}) {
+  const isEditMode = isEditingGlobal || editingField === field
+  const [localVal, setLocalVal] = useState(String(value ?? ''))
+
+  useEffect(() => { setLocalVal(String(value ?? '')) }, [value])
+
+  function onSaveInline() {
+    const parsedVal = type === 'number' ? Number(localVal) : localVal
+    handleSaveField(field as keyof KanbanCard, parsedVal)
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5 group">
+      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+        {label}
+        {!isEditingGlobal && editingField !== field && (
+          <button
+            onClick={() => setEditingField(field)}
+            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-[var(--text-muted)] hover:text-[var(--text-main)]"
+          >
+            <Pencil className="w-3 h-3" />
+          </button>
+        )}
+      </label>
+      
+      {isEditMode ? (
+        <div className="flex items-center gap-2">
+          {type === 'select' ? (
+            <select
+              value={localVal}
+              onChange={e => setLocalVal(e.target.value)}
+              className="input-field bg-[var(--bg-primary)] border-[var(--border-main)] text-sm py-1.5 h-9"
+            >
+              {options.map(o => <option key={o} value={o}>{o}</option>)}
+            </select>
+          ) : (
+             <div className="relative flex-1">
+               {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">{prefix}</span>}
+               <input 
+                 type={type} 
+                 value={localVal}
+                 onChange={e => setLocalVal(e.target.value)}
+                 className={cn("input-field bg-[var(--bg-primary)] border-[var(--border-main)] text-sm py-1.5 h-9", prefix && "pl-8")}
+                 autoFocus={editingField === field && !isEditingGlobal}
+               />
+             </div>
+          )}
+          
+          {!isEditingGlobal && (
+            <div className="flex items-center gap-1">
+              <button onClick={onSaveInline} className="p-1.5 rounded-lg bg-accent/20 text-accent hover:bg-accent/30"><Check className="w-4 h-4" /></button>
+              <button onClick={() => { setEditingField(null); setLocalVal(String(value ?? '')) }} className="p-1.5 rounded-lg bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-main)]"><X className="w-4 h-4" /></button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <p className="text-sm text-[var(--text-main)] font-medium tracking-tight">
+           {prefix} {value || <span className="text-gray-600 italic">Não informado</span>}
+        </p>
+      )}
+    </div>
+  )
+}
 
 function CardDetailModal({
   card,
@@ -467,90 +553,6 @@ function CardDetailModal({
     toast.success('Negócio marcado como GANHO!')
   }
 
-  // Helper renderer for a single editable field
-  function EditableField({ 
-    field, 
-    label, 
-    value, 
-    type = 'text', 
-    options = [],
-    prefix = ''
-  }: { 
-    field: keyof KanbanCard | string, 
-    label: string, 
-    value: string | number | undefined, 
-    type?: 'text' | 'number' | 'date' | 'select'
-    options?: string[]
-    prefix?: string
-  }) {
-    const isEditMode = isEditingGlobal || editingField === field
-    const [localVal, setLocalVal] = useState(String(value ?? ''))
-
-    useEffect(() => { setLocalVal(String(value ?? '')) }, [value])
-
-    function onSaveInline() {
-      const parsedVal = type === 'number' ? Number(localVal) : localVal
-      if (typeof field === 'string' && !(field in card)) {
-        // Mock handling extended fields by dumping them into category or description temporarily if we really want to
-        // But for UI purpose, we just update the local editedCard
-        handleSaveField(field as keyof KanbanCard, parsedVal)
-      } else {
-        handleSaveField(field as keyof KanbanCard, parsedVal)
-      }
-    }
-
-    return (
-      <div className="flex flex-col gap-1.5 group">
-        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-          {label}
-          {!isEditingGlobal && editingField !== field && (
-            <button
-              onClick={() => setEditingField(field)}
-              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-[var(--text-muted)] hover:text-[var(--text-main)]"
-            >
-              <Pencil className="w-3 h-3" />
-            </button>
-          )}
-        </label>
-        
-        {isEditMode ? (
-          <div className="flex items-center gap-2">
-            {type === 'select' ? (
-              <select
-                value={localVal}
-                onChange={e => setLocalVal(e.target.value)}
-                className="input-field bg-[var(--bg-primary)] border-[var(--border-main)] text-sm py-1.5 h-9"
-              >
-                {options.map(o => <option key={o} value={o}>{o}</option>)}
-              </select>
-            ) : (
-               <div className="relative flex-1">
-                 {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">{prefix}</span>}
-                 <input 
-                   type={type} 
-                   value={localVal}
-                   onChange={e => setLocalVal(e.target.value)}
-                   className={cn("input-field bg-[var(--bg-primary)] border-[var(--border-main)] text-sm py-1.5 h-9", prefix && "pl-8")}
-                   autoFocus={editingField === field && !isEditingGlobal}
-                 />
-               </div>
-            )}
-            
-            {!isEditingGlobal && (
-              <div className="flex items-center gap-1">
-                <button onClick={onSaveInline} className="p-1.5 rounded-lg bg-accent/20 text-accent hover:bg-accent/30"><Check className="w-4 h-4" /></button>
-                <button onClick={() => { setEditingField(null); setLocalVal(String(value ?? '')) }} className="p-1.5 rounded-lg bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-main)]"><X className="w-4 h-4" /></button>
-              </div>
-            )}
-          </div>
-        ) : (
-          <p className="text-sm text-[var(--text-main)] font-medium tracking-tight">
-             {prefix} {value || <span className="text-gray-600 italic">Não informado</span>}
-          </p>
-        )}
-      </div>
-    )
-  }
 
   return (
     <>
@@ -803,7 +805,6 @@ function CardDetailModal({
                     </div>
                     <p className="text-sm text-[var(--text-muted)] leading-snug">
                       <span className="font-semibold text-[var(--text-main)]">{entry.user}</span> {entry.action}
-                      {entry.to && <span className="text-accent font-semibold ml-1">{entry.to}</span>}
                     </p>
                     <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">{formatDateTime(entry.date)}</p>
                   </div>
@@ -826,23 +827,95 @@ function CardDetailModal({
                   </div>
                 ))}
               </div>
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendComment()}
-                  placeholder="Escreva um comentário (pressione Enter para enviar)..."
-                  className="input-field bg-[var(--bg-primary)] border-[var(--border-main)] text-sm flex-1"
-                />
-                <button
-                  onClick={handleSendComment}
-                  disabled={!comment.trim()}
-                  className="w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-xl bg-accent text-black hover:opacity-90 disabled:opacity-30 transition-all active:scale-95"
-                >
-                  <Send className="w-5 h-5 ml-0.5" />
-                </button>
+              <div className="pt-4 border-t border-[var(--border-main)]">
+                <div className="relative">
+                  <textarea placeholder="Digite uma anotação..." value={comment} onChange={(e) => setComment(e.target.value)} className="w-full bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-2xl p-4 pr-14 text-sm resize-none" rows={3} />
+                  <button onClick={handleSendComment} disabled={!comment.trim()} className="absolute bottom-4 right-4 p-2 bg-accent text-black rounded-xl disabled:opacity-40 hover:scale-105 active:scale-95 transition-all"><Send className="w-4 h-4" /></button>
+                </div>
               </div>
             </motion.div>
           )}
 
+          {/* TAB: ATIVIDADES */}
+          {activeTab === 'atividades' && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 animate-fade-in">
+              {MOCK_ACTIVITIES.map((act, i) => (
+                 <div key={i} className="flex items-center justify-between p-4 bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-2xl">
+                    <span className={cn("text-sm font-medium", act.status === 'done' && "text-[var(--text-muted)] line-through")}>{act.title}</span>
+                    <span className="text-[10px] font-black text-gray-500 tracking-widest">{formatDate(act.date)}</span>
+                 </div>
+              ))}
+              <button className="w-full py-4 border-2 border-dashed border-[var(--border-main)] rounded-2xl text-xs font-black uppercase text-[var(--text-muted)] hover:text-accent hover:border-accent/30 transition-colors">+ Nova Atividade</button>
+            </motion.div>
+          )}
+
+          {/* TAB: UTM */}
+          {activeTab === 'utm' && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 animate-fade-in">
+              <EditableField field="utm_source" label="Source (Origem)" value={editedCard.origin || 'Direto'} isEditingGlobal={isEditingGlobal} editingField={editingField} setEditingField={setEditingField} handleSaveField={handleSaveField} />
+              <EditableField field="utm_medium" label="Medium (Meio)" value="cpc" isEditingGlobal={isEditingGlobal} editingField={editingField} setEditingField={setEditingField} handleSaveField={handleSaveField} />
+              <EditableField field="utm_campaign" label="Campaign (Campanha)" value="Pesquisa_2024" isEditingGlobal={isEditingGlobal} editingField={editingField} setEditingField={setEditingField} handleSaveField={handleSaveField} />
+            </motion.div>
+          )}
+
+          {/* TAB: HISTÓRICO */}
+          {activeTab === 'historico' && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="animate-fade-in pl-2 space-y-6 relative before:absolute before:inset-y-0 before:left-[17px] before:w-px before:bg-[var(--border-main)]">
+              {MOCK_HISTORY.length === 0 ? (
+                 <p className="text-gray-500 text-sm font-medium text-center py-10 w-full">Nenhum histórico registrado.</p>
+              ) : (
+                MOCK_HISTORY.map((entry, idx) => (
+                  <div key={entry.id} className="relative pl-10 flex flex-col gap-1">
+                    <div className="absolute left-[-5px] top-0 w-11 h-11 bg-[var(--bg-card)] flex items-start justify-center">
+                       <div className="w-6 h-6 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
+                         {idx === MOCK_HISTORY.length - 1 ? <CheckCircle2 className="w-3 h-3 text-accent" /> : <Circle className="w-3 h-3 text-gray-600" />}
+                       </div>
+                    </div>
+                    <p className="text-sm text-[var(--text-muted)] leading-snug">
+                      <span className="font-semibold text-[var(--text-main)]">{entry.user}</span> {entry.action}
+                    </p>
+                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">{formatDateTime(entry.date)}</p>
+                  </div>
+                ))
+              )}
+            </motion.div>
+          )}
+
+          {/* TAB: ANOTAÇÕES */}
+          {activeTab === 'comentarios' && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 animate-fade-in flex flex-col h-full">
+              <div className="flex-1 space-y-4">
+                {comments.map((c) => (
+                  <div key={c.id} className="p-4 bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-2xl">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-black text-accent uppercase tracking-widest">{c.user}</span>
+                      <span className="text-[9px] text-gray-500">{formatDateTime(c.date)}</span>
+                    </div>
+                    <p className="text-sm text-[var(--text-main)] leading-relaxed">{c.text}</p>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="pt-4 border-t border-[var(--border-main)]">
+                <div className="relative">
+                  <textarea
+                    placeholder="Digite uma anotação..."
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-main)] rounded-2xl p-4 pr-14 text-sm resize-none focus:border-accent/40 transition-colors"
+                    rows={3}
+                  />
+                  <button
+                    onClick={handleSendComment}
+                    disabled={!comment.trim()}
+                    className="absolute bottom-4 right-4 p-2 bg-accent text-black rounded-xl disabled:opacity-40 hover:scale-105 active:scale-95 transition-all"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </div>
 
         {/* ── Footer Actions ── */}

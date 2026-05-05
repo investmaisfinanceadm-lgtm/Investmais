@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts'
-import { Video, Clock, Library, Plus, ArrowRight, TrendingUp, BarChart3, Activity, Zap, ChevronDown, Users, Globe } from 'lucide-react'
+import { Video, Clock, Library, Plus, ArrowRight, TrendingUp, BarChart3, Activity, Zap, ChevronDown, Users, Globe, DollarSign, CheckCircle2, ArrowUpRight } from 'lucide-react'
 import { cn, formatDateTime, getStatusColor, getStatusLabel } from '@/lib/utils'
 import { formatCurrency as formatBRL } from '@/lib/crm-utils'
 
@@ -80,7 +80,7 @@ export default function DashboardPage() {
         loadData()
     }, [])
 
-    const quotaPercent = stats ? Math.min(Math.round((stats.cota_usada / stats.cota_mensal) * 100), 100) : 0
+
 
     const greeting = () => {
         const hour = new Date().getHours()

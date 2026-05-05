@@ -8,50 +8,39 @@ datasource db {
 }
 
 model Profile {
-  id            String    @id @default(uuid())
-  nome          String
-  email         String    @unique
-  password      String
-  avatar_url    String?
-  perfil        Role      @default(criador)
-  status        Status    @default(ativo)
-  cor           String    @default("#3B82F6") // Cor do vendedor (NetLife style)
-  time_id       String?
-  cota_mensal   Int       @default(10)
-  cota_usada    Int       @default(0)
-  last_activity DateTime?
-  created_at    DateTime  @default(now())
-
-  videos           Video[]
-  pastas           Pasta[]
+  id               String               @id @default(uuid())
+  nome             String
+  email            String               @unique
+  password         String
+  avatar_url       String?
+  perfil           Role                 @default(criador)
+  status           Status               @default(ativo)
+  cota_mensal      Int                  @default(10)
+  cota_usada       Int                  @default(0)
+  last_activity    DateTime?
+  created_at       DateTime             @default(now())
+  cor              String               @default("#3B82F6")
+  time_id          String?
+  consultas_cnpj   ConsultaCNPJ[]
+  contatos         Contato[]
+  movimentacoes    DealStageHistory[]
   integracoes      Integracao[]
+  listas_disparo   ListaDisparo[]
   notificacoes     Notificacao[]
   reset_tokens     PasswordResetToken[]
+  pastas           Pasta[]
   pipeline_boards  PipelineBoard[]
-  contatos         Contato[]
-  consultas_cnpj   ConsultaCNPJ[]
-  listas_disparo   ListaDisparo[]
   deals_atribuidos PipelineCard[]       @relation("VendedorDeals")
-  movimentacoes    DealStageHistory[]
   time             Team?                @relation(fields: [time_id], references: [id])
+  videos           Video[]
 
   @@map("profiles")
 }
 
-enum Role {
-  admin
-  criador
-}
-
-enum Status {
-  ativo
-  inativo
-}
-
 model Team {
-  id         String   @id @default(uuid())
+  id         String    @id @default(uuid())
   nome       String
-  created_at DateTime @default(now())
+  created_at DateTime  @default(now())
   membros    Profile[]
 
   @@map("teams")
@@ -73,17 +62,10 @@ model Video {
   pasta_id           String?
   nano_banana_job_id String?
   created_at         DateTime    @default(now())
-
-  user  Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  pasta Pasta?  @relation(fields: [pasta_id], references: [id])
+  pasta              Pasta?      @relation(fields: [pasta_id], references: [id])
+  user               Profile     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("videos")
-}
-
-enum VideoStatus {
-  processando
-  concluido
-  erro
 }
 
 model Pasta {
@@ -91,9 +73,8 @@ model Pasta {
   user_id    String
   nome       String
   created_at DateTime @default(now())
-
-  user   Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  videos Video[]
+  user       Profile  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  videos     Video[]
 
   @@map("pastas")
 }
@@ -106,8 +87,7 @@ model Integracao {
   configuracoes Json?
   ativo         Boolean  @default(false)
   created_at    DateTime @default(now())
-
-  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user          Profile  @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, tipo])
   @@map("integracoes")
@@ -120,8 +100,7 @@ model Notificacao {
   lida       Boolean  @default(false)
   tipo       String
   created_at DateTime @default(now())
-
-  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user       Profile  @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("notificacoes")
 }
@@ -133,8 +112,7 @@ model PasswordResetToken {
   expires_at DateTime
   used       Boolean  @default(false)
   created_at DateTime @default(now())
-
-  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user       Profile  @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("password_reset_tokens")
 }
@@ -144,8 +122,8 @@ model PipelineBoard {
   user_id    String
   nome       String
   descricao  String?
-  is_default Boolean          @default(false)
   created_at DateTime         @default(now())
+  is_default Boolean          @default(false)
   user       Profile          @relation(fields: [user_id], references: [id], onDelete: Cascade)
   colunas    PipelineColuna[]
 
@@ -153,118 +131,110 @@ model PipelineBoard {
 }
 
 model PipelineColuna {
-  id            String        @id @default(uuid())
+  id            String         @id @default(uuid())
   board_id      String
   nome          String
-  ordem         Int           @default(0)
-  cor           String        @default("#30CB7B")
-  probabilidade Int           @default(100)
+  ordem         Int            @default(0)
+  cor           String         @default("#30CB7B")
+  created_at    DateTime       @default(now())
+  probabilidade Int            @default(100)
   sla_horas     Int?
-  created_at    DateTime      @default(now())
-  board         PipelineBoard @relation(fields: [board_id], references: [id], onDelete: Cascade)
   cards         PipelineCard[]
+  board         PipelineBoard  @relation(fields: [board_id], references: [id], onDelete: Cascade)
 
   @@map("pipeline_colunas")
 }
 
-enum DealStatus {
-  open
-  won
-  lost
-}
-
 model PipelineCard {
-  id            String         @id @default(uuid())
+  id            String             @id @default(uuid())
   coluna_id     String
-  contato_id    String?        // Temporariamente opcional para migração
-  vendedor_id   String?
   titulo        String
   descricao     String?
-  responsavel   String?        // Mantido para compatibilidade, mas vendedor_id é o novo padrão
+  responsavel   String?
   valor         Float?
   vencimento    DateTime?
-  prioridade    String         @default("media")
+  prioridade    String             @default("media")
   categoria     String?
-  origem        String?
-  status        DealStatus     @default(open)
-  lost_reason   String?
+  ordem         Int                @default(0)
+  historico     Json?
+  created_at    DateTime           @default(now())
+  contato_id    String?
   fechado_em    DateTime?
-  ordem         Int            @default(0)
-  historico     Json?          // Mantido para dados legados, DealStageHistory é o novo padrão
-  created_at    DateTime       @default(now())
-  
-  coluna        PipelineColuna @relation(fields: [coluna_id], references: [id], onDelete: Cascade)
-  contato       Contato?       @relation(fields: [contato_id], references: [id])
-  vendedor      Profile?       @relation("VendedorDeals", fields: [vendedor_id], references: [id])
+  lost_reason   String?
+  origem        String?
+  status        DealStatus         @default(open)
+  vendedor_id   String?
   movimentacoes DealStageHistory[]
+  coluna        PipelineColuna     @relation(fields: [coluna_id], references: [id], onDelete: Cascade)
+  contato       Contato?           @relation(fields: [contato_id], references: [id])
+  vendedor      Profile?           @relation("VendedorDeals", fields: [vendedor_id], references: [id])
 
   @@map("pipeline_cards")
 }
 
 model DealStageHistory {
-  id                String   @id @default(uuid())
-  deal_id           String
-  etapa_origem_id   String?
-  etapa_destino_id  String
-  user_id           String
-  fonte             String   @default("manual") // manual, drag, bulk, automation
-  created_at        DateTime @default(now())
-
-  deal    PipelineCard @relation(fields: [deal_id], references: [id], onDelete: Cascade)
-  usuario Profile      @relation(fields: [user_id], references: [id])
+  id               String       @id @default(uuid())
+  deal_id          String
+  etapa_origem_id  String?
+  etapa_destino_id String
+  user_id          String
+  fonte            String       @default("manual")
+  created_at       DateTime     @default(now())
+  deal             PipelineCard @relation(fields: [deal_id], references: [id], onDelete: Cascade)
+  usuario          Profile      @relation(fields: [user_id], references: [id])
 
   @@map("deal_stage_history")
 }
 
 model Contato {
-  id              String        @id @default(uuid())
-  user_id         String
-  nome            String
-  email           String?
-  telefone        String?
-  empresa         String?
-  cargo           String?
-  cnpj            String?
-  canal_origem    String?
-  status_funil    String        @default("lead")
-  tags            String[]
-  notas           String?
-  avatar_url      String?
-  cidade          String?
-  estado          String?
-  endereco        String?
-  site            String?
-  nicho           String?
-  created_at      DateTime      @default(now())
-  updated_at      DateTime      @updatedAt
-  user            Profile       @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  atividades      AtividadeCRM[]
-  deals           PipelineCard[]
+  id           String         @id @default(uuid())
+  user_id      String
+  nome         String
+  email        String?
+  telefone     String?
+  empresa      String?
+  cargo        String?
+  cnpj         String?
+  canal_origem String?
+  status_funil String         @default("lead")
+  tags         String[]
+  notas        String?
+  avatar_url   String?
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  cidade       String?
+  endereco     String?
+  estado       String?
+  nicho        String?
+  site         String?
+  atividades   AtividadeCRM[]
+  user         Profile        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  deals        PipelineCard[]
 
   @@map("contatos")
 }
 
 model AtividadeCRM {
-  id          String   @id @default(uuid())
-  contato_id  String
-  tipo        String
-  descricao   String
-  data        DateTime @default(now())
-  contato     Contato  @relation(fields: [contato_id], references: [id], onDelete: Cascade)
+  id         String   @id @default(uuid())
+  contato_id String
+  tipo       String
+  descricao  String
+  data       DateTime @default(now())
+  contato    Contato  @relation(fields: [contato_id], references: [id], onDelete: Cascade)
 
   @@map("atividades_crm")
 }
 
 model ConsultaCNPJ {
-  id              String   @id @default(uuid())
-  user_id         String
-  cnpj            String
-  razao_social    String?
-  nome_fantasia   String?
-  situacao        String?
-  dados           Json?
-  created_at      DateTime @default(now())
-  user            Profile  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id            String   @id @default(uuid())
+  user_id       String
+  cnpj          String
+  razao_social  String?
+  nome_fantasia String?
+  situacao      String?
+  dados         Json?
+  created_at    DateTime @default(now())
+  user          Profile  @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("consultas_cnpj")
 }
@@ -281,7 +251,7 @@ model LeadCNPJ {
   endereco       String?
   cnae_descricao String?
   cnae_codigo    String?
-  user_id        String   // UUID do usuário (sem FK — compatível com o n8n que gera UUID avulso)
+  user_id        String
   created_at     DateTime @default(now())
 
   @@index([cnpj])
@@ -294,11 +264,33 @@ model ListaDisparo {
   user_id    String
   nome       String
   telefones  String[]
-  status     String   @default("nova") // nova | em_progresso | concluida
+  status     String   @default("nova")
   total      Int      @default(0)
   enviados   Int      @default(0)
   created_at DateTime @default(now())
   user       Profile  @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("listas_disparo")
+}
+
+enum Role {
+  admin
+  criador
+}
+
+enum Status {
+  ativo
+  inativo
+}
+
+enum VideoStatus {
+  processando
+  concluido
+  erro
+}
+
+enum DealStatus {
+  open
+  won
+  lost
 }
