@@ -18,7 +18,9 @@ import {
   Database,
   PieChart,
   Zap,
-  ChevronRight
+  ChevronRight,
+  ChevronDown,
+  DollarSign
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
