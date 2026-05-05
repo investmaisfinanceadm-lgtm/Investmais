@@ -80,11 +80,11 @@ type FilterTab = 'todos' | 'leads' | 'clientes' | 'inativos'
 // ─── Zod Schema ───────────────────────────────────────────────────────────────
 
 const addContactSchema = z.object({
-  nome: z.string().min(3, 'Name must be at least 3 characters'),
-  email: z.string().email('Invalid institutional email'),
-  telefone: z.string().min(10, 'Invalid terminal number'),
-  empresa: z.string().min(2, 'Organization must be at least 2 characters'),
-  cargo: z.string().min(2, 'Operational role must be at least 2 characters'),
+  nome: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres'),
+  email: z.string().email('E-mail institucional inválido'),
+  telefone: z.string().min(10, 'Número de terminal inválido'),
+  empresa: z.string().min(2, 'A organização deve ter pelo menos 2 caracteres'),
+  cargo: z.string().min(2, 'O cargo operacional deve ter pelo menos 2 caracteres'),
   canal: z.enum(['Instagram', 'Site', 'Indicação', 'LinkedIn', 'WhatsApp']),
   tags: z.string().optional(),
   notas: z.string().optional(),
@@ -547,16 +547,16 @@ export default function CRMPage() {
                         </div>
                         <div className="space-y-2 mb-8">
                             <h3 className="text-xl font-black text-white uppercase tracking-tighter italic group-hover:text-sidebar-primary transition-colors duration-700 truncate">{contact.nome}</h3>
-                            <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] truncate">{contact.empresa || 'Individual Node'}</p>
+                            <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] truncate">{contact.empresa || 'Pessoa Física'}</p>
                         </div>
                         <div className="flex flex-col gap-4 pt-8 border-t border-white/5">
                             <div className="flex items-center gap-4">
                                 <Smartphone className="w-4 h-4 text-white/10" />
-                                <span className="text-[10px] font-black text-white/20 uppercase tracking-widest truncate">{contact.telefone || 'No Terminal'}</span>
+                                <span className="text-[10px] font-black text-white/20 uppercase tracking-widest truncate">{contact.telefone || 'Sem Telefone'}</span>
                             </div>
                             <div className="flex items-center gap-4">
                                 <Mail className="w-4 h-4 text-white/10" />
-                                <span className="text-[10px] font-black text-white/20 uppercase tracking-widest truncate">{contact.email || 'No Signal'}</span>
+                                <span className="text-[10px] font-black text-white/20 uppercase tracking-widest truncate">{contact.email || 'Sem E-mail'}</span>
                             </div>
                         </div>
                         <div className="absolute bottom-10 right-10 w-12 h-12 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center text-white/10 group-hover:text-sidebar-primary group-hover:border-sidebar-primary/20 group-hover:scale-110 transition-all duration-700">
@@ -571,11 +571,11 @@ export default function CRMPage() {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-white/[0.02] border-b border-white/5">
-                                <th className="px-10 py-8 text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic">Entity Identity</th>
-                                <th className="px-10 py-8 text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic">Organization</th>
-                                <th className="px-10 py-8 text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic text-center">Protocol Status</th>
-                                <th className="px-10 py-8 text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic">Last Pulse</th>
-                                <th className="px-10 py-8 text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic text-center">Vector</th>
+                                <th className="px-10 py-8 text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic">Identidade do Lead</th>
+                                <th className="px-10 py-8 text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic">Organização</th>
+                                <th className="px-10 py-8 text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic text-center">Status</th>
+                                <th className="px-10 py-8 text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic">Atividade</th>
+                                <th className="px-10 py-8 text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic text-center">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
@@ -599,8 +599,8 @@ export default function CRMPage() {
                                     </td>
                                     <td className="px-10 py-8">
                                         <div className="space-y-1">
-                                            <p className="text-[11px] font-black text-white uppercase tracking-widest italic">{contact.empresa || 'Individual Node'}</p>
-                                            <p className="text-[9px] font-black text-white/10 uppercase tracking-widest">{contact.cargo || 'Operational'}</p>
+                                            <p className="text-[11px] font-black text-white uppercase tracking-widest italic">{contact.empresa || 'Pessoa Física'}</p>
+                                            <p className="text-[9px] font-black text-white/10 uppercase tracking-widest">{contact.cargo || 'Operacional'}</p>
                                         </div>
                                     </td>
                                     <td className="px-10 py-8 text-center">
@@ -610,7 +610,7 @@ export default function CRMPage() {
                                         </div>
                                     </td>
                                     <td className="px-10 py-8 text-[10px] font-black text-white/10 uppercase tracking-widest italic">
-                                        {contact.lastActivity.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: '2-digit' })}
+                                        {contact.lastActivity.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' })}
                                     </td>
                                     <td className="px-10 py-8 text-center">
                                         <button className="w-12 h-12 rounded-2xl bg-white/[0.02] border border-white/5 text-white/10 group-hover:text-sidebar-primary group-hover:border-sidebar-primary/40 group-hover:scale-110 transition-all duration-700 flex items-center justify-center mx-auto">
@@ -628,7 +628,7 @@ export default function CRMPage() {
 
       {/* Modals */}
       <AnimatePresence>
-        {isAddOpen && <AddContactModal onClose={() => setIsAddOpen(false)} onAdd={(c) => { setContacts([c, ...contacts]); setIsAddOpen(false); toast.success('Identity Synchronized.'); }} />}
+        {isAddOpen && <AddContactModal onClose={() => setIsAddOpen(false)} onAdd={(c) => { setContacts([c, ...contacts]); setIsAddOpen(false); toast.success('Contato sincronizado.'); }} />}
         {isScrapeOpen && <ScrapeLeadsModal onClose={() => setIsScrapeOpen(false)} onProspected={() => fetchContacts()} />}
         {isDetailOpen && selectedContact && (
           <LeadDetailModal
