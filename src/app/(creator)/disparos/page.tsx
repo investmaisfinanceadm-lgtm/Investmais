@@ -170,7 +170,7 @@ function IniciarDisparoModal({
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={onClose} />
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="relative w-full max-w-xl bg-[#0a0a0a] border border-white/10 rounded-[40px] shadow-2xl overflow-hidden"
+        className="relative w-full max-w-xl bg-[#0a0a0a] border border-white/10 rounded-3xl shadow-2xl overflow-hidden"
       >
         {/* Header */}
         <div className="p-8 border-b border-white/5 flex items-center justify-between">
@@ -380,7 +380,7 @@ function CriarListaModal({ onClose, onCreate }: { onClose: () => void; onCreate:
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={onClose} />
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="relative w-full max-w-xl bg-[#0a0a0a] border border-white/10 rounded-[40px] shadow-2xl overflow-hidden"
+        className="relative w-full max-w-xl bg-[#0a0a0a] border border-white/10 rounded-3xl shadow-2xl overflow-hidden"
       >
         <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
           <div className="flex items-center gap-4">
@@ -475,9 +475,9 @@ export default function ListasDisparoPage() {
     <div className="min-h-screen bg-[#050505] text-white p-6 lg:p-10 space-y-10">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-white/5 pb-10">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Central de Disparos</h1>
-          <p className="text-white/40 text-sm">Gerencie suas campanhas de mensagens automáticas.</p>
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight">Disparos</h1>
+          <p className="text-white/40 text-sm">Gerencie suas campanhas de mensagens automáticas</p>
         </div>
         
         <button onClick={() => setCriarOpen(true)}
@@ -487,11 +487,11 @@ export default function ListasDisparoPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           { label: 'Listas Ativas',   value: stats.ativas,            icon: Send,       color: 'text-primary' },
           { label: 'Em Processamento',    value: stats.emProgresso,       icon: Activity,   color: 'text-primary' },
-          { label: 'Taxa de Conclusão', value: `${stats.taxaSucesso}%`, icon: TrendingUp, color: 'text-emerald-400' },
+          { label: 'Taxa de Conclusão', value: `${stats.taxaSucesso}%`, icon: TrendingUp, color: 'text-emerald-500' },
           { label: 'Mensagens Pendentes',       value: stats.pendentes,         icon: Users,      color: 'text-white/40' },
         ].map((s, idx) => (
           <motion.div 
@@ -499,39 +499,39 @@ export default function ListasDisparoPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.1 }}
-            className="bg-white/[0.03] border border-white/5 p-8 rounded-[40px] space-y-4 relative overflow-hidden group"
+            className="bg-white/[0.03] border border-white/5 p-8 rounded-3xl space-y-4 relative overflow-hidden group hover:bg-white/[0.05] transition-all"
           >
-            <div className="w-10 h-10 rounded-xl bg-white/[0.05] flex items-center justify-center text-white/20 group-hover:text-primary transition-colors">
+            <div className="w-10 h-10 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-center text-white/20 group-hover:text-primary transition-colors">
                 <s.icon className="w-5 h-5" />
             </div>
-            <div>
+            <div className="space-y-1">
                 <p className={`text-3xl font-bold tracking-tight ${s.color}`}>{s.value}</p>
-                <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest mt-1">{s.label}</p>
+                <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">{s.label}</p>
             </div>
           </motion.div>
         ))}
       </div>
 
       {/* Table Area */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white/[0.02] border border-white/5 rounded-[40px] overflow-hidden shadow-xl">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white/[0.03] border border-white/5 rounded-3xl overflow-hidden shadow-xl">
         <div className="px-10 py-6 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
                 <Radio className="w-5 h-5" />
             </div>
             <div>
-                <h3 className="text-sm font-bold text-white tracking-tight">Histórico de Listas</h3>
-                <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest">Controle de transmissão e progresso</p>
+                <h3 className="text-base font-bold text-white tracking-tight">Histórico de Listas</h3>
+                <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Acompanhamento de progresso em tempo real</p>
             </div>
           </div>
           <span className="px-4 py-1.5 rounded-xl bg-white/[0.03] border border-white/5 text-[10px] font-bold text-white/40 uppercase tracking-widest">{listas.length} listas</span>
         </div>
 
         {loading ? (
-          <div className="p-10 space-y-4">{[...Array(3)].map((_, i) => <div key={i} className="h-20 rounded-3xl bg-white/[0.02] border border-white/5 animate-pulse" />)}</div>
+          <div className="p-10 space-y-4">{[...Array(3)].map((_, i) => <div key={i} className="h-20 rounded-2xl bg-white/[0.02] border border-white/5 animate-pulse" />)}</div>
         ) : listas.length === 0 ? (
           <div className="py-32 text-center space-y-6">
-            <div className="w-16 h-16 rounded-3xl bg-white/[0.02] border border-white/5 flex items-center justify-center mx-auto opacity-20">
+            <div className="w-16 h-16 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center mx-auto opacity-20">
               <Send className="w-8 h-8" />
             </div>
             <div className="space-y-1">
@@ -547,11 +547,11 @@ export default function ListasDisparoPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-white/[0.01] border-b border-white/5">
-                  <th className="px-10 py-6 text-[10px] font-bold text-white/20 uppercase tracking-widest">Nome da Lista</th>
-                  <th className="px-10 py-6 text-[10px] font-bold text-white/20 uppercase tracking-widest text-center">Progresso</th>
-                  <th className="px-10 py-6 text-[10px] font-bold text-white/20 uppercase tracking-widest">Status</th>
-                  <th className="px-10 py-6 text-[10px] font-bold text-white/20 uppercase tracking-widest">Data</th>
-                  <th className="px-10 py-6 text-[10px] font-bold text-white/20 uppercase tracking-widest text-center">Ações</th>
+                  <th className="px-10 py-6 text-[10px] font-bold text-white/40 uppercase tracking-wider">Nome da Lista</th>
+                  <th className="px-10 py-6 text-[10px] font-bold text-white/40 uppercase tracking-wider text-center">Progresso</th>
+                  <th className="px-10 py-6 text-[10px] font-bold text-white/40 uppercase tracking-wider">Status</th>
+                  <th className="px-10 py-6 text-[10px] font-bold text-white/40 uppercase tracking-wider">Data</th>
+                  <th className="px-10 py-6 text-[10px] font-bold text-white/40 uppercase tracking-wider text-center">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -563,7 +563,7 @@ export default function ListasDisparoPage() {
                         className="group hover:bg-white/[0.02] transition-all">
                         <td className="px-10 py-8">
                             <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center group-hover:bg-primary/10 group-hover:border-primary/20 transition-all">
+                                <div className="w-10 h-10 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-center group-hover:bg-primary/10 group-hover:border-primary/20 transition-all">
                                     <Layers className="w-5 h-5 opacity-40 group-hover:opacity-100 group-hover:text-primary" />
                                 </div>
                                 <span className="text-sm font-bold text-white group-hover:text-primary transition-colors">{lista.nome}</span>
@@ -575,26 +575,26 @@ export default function ListasDisparoPage() {
                                 <span className="text-white/40 uppercase tracking-wider">{lista.enviados} de {lista.total} envios</span>
                                 <span className="text-primary">{pct}%</span>
                             </div>
-                            <div className="h-1.5 bg-white/[0.05] rounded-full overflow-hidden">
+                            <div className="h-1 w-full bg-white/[0.05] rounded-full overflow-hidden">
                               <div className="h-full bg-primary shadow-lg rounded-full transition-all duration-1000" style={{ width: `${pct}%` }} />
                             </div>
                           </div>
                         </td>
                         <td className="px-10 py-8"><StatusBadge status={lista.status} /></td>
-                        <td className="px-10 py-8 text-xs font-medium text-white/40">
+                        <td className="px-10 py-8 text-xs font-medium text-white/20">
                           {format(parseISO(lista.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                         </td>
                         <td className="px-10 py-8">
                           <div className="flex items-center justify-center gap-2">
                             {lista.status === 'nova' && (
                               <button onClick={() => setIniciarLista(lista)}
-                                className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary hover:text-white transition-all flex items-center justify-center group/btn">
+                                className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary hover:text-white transition-all flex items-center justify-center group/btn">
                                 <Play className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
                               </button>
                             )}
                             <button onClick={() => handleDelete(lista.id)} disabled={deletingId === lista.id}
-                              className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/5 text-white/20 hover:text-red-500 hover:border-red-500/20 hover:bg-red-500/5 transition-all flex items-center justify-center group/btn">
-                              {deletingId === lista.id ? <Activity className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />}
+                              className="w-9 h-9 rounded-xl bg-white/[0.03] border border-white/5 text-white/20 hover:text-red-500 hover:border-red-500/20 hover:bg-red-500/5 transition-all flex items-center justify-center group/btn">
+                                {deletingId === lista.id ? <Activity className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />}
                             </button>
                           </div>
                         </td>
@@ -607,6 +607,21 @@ export default function ListasDisparoPage() {
           </div>
         )}
       </motion.div>
+
+      {iniciarLista && (
+        <IniciarDisparoModal 
+          lista={iniciarLista} 
+          onClose={() => setIniciarLista(null)} 
+          onConfirm={handleConfirmIniciar} 
+        />
+      )}
+
+      {criarOpen && (
+        <CriarListaModal 
+          onClose={() => setCriarOpen(false)} 
+          onCreate={(nova) => setListas([nova, ...listas])} 
+        />
+      )}
     </div>
   )
 }

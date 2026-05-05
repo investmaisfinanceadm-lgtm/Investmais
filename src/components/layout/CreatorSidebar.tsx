@@ -44,10 +44,8 @@ const navItems = [
     { href: '/crm', label: 'Contatos', icon: Users },
     { href: '/cnpj', label: 'Busca de Leads', icon: Search },
     { href: '/disparos', label: 'Disparos', icon: Send },
+    { href: '/agenda', label: 'Agenda', icon: Kanban },
     { href: '/relatorios', label: 'Relatórios', icon: Library },
-    { href: '/atividades', label: 'Atividades', icon: Activity },
-    { href: '/utm', label: 'Marketing', icon: Target },
-    { href: '/insights', label: 'Insights', icon: Sparkles },
     { href: '/configuracoes', label: 'Configurações', icon: Settings },
 ]
 
@@ -91,7 +89,7 @@ export function CreatorSidebar() {
 
     const handleLogout = async () => {
         await signOut({ redirect: false })
-        toast.success('Protocol terminated')
+        toast.success('Sessão encerrada')
         router.push('/login')
     }
 
@@ -112,7 +110,7 @@ export function CreatorSidebar() {
                     </div>
                     <div className="flex flex-col">
                         <span className="text-white font-bold text-xl tracking-tight leading-none uppercase">Invest<span className="text-sidebar-primary">Mais</span></span>
-                        <span className="text-[10px] font-medium text-white/40 uppercase tracking-widest mt-1">Finance Hub</span>
+                        <span className="text-[10px] font-medium text-white/40 uppercase tracking-widest mt-1">Gestão Inteligente</span>
                     </div>
                 </Link>
             </div>

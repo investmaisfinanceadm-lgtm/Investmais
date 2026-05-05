@@ -100,7 +100,7 @@ export default function BibliotecaPage() {
             }
             if (pRes.ok) setPastas(await pRes.json())
         } catch (error) {
-            console.error('Fetch protocol failure')
+            console.error('Erro ao carregar dados')
         } finally {
             setIsLoading(false)
         }
@@ -162,11 +162,9 @@ export default function BibliotecaPage() {
         <div className="min-h-screen bg-[#050505] p-6 lg:p-10 space-y-10">
             {/* Header Actions */}
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-white/5 pb-10">
-                <div className="space-y-2 flex-1 min-w-0">
-                    <h1 className="text-3xl font-bold tracking-tight text-white">Biblioteca de Vídeos</h1>
-                    <p className="text-white/40 text-sm flex items-center gap-2">
-                        <Database className="w-4 h-4" /> Gerencie e organize seus ativos digitais.
-                    </p>
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-bold tracking-tight text-white">Biblioteca</h1>
+                    <p className="text-white/40 text-sm">Gerencie e organize seus ativos digitais</p>
                 </div>
 
                 <div className="flex items-center gap-4 flex-wrap">
@@ -211,12 +209,12 @@ export default function BibliotecaPage() {
             {isLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     {Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="aspect-[3/4] rounded-[40px] bg-white/[0.02] border border-white/5 animate-pulse" />
+                        <div key={i} className="aspect-[3/4] rounded-3xl bg-white/[0.02] border border-white/5 animate-pulse" />
                     ))}
                 </div>
             ) : filteredVideos.length === 0 ? (
                 <div className="py-32 text-center space-y-6">
-                    <div className="w-16 h-16 rounded-[32px] bg-white/[0.02] border border-white/5 flex items-center justify-center mx-auto opacity-20">
+                    <div className="w-16 h-16 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center mx-auto opacity-20">
                         <Box className="w-8 h-8" />
                     </div>
                     <div className="space-y-1">
@@ -231,7 +229,7 @@ export default function BibliotecaPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     {filteredVideos.map((video, idx) => (
                         <motion.div key={video.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: idx * 0.05 }}
-                            className="bg-white/[0.02] rounded-[40px] border border-white/5 group hover:border-primary/20 transition-all overflow-hidden shadow-xl relative"
+                            className="bg-white/[0.02] rounded-3xl border border-white/5 group hover:border-primary/20 transition-all overflow-hidden shadow-xl relative"
                         >
                             <div className="aspect-[3/4] relative cursor-pointer overflow-hidden" onClick={() => setSelectedVideo(video)}>
                                 {video.video_url ? (
@@ -242,7 +240,7 @@ export default function BibliotecaPage() {
                                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
                                 
                                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm">
-                                    <div className="w-16 h-16 rounded-[24px] bg-primary text-white flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-all">
+                                    <div className="w-16 h-16 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-all">
                                         <Play className="fill-current w-6 h-6 ml-1" />
                                     </div>
                                 </div>
@@ -310,7 +308,7 @@ export default function BibliotecaPage() {
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/95 backdrop-blur-md" onClick={() => setSelectedVideo(null)} />
                         
                         <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                            className="relative z-[110] bg-[#0a0a0a] border border-white/10 rounded-[40px] w-full max-w-6xl h-full max-h-[85vh] shadow-2xl flex flex-col lg:flex-row overflow-hidden"
+                            className="relative z-[110] bg-[#0a0a0a] border border-white/10 rounded-3xl w-full max-w-6xl h-full max-h-[85vh] shadow-2xl flex flex-col lg:flex-row overflow-hidden"
                         >
                             <div className="flex-1 bg-black/40 flex items-center justify-center relative p-8">
                                 <div className={cn("relative shadow-2xl bg-black overflow-hidden flex items-center justify-center group/player transition-all duration-700", selectedVideo.formato === 'stories' ? "aspect-[9/16] h-full max-h-[70vh] rounded-3xl border border-white/5" : "w-full max-w-4xl aspect-video rounded-3xl border border-white/5")}>
