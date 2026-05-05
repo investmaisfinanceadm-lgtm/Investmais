@@ -433,7 +433,7 @@ export default function PipelinePage() {
                     className="bg-white/[0.02] border border-white/5 rounded-2xl px-14 py-4 text-[10px] font-black text-white uppercase tracking-widest placeholder-white/10 focus:border-sidebar-primary/20 focus:bg-white/[0.04] transition-all outline-none w-64 italic"
                 />
              </div>
-
+             <button className="btn-primary px-8 py-4 text-[10px] font-black uppercase tracking-widest italic flex items-center gap-3">
                 <Plus className="w-4 h-4" />
                 Novo Deal
              </button>
