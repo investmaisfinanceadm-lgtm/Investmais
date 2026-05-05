@@ -35,6 +35,7 @@ import {
   CheckCircle2,
   Circle,
   ArrowRight,
+  ArrowUpRight,
   Copy,
   ExternalLink,
   MapPin,

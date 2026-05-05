@@ -537,4 +537,3 @@ export function LeadDetailModal({
   )
 }
 
-import { Linkedin as LucideLinkedin } from 'lucide-react'
