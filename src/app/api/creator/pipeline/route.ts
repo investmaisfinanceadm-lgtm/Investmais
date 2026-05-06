@@ -64,8 +64,7 @@ export async function GET(req: Request) {
             telefone: `1199999${i.toString().padStart(4, '0')}`,
             empresa: `Empresa ${i} SA`,
             status_funil: 'lead',
-            tags: i % 2 === 0 ? ['LEAD AP'] : ['LEAD FANTASIA'],
-            valor_estimado: Math.floor(Math.random() * 10000) + 1000,
+            tags: i % 2 === 0 ? ['LEAD AP'] : ['LEAD FANTASIA']
           }
         })
 
@@ -74,7 +73,7 @@ export async function GET(req: Request) {
             coluna_id: column.id,
             titulo: `Oportunidade - ${contato.empresa}`,
             contato_id: contato.id,
-            valor: contato.valor_estimado,
+            valor: Math.floor(Math.random() * 10000) + 1000,
             ordem: i,
           }
         })

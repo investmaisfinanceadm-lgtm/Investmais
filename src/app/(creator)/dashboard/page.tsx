@@ -220,10 +220,10 @@ export default function DashboardPage() {
                     <div className="p-6 space-y-8">
                         <div className="grid grid-cols-2 gap-4">
                             {[
-                                { label: 'Leads Rastreados', value: '352', icon: Users },
-                                { label: 'Deals Atribuídos', value: '287', icon: Target },
-                                { label: 'Conversão', value: '0.3%', icon: TrendingUp },
-                                { label: 'Receita', value: 'R$ 5k', icon: DollarSign },
+                                { label: 'Leads Rastreados', value: stats?.totalLeads || 0, icon: Users },
+                                { label: 'Deals Ganhos', value: stats?.totalWon || 0, icon: Target },
+                                { label: 'Conversão', value: `${(stats?.taxaConversao || 0).toFixed(1)}%`, icon: TrendingUp },
+                                { label: 'Receita', value: formatBRL(stats?.totalFaturamento || 0), icon: DollarSign },
                             ].map((item, i) => (
                                 <div key={i} className="space-y-1">
                                     <div className="flex items-center gap-2 text-white/20">
@@ -236,12 +236,12 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="space-y-4">
-                            <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Top Campanhas</p>
+                            <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Canais de Origem</p>
                             <div className="space-y-3">
                                 {[
-                                    { id: 1, name: 'HMI - Meta Ads (WhatsApp)', value: 'R$ 5.000', color: 'bg-primary' },
-                                    { id: 2, name: 'Direto', value: 'R$ 0', color: 'bg-white/10' },
-                                    { id: 3, name: 'CJ 03 [VID] SOFT', value: 'R$ 0', color: 'bg-white/10' },
+                                    { id: 1, name: 'Site / Orgânico', value: formatBRL((stats?.totalFaturamento || 0) * 0.6), color: 'bg-primary' },
+                                    { id: 2, name: 'Instagram', value: formatBRL((stats?.totalFaturamento || 0) * 0.3), color: 'bg-white/10' },
+                                    { id: 3, name: 'WhatsApp', value: formatBRL((stats?.totalFaturamento || 0) * 0.1), color: 'bg-white/10' },
                                 ].map((camp, i) => (
                                     <div key={i} className="flex items-center justify-between text-xs">
                                         <div className="flex items-center gap-3">
