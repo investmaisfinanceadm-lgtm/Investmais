@@ -135,38 +135,50 @@ export default function CNPJPage() {
                       </div>
                   </div>
 
-                  <form 
+                  <form
                     onSubmit={(e) => {
                       e.preventDefault();
                       const formData = new FormData(e.currentTarget);
                       const nicho = formData.get('nicho');
                       const cidade = formData.get('cidade');
                       const estado = formData.get('estado');
-                      
+
                       const webhookUrl = 'https://auto.devnetlife.com/webhook/financeiroinvestmais';
-                      
+
                       fetch(webhookUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ nicho, cidade, estado, acao: 'busca_leads_google' })
-                      }).then(() => toast.success('Webhook disparado com sucesso! Iniciando extração no N8N...'))
+                      }).then(() => toast.success('Webhook disparado! Iniciando extração no N8N...'))
                         .catch(() => toast.error('Erro ao conectar com N8N.'));
                     }}
                     className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10"
                   >
                       <div className="relative group flex-1">
-                           <Target className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20 group-focus-within:text-blue-500 transition-colors" />
-                           <input type="text" name="nicho" required placeholder="Segmento (ex: Clínicas)" className="w-full h-16 bg-black/40 border border-white/5 rounded-2xl pl-16 pr-6 text-sm font-bold text-white placeholder-white/20 outline-none focus:border-blue-500/50 transition-all shadow-xl" />
+                           <Target className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-blue-500 transition-colors pointer-events-none z-10" />
+                           <select name="nicho" required defaultValue="" className="w-full h-16 bg-black/40 border border-white/5 rounded-2xl pl-12 pr-4 text-sm font-bold text-white outline-none focus:border-blue-500/50 transition-all shadow-xl appearance-none cursor-pointer">
+                             <option value="" disabled className="bg-[#0a0a0b]">Selecione o nicho</option>
+                             {['Academia / Fitness','Advocacia','Agência de Marketing','Arquitetura','Clínica Médica','Clínica Odontológica','Consultoria','Contabilidade','Corretora de Imóveis','Educação / Cursos','Estética / Beleza','Farmácia','Hotel / Pousada','Imobiliária','Loja de Roupas','Mecânica / Oficina','Nutrição','Ótica','Petshop','Psicologia','Restaurante / Alimentação','Seguros','Tecnologia / TI','Veterinária'].map(n => (
+                               <option key={n} value={n} className="bg-[#0a0a0b]">{n}</option>
+                             ))}
+                           </select>
                       </div>
                       <div className="relative group flex-1">
-                           <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20 group-focus-within:text-blue-500 transition-colors" />
-                           <input type="text" name="cidade" required placeholder="Cidade" className="w-full h-16 bg-black/40 border border-white/5 rounded-2xl pl-16 pr-6 text-sm font-bold text-white placeholder-white/20 outline-none focus:border-blue-500/50 transition-all shadow-xl" />
+                           <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-blue-500 transition-colors" />
+                           <input type="text" name="cidade" required placeholder="Cidade (ex: São Paulo)" className="w-full h-16 bg-black/40 border border-white/5 rounded-2xl pl-12 pr-6 text-sm font-bold text-white placeholder-white/20 outline-none focus:border-blue-500/50 transition-all shadow-xl" />
                       </div>
-                      <div className="relative group flex-1 flex gap-4">
-                           <input type="text" name="estado" required placeholder="UF (ex: SP)" maxLength={2} className="w-24 h-16 bg-black/40 border border-white/5 rounded-2xl px-6 text-sm font-bold text-white placeholder-white/20 outline-none focus:border-blue-500/50 transition-all shadow-xl uppercase text-center" />
+                      <div className="relative group flex-1 flex gap-3">
+                           <div className="relative flex-1">
+                             <select name="estado" required defaultValue="" className="w-full h-16 bg-black/40 border border-white/5 rounded-2xl px-4 text-sm font-bold text-white outline-none focus:border-blue-500/50 transition-all shadow-xl appearance-none cursor-pointer text-center">
+                               <option value="" disabled className="bg-[#0a0a0b]">UF</option>
+                               {['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'].map(uf => (
+                                 <option key={uf} value={uf} className="bg-[#0a0a0b]">{uf}</option>
+                               ))}
+                             </select>
+                           </div>
                            <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-500 h-16 rounded-2xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-3 text-sm font-bold text-white transition-all group">
                               <Zap className="w-5 h-5 group-hover:scale-110 transition-all" />
-                              Disparar Busca
+                              Disparar
                            </button>
                       </div>
                   </form>

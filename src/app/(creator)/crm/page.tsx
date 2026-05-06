@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 import {
   Users,
   Upload,
@@ -147,217 +148,158 @@ function AddContactModal({ onClose, onAdd }: { onClose: () => void; onAdd: (cont
     formState: { errors, isSubmitting },
   } = useForm<AddContactFormData>({ resolver: zodResolver(addContactSchema) })
 
-  function onSubmit(data: AddContactFormData) {
-    const newContact: Contact = {
-      id: String(Date.now()),
-      nome: data.nome,
-      email: data.email,
-      telefone: data.telefone,
-      empresa: data.empresa,
-      cargo: data.cargo,
-      canal: data.canal,
-      status: 'lead',
-      tags: data.tags ? data.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
-      notas: data.notas ?? '',
-      createdAt: new Date(),
-      lastActivity: new Date(),
-      activities: [],
-    }
-    onAdd(newContact)
-    onClose()
-  }
-
-  return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-6">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-black/95 backdrop-blur-3xl" onClick={onClose} />
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="relative w-full max-w-2xl nl-glass border-white/10 rounded-[64px] p-16 shadow-[0_100px_200px_rgba(0,0,0,0.8)] overflow-y-auto max-h-[90vh] scrollbar-none"
-      >
-        <div className="absolute top-0 right-0 p-16 pointer-events-none opacity-5">
-            <Target className="w-64 h-64 text-sidebar-primary" />
-        </div>
-
-        <div className="flex items-center justify-between mb-16 relative z-10">
-          <div className="flex items-center gap-6">
-            <div className="w-14 h-14 rounded-2xl bg-sidebar-primary/10 border border-sidebar-primary/20 flex items-center justify-center shadow-[0_0_30px_rgba(var(--primary-rgb),0.2)]">
-                <Plus className="w-7 h-7 text-sidebar-primary" />
-            </div>
-            <div className="space-y-1">
-                <h2 className="text-xl font-bold text-white tracking-tight">Adicionar Contato</h2>
-                <p className="text-xs text-white/40">Preencha os dados do novo lead</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/[0.03] border border-white/5 text-white/20 hover:text-white transition-all">
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-10 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Executive Name</label>
-              <input {...register('nome')} className="w-full bg-black/40 border border-white/5 rounded-3xl px-8 py-6 text-xs text-white outline-none focus:border-sidebar-primary/40 transition-all font-black uppercase tracking-widest placeholder-white/5" placeholder="ENTITY IDENTITY" />
-              {errors.nome && <p className="text-red-400 text-[9px] font-black mt-2 ml-4 italic uppercase tracking-widest">! {errors.nome.message}</p>}
-            </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Organization</label>
-              <input {...register('empresa')} className="w-full bg-black/40 border border-white/5 rounded-3xl px-8 py-6 text-xs text-white outline-none focus:border-sidebar-primary/40 transition-all font-black uppercase tracking-widest placeholder-white/5" placeholder="CORPORATE NODE" />
-              {errors.empresa && <p className="text-red-400 text-[9px] font-black mt-2 ml-4 italic uppercase tracking-widest">! {errors.empresa.message}</p>}
-            </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Secure Email</label>
-              <input {...register('email')} type="email" className="w-full bg-black/40 border border-white/5 rounded-3xl px-8 py-6 text-xs text-white outline-none focus:border-sidebar-primary/40 transition-all font-black uppercase tracking-widest placeholder-white/5" placeholder="HASH@ENTITY.NET" />
-              {errors.email && <p className="text-red-400 text-[9px] font-black mt-2 ml-4 italic uppercase tracking-widest">! {errors.email.message}</p>}
-            </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Mobile Terminal</label>
-              <input {...register('telefone')} className="w-full bg-black/40 border border-white/5 rounded-3xl px-8 py-6 text-xs text-white outline-none focus:border-sidebar-primary/40 transition-all font-black uppercase tracking-widest placeholder-white/5" placeholder="+VECTOR-NODE" />
-              {errors.telefone && <p className="text-red-400 text-[9px] font-black mt-2 ml-4 italic uppercase tracking-widest">! {errors.telefone.message}</p>}
-            </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Operational Role</label>
-              <input {...register('cargo')} className="w-full bg-black/40 border border-white/5 rounded-3xl px-8 py-6 text-xs text-white outline-none focus:border-sidebar-primary/40 transition-all font-black uppercase tracking-widest placeholder-white/5" placeholder="PROTOCOL LEVEL" />
-              {errors.cargo && <p className="text-red-400 text-[9px] font-black mt-2 ml-4 italic uppercase tracking-widest">! {errors.cargo.message}</p>}
-            </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Infiltration Channel</label>
-              <select {...register('canal')} className="w-full bg-black/40 border border-white/5 rounded-3xl px-8 py-6 text-xs text-white outline-none focus:border-sidebar-primary/40 transition-all appearance-none uppercase tracking-widest font-black italic">
-                <option value="" className="bg-black">SELECT VECTOR</option>
-                <option value="Instagram" className="bg-black">SOCIAL: IG</option>
-                <option value="Site" className="bg-black">DIRECT: WEB</option>
-                <option value="Indicação" className="bg-black">SIGNAL: REFERRAL</option>
-                <option value="LinkedIn" className="bg-black">PROF: LINKEDIN</option>
-                <option value="WhatsApp" className="bg-black">MOBILE: WHATSAPP</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="space-y-4 pt-4">
-            <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Internal Metadata</label>
-            <textarea
-              {...register('notas')}
-              className="w-full bg-black/40 border border-white/5 rounded-[32px] px-8 py-8 text-xs text-white outline-none focus:border-sidebar-primary/40 transition-all resize-none leading-relaxed font-black uppercase tracking-widest placeholder-white/5"
-              rows={4}
-              placeholder="STRATEGIC OBSERVATIONS AND PROTOCOL DETAILS..."
-            />
-          </div>
-
-          <div className="flex gap-8 pt-10">
-            <button type="button" onClick={onClose} className="flex-1 py-7 rounded-[32px] bg-white/[0.03] border border-white/5 text-[11px] font-black uppercase tracking-[0.4em] text-white/20 hover:text-white transition-all italic">
-              Abort
-            </button>
-            <button type="submit" disabled={isSubmitting} className="flex-1 py-7 rounded-[32px] btn-primary text-[11px] font-black uppercase tracking-[0.4em] netlife-glow shadow-none flex items-center justify-center gap-4 italic">
-              {isSubmitting ? <Activity className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
-              Commit Node
-            </button>
-          </div>
-        </form>
-      </motion.div>
-    </div>
-  )
-}
-
-// ─── Scrape Leads Modal ───────────────────────────────────
-
-function ScrapeLeadsModal({ onClose, onProspected }: { onClose: () => void; onProspected: () => void }) {
-  const [estado, setEstado] = useState('')
-  const [cidade, setCidade] = useState('')
-  const [nicho, setNicho] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!estado || !cidade || !nicho) {
-       toast.error('Protocol requires Niche, City and State Node.')
-       return
-    }
-    setIsSubmitting(true)
-
+  async function onSubmit(data: AddContactFormData) {
     try {
-      const res = await fetch('/api/creator/crm/scrape', {
+      const res = await fetch('/api/creator/crm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado, cidade, nicho })
+        body: JSON.stringify({
+          nome: data.nome,
+          email: data.email,
+          telefone: data.telefone,
+          empresa: data.empresa,
+          cargo: data.cargo,
+          canal_origem: data.canal,
+          status_funil: 'lead',
+          tags: data.tags ? data.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
+          notas: data.notas ?? '',
+        }),
       })
       if (res.ok) {
-        toast.success('Infiltration sequence initiated! Leads will synchronize shortly.')
-        onProspected()
+        const saved = await res.json()
+        const newContact: Contact = {
+          id: saved.id,
+          nome: saved.nome,
+          email: saved.email || '',
+          telefone: saved.telefone || '',
+          empresa: saved.empresa || '',
+          cargo: saved.cargo || '',
+          canal: (saved.canal_origem || 'Site') as Canal,
+          status: (saved.status_funil || 'lead') as FunilStatus,
+          tags: saved.tags || [],
+          notas: saved.notas || '',
+          cidade: saved.cidade || '',
+          estado: saved.estado || '',
+          endereco: saved.endereco || '',
+          site: saved.site || '',
+          nicho: saved.nicho || '',
+          createdAt: new Date(saved.created_at),
+          lastActivity: new Date(saved.updated_at || saved.created_at),
+          activities: [],
+        }
+        onAdd(newContact)
+        toast.success('Contato adicionado!')
         onClose()
       } else {
         const err = await res.json().catch(() => ({}))
-        toast.error(err?.error || 'Automation protocol failed.')
+        toast.error(err.error || 'Erro ao salvar contato')
       }
-    } catch (err) {
-       toast.error('Network protocol error.')
-    } finally {
-       setIsSubmitting(false)
+    } catch {
+      toast.error('Erro de conexão')
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-6">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-black/95 backdrop-blur-3xl" onClick={onClose} />
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="relative w-full max-w-xl nl-glass border-white/10 rounded-[64px] p-16 shadow-[0_100px_200px_rgba(0,0,0,0.8)]"
-      >
-        <div className="absolute top-0 right-0 p-16 pointer-events-none opacity-5">
-            <Globe className="w-64 h-64 text-sidebar-primary" />
-        </div>
+  const inputCls = "w-full bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 outline-none focus:border-primary/40 transition-all"
+  const labelCls = "block text-[10px] font-bold text-white/30 uppercase tracking-widest mb-2"
 
-        <div className="flex items-center justify-between mb-16 relative z-10">
-          <div className="flex items-center gap-6">
-            <div className="w-14 h-14 rounded-2xl bg-sidebar-primary/10 border border-sidebar-primary/20 flex items-center justify-center shadow-[0_0_30px_rgba(var(--primary-rgb),0.2)]">
-                <Globe className="w-7 h-7 text-sidebar-primary" />
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="relative w-full max-w-xl bg-[#0A0A0B] border border-white/[0.06] rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] scrollbar-thin"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-white/[0.04]">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+              <Plus className="w-4 h-4 text-primary" />
             </div>
-            <div className="space-y-1">
-                <h2 className="text-sm font-black text-white uppercase tracking-[0.4em] italic leading-none">Map Intelligence</h2>
-                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] italic">Automated Neural Extraction</p>
+            <div>
+              <h2 className="text-base font-bold text-white">Novo Contato</h2>
+              <p className="text-[11px] text-white/30">Preencha os dados do lead</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/[0.03] border border-white/5 text-white/20 hover:text-white transition-all">
-            <X className="w-6 h-6" />
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/[0.02] border border-white/5 text-white/40 hover:text-white transition-all">
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-10 relative z-10">
-           <div className="space-y-4">
-              <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Target Niche</label>
-              <input value={nicho} onChange={e => setNicho(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-3xl px-8 py-6 text-xs text-white outline-none focus:border-sidebar-primary/40 transition-all font-black uppercase tracking-widest placeholder-white/5" placeholder="E.G. REAL ESTATE, CLINICS, TECH..." />
-           </div>
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-               <div className="space-y-4">
-                 <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">City Node</label>
-                 <input value={cidade} onChange={e => setCidade(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-3xl px-8 py-6 text-xs text-white outline-none focus:border-sidebar-primary/40 transition-all font-black uppercase tracking-widest placeholder-white/5" placeholder="E.G. NEW YORK" />
-               </div>
-               <div className="space-y-4">
-                  <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">State ISO</label>
-                  <input value={estado} onChange={e => setEstado(e.target.value.toUpperCase())} maxLength={2} className="w-full bg-black/40 border border-white/5 rounded-3xl px-8 py-6 text-xs text-white outline-none focus:border-sidebar-primary/40 transition-all font-black text-center tracking-[0.5em]" placeholder="E.G. NY" />
-               </div>
-           </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Nome *</label>
+              <input {...register('nome')} className={inputCls} placeholder="Nome completo" />
+              {errors.nome && <p className="text-red-400 text-[10px] mt-1">{errors.nome.message}</p>}
+            </div>
+            <div>
+              <label className={labelCls}>Empresa *</label>
+              <input {...register('empresa')} className={inputCls} placeholder="Nome da empresa" />
+              {errors.empresa && <p className="text-red-400 text-[10px] mt-1">{errors.empresa.message}</p>}
+            </div>
+            <div>
+              <label className={labelCls}>E-mail *</label>
+              <input {...register('email')} type="email" className={inputCls} placeholder="email@empresa.com" />
+              {errors.email && <p className="text-red-400 text-[10px] mt-1">{errors.email.message}</p>}
+            </div>
+            <div>
+              <label className={labelCls}>Telefone *</label>
+              <input {...register('telefone')} className={inputCls} placeholder="(11) 99999-9999" />
+              {errors.telefone && <p className="text-red-400 text-[10px] mt-1">{errors.telefone.message}</p>}
+            </div>
+            <div>
+              <label className={labelCls}>Cargo *</label>
+              <input {...register('cargo')} className={inputCls} placeholder="Ex: Diretor, CEO" />
+              {errors.cargo && <p className="text-red-400 text-[10px] mt-1">{errors.cargo.message}</p>}
+            </div>
+            <div>
+              <label className={labelCls}>Canal de origem *</label>
+              <select {...register('canal')} className={inputCls + ' cursor-pointer'}>
+                <option value="" className="bg-[#0a0a0b]">Selecione</option>
+                <option value="Instagram" className="bg-[#0a0a0b]">Instagram</option>
+                <option value="Site" className="bg-[#0a0a0b]">Site</option>
+                <option value="Indicação" className="bg-[#0a0a0b]">Indicação</option>
+                <option value="LinkedIn" className="bg-[#0a0a0b]">LinkedIn</option>
+                <option value="WhatsApp" className="bg-[#0a0a0b]">WhatsApp</option>
+              </select>
+              {errors.canal && <p className="text-red-400 text-[10px] mt-1">{errors.canal.message}</p>}
+            </div>
+          </div>
 
-           <div className="flex gap-8 pt-10">
-             <button type="button" onClick={onClose} className="flex-1 py-7 rounded-[32px] bg-white/[0.03] border border-white/5 text-[11px] font-black uppercase tracking-[0.4em] text-white/20 hover:text-white transition-all italic">Abort</button>
-             <button type="submit" disabled={isSubmitting} className="flex-1 py-7 rounded-[32px] btn-primary text-[11px] font-black uppercase tracking-[0.4em] netlife-glow shadow-none flex items-center justify-center gap-4 italic">
-                  {isSubmitting ? <Activity className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
-                  Execute Infiltration
-             </button>
-           </div>
+          <div>
+            <label className={labelCls}>Tags</label>
+            <input {...register('tags')} className={inputCls} placeholder="Ex: vip, quente, indicação (separadas por vírgula)" />
+          </div>
+
+          <div>
+            <label className={labelCls}>Anotações</label>
+            <textarea {...register('notas')} className={inputCls + ' resize-none'} rows={3} placeholder="Observações, contexto, próximos passos..." />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl border border-white/10 text-sm font-bold text-white/40 hover:text-white transition-all">
+              Cancelar
+            </button>
+            <button type="submit" disabled={isSubmitting} className="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+              {isSubmitting ? <Activity className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              Salvar Contato
+            </button>
+          </div>
         </form>
       </motion.div>
     </div>
   )
 }
+
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function CRMPage() {
   const [contacts, setContacts] = useState<Contact[]>([])
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
+  const router = useRouter()
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isAddOpen, setIsAddOpen] = useState(false)
-  const [isScrapeOpen, setIsScrapeOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [activeFilter, setActiveFilter] = useState<FilterTab>('todos')
@@ -451,7 +393,7 @@ export default function CRMPage() {
           </div>
 
           <div className="flex items-center gap-6 flex-wrap">
-            <button onClick={() => setIsScrapeOpen(true)} className="px-8 py-4 rounded-2xl bg-white/[0.03] border border-white/5 text-white/60 hover:text-white transition-all font-bold text-xs flex items-center gap-3">
+            <button onClick={() => router.push('/cnpj')} className="px-8 py-4 rounded-2xl bg-white/[0.03] border border-white/5 text-white/60 hover:text-white transition-all font-bold text-xs flex items-center gap-3">
                 <Globe className="w-4 h-4" /> Busca de Leads
             </button>
             <button onClick={() => setIsAddOpen(true)} className="bg-primary hover:bg-primary/90 px-8 py-4 rounded-2xl text-white text-xs font-bold flex items-center gap-3 transition-all">

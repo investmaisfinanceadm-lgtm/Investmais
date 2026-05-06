@@ -152,7 +152,7 @@ function ActivityDetailDrawer({
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-        className="fixed top-0 right-0 h-full w-full max-w-[480px] bg-[#0A0A0B] border-l border-white/5 z-[70] flex flex-col shadow-2xl"
+        className="fixed top-0 right-0 h-screen w-full max-w-[480px] bg-[#0A0A0B] border-l border-white/5 z-[70] flex flex-col shadow-2xl"
       >
         {/* Header */}
         <div className="p-8 pb-6 border-b border-white/[0.04]">
@@ -189,7 +189,7 @@ function ActivityDetailDrawer({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-8 space-y-6 scrollbar-thin">
+        <div className="flex-1 overflow-y-auto min-h-0 p-8 space-y-6 scrollbar-thin">
           {/* Date & time */}
           <div className="flex items-center gap-3 text-sm text-white/60">
             <Clock className="w-4 h-4 text-white/20" />
