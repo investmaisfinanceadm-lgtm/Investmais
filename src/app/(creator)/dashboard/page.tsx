@@ -91,12 +91,16 @@ export default function DashboardPage() {
                         <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
                     </button>
                     <div className="w-px h-6 bg-white/10 mx-2" />
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+                    <Link href="/configuracoes" className="flex items-center gap-3 cursor-pointer group hover:bg-white/[0.02] p-1.5 rounded-2xl transition-all">
+                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm group-hover:scale-105 transition-transform">
                             {stats?.nome?.substring(0, 2).toUpperCase() || 'CA'}
                         </div>
-                        <ChevronDown className="w-4 h-4 text-white/20" />
-                    </div>
+                        <div className="hidden md:block">
+                            <p className="text-xs font-bold text-white group-hover:text-primary transition-colors">{stats?.nome || 'Usuário'}</p>
+                            <p className="text-[10px] text-white/40 uppercase tracking-widest">Configurações</p>
+                        </div>
+                        <ChevronDown className="w-4 h-4 text-white/20 group-hover:text-white" />
+                    </Link>
                 </div>
             </div>
 
@@ -145,7 +149,7 @@ export default function DashboardPage() {
 
             {/* Main Grid Section */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Atividades de Hoje */}
+                {/* Atividades de Hoje (Baseado nos Contatos Recentes) */}
                 <div className="lg:col-span-4 bg-white/[0.03] border border-white/5 rounded-3xl overflow-hidden flex flex-col">
                     <div className="p-6 border-b border-white/5 flex items-center justify-between">
                         <h2 className="text-base font-bold">Atividades de Hoje</h2>
@@ -157,21 +161,17 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     <div className="p-4 space-y-2 flex-1 overflow-y-auto max-h-[400px] scrollbar-thin">
-                        {[
-                            { name: '[GB] Follow UP - Norivaldo', sub: 'Norivaldo Vilela Souto', type: 'Whatsapp', color: 'bg-primary' },
-                            { name: '[GB] Fazer ligação para Edmaura', sub: 'Edmaura Bruta', type: 'Call', color: 'bg-primary' },
-                            { name: '[GB] Follow Up Lilia', sub: 'Lilia', type: 'Whatsapp', color: 'bg-primary' },
-                        ].map((act, i) => (
+                        {stats?.contatosRecentes?.map((contato, i) => (
                             <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all group">
                                 <div className="flex items-center gap-4">
-                                    <div className={cn("w-1.5 h-1.5 rounded-full", act.color)} />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                                     <div>
-                                        <p className="text-sm font-bold text-white/90">{act.name}</p>
-                                        <p className="text-[10px] text-white/30 font-medium">{act.sub}</p>
+                                        <p className="text-sm font-bold text-white/90">Novo Lead: {contato.nome}</p>
+                                        <p className="text-[10px] text-white/30 font-medium">Entrou hoje no CRM</p>
                                     </div>
                                 </div>
                                 <span className="px-3 py-1 rounded-lg bg-white/[0.03] border border-white/5 text-[10px] font-bold text-white/40 uppercase tracking-wider group-hover:text-white transition-colors">
-                                    {act.type}
+                                    {contato.canal_origem || 'Direto'}
                                 </span>
                             </div>
                         ))}
@@ -183,7 +183,7 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* Deals Recentes */}
+                {/* Deals Recentes (Baseado nos Contatos Recentes como Oportunidades) */}
                 <div className="lg:col-span-4 bg-white/[0.03] border border-white/5 rounded-3xl overflow-hidden flex flex-col">
                     <div className="p-6 border-b border-white/5 flex items-center justify-between">
                         <h2 className="text-base font-bold">Deals Recentes</h2>
@@ -192,22 +192,22 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     <div className="p-4 space-y-2 flex-1 overflow-y-auto max-h-[400px] scrollbar-thin">
-                        {[
-                            { name: 'HMI - Pri Molina', value: 'R$ 5.000', tag: 'media' },
-                            { name: 'HMI - Maria Cecilia', value: 'R$ 5.000', tag: 'media' },
-                            { name: 'HMI - Leonardo 👨‍💻', value: 'R$ 5.000', tag: 'media' },
-                            { name: 'HMI - Temporada Peterle', value: 'R$ 5.000', tag: 'media' },
-                        ].map((deal, i) => (
+                        {stats?.contatosRecentes?.map((deal, i) => (
                             <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
-                                <p className="text-sm font-bold text-white/90">{deal.name}</p>
+                                <p className="text-sm font-bold text-white/90">{deal.nome}</p>
                                 <div className="text-right">
-                                    <p className="text-xs font-bold text-primary">{deal.value}</p>
+                                    <p className="text-xs font-bold text-primary">Em Negociação</p>
                                     <span className="text-[9px] px-2 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20 uppercase font-black">
-                                        {deal.tag}
+                                        Média
                                     </span>
                                 </div>
                             </div>
                         ))}
+                        {(!stats?.contatosRecentes || stats.contatosRecentes.length === 0) && (
+                            <div className="h-40 flex items-center justify-center text-white/20 text-xs italic">
+                                Nenhum deal encontrado
+                            </div>
+                        )}
                     </div>
                 </div>
 

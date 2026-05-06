@@ -126,12 +126,50 @@ export default function CNPJPage() {
       <AnimatePresence mode="wait">
         {activeTab === 'google' ? (
           <motion.div key="google" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-10">
-              <div className="flex flex-col items-center justify-center py-32 bg-white/[0.02] border-2 border-dashed border-white/5 rounded-3xl group hover:border-primary/20 transition-all">
-                  <div className="w-16 h-16 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 shadow-xl">
-                       <Target className="w-8 h-8 text-white/10 group-hover:text-primary transition-colors" />
+              <div className="bg-white/[0.02] border border-white/5 p-10 rounded-3xl space-y-8 relative overflow-hidden group shadow-xl">
+                  <div className="flex items-center gap-6 relative z-10">
+                      <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-lg"> <Globe className="w-6 h-6 text-blue-500" /> </div>
+                      <div className="space-y-1">
+                          <h2 className="text-base font-bold text-white uppercase tracking-widest">Busca Google Maps (N8N)</h2>
+                          <p className="text-xs text-white/20">Extração de leads em massa via Webhook inteligente</p>
+                      </div>
                   </div>
-                  <h3 className="text-lg font-bold text-white/20 uppercase tracking-widest">Busca Google Maps em Breve</h3>
-                  <p className="text-xs text-white/10 mt-2">Extração inteligente de leads baseada em geolocalização</p>
+
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.currentTarget);
+                      const nicho = formData.get('nicho');
+                      const cidade = formData.get('cidade');
+                      const estado = formData.get('estado');
+                      
+                      const webhookUrl = 'https://auto.devnetlife.com/webhook/financeiroinvestmais';
+                      
+                      fetch(webhookUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nicho, cidade, estado, acao: 'busca_leads_google' })
+                      }).then(() => toast.success('Webhook disparado com sucesso! Iniciando extração no N8N...'))
+                        .catch(() => toast.error('Erro ao conectar com N8N.'));
+                    }}
+                    className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10"
+                  >
+                      <div className="relative group flex-1">
+                           <Target className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20 group-focus-within:text-blue-500 transition-colors" />
+                           <input type="text" name="nicho" required placeholder="Segmento (ex: Clínicas)" className="w-full h-16 bg-black/40 border border-white/5 rounded-2xl pl-16 pr-6 text-sm font-bold text-white placeholder-white/20 outline-none focus:border-blue-500/50 transition-all shadow-xl" />
+                      </div>
+                      <div className="relative group flex-1">
+                           <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20 group-focus-within:text-blue-500 transition-colors" />
+                           <input type="text" name="cidade" required placeholder="Cidade" className="w-full h-16 bg-black/40 border border-white/5 rounded-2xl pl-16 pr-6 text-sm font-bold text-white placeholder-white/20 outline-none focus:border-blue-500/50 transition-all shadow-xl" />
+                      </div>
+                      <div className="relative group flex-1 flex gap-4">
+                           <input type="text" name="estado" required placeholder="UF (ex: SP)" maxLength={2} className="w-24 h-16 bg-black/40 border border-white/5 rounded-2xl px-6 text-sm font-bold text-white placeholder-white/20 outline-none focus:border-blue-500/50 transition-all shadow-xl uppercase text-center" />
+                           <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-500 h-16 rounded-2xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-3 text-sm font-bold text-white transition-all group">
+                              <Zap className="w-5 h-5 group-hover:scale-110 transition-all" />
+                              Disparar Busca
+                           </button>
+                      </div>
+                  </form>
               </div>
           </motion.div>
         ) : (
