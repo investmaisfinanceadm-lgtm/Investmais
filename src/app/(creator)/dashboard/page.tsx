@@ -67,7 +67,7 @@ export default function DashboardPage() {
     }, [])
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white p-6 lg:p-10 space-y-10">
+        <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#050505] text-slate-900 dark:text-white p-6 lg:p-10 space-y-10 transition-colors duration-300">
             {/* Top Bar */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="relative flex-1 max-w-md group">

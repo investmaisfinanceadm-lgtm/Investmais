@@ -201,21 +201,6 @@ export function CreatorSidebar() {
                                 <p className="text-[8px] text-white/20 truncate font-bold uppercase tracking-widest mt-0.5">Executivo</p>
                             </div>
                         </div>
-
-                        <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5">
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="text-[8px] text-white/40 font-bold uppercase tracking-widest">Cota Mensal</span>
-                                <span className="text-[9px] font-bold text-primary">{quotaPercent}%</span>
-                            </div>
-                            <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                                <motion.div
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${Math.min(quotaPercent, 100)}%` }}
-                                    transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                                    className="h-full bg-primary rounded-full shadow-[0_0_10px_var(--primary)]"
-                                />
-                            </div>
-                        </div>
                     </div>
                 )}
 

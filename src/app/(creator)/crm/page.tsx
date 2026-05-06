@@ -431,7 +431,7 @@ export default function CRMPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-[#F4F5F7] dark:bg-black text-slate-900 dark:text-white flex flex-col relative overflow-hidden transition-colors duration-300">
       <div className="ambient-bg" />
       
       <div className="relative z-10 flex-1 flex flex-col p-8 lg:p-12 max-w-[1600px] mx-auto w-full space-y-16 pb-32">

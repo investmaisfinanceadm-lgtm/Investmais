@@ -51,7 +51,7 @@ export default function ConfiguracoesPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-6 lg:p-10 space-y-10">
+    <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#050505] text-slate-900 dark:text-white p-6 lg:p-10 space-y-10 transition-colors duration-300">
       {/* Header */}
       <div className="space-y-1 border-b border-white/5 pb-10">
         <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
@@ -209,18 +209,110 @@ export default function ConfiguracoesPage() {
           </motion.div>
         )}
 
-        {activeTab !== 'Perfil' && activeTab !== 'Pipelines' && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white/[0.03] border border-white/5 rounded-[32px] p-20 flex flex-col items-center justify-center text-center space-y-6"
-          >
-            <div className="w-20 h-20 rounded-full bg-white/[0.02] border border-white/5 flex items-center justify-center text-white/10">
-              <Zap className="w-10 h-10" />
+        {activeTab === 'Integrações' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white/[0.03] border border-white/5 rounded-[32px] p-10 space-y-10">
+            <div className="space-y-1">
+              <h2 className="text-xl font-bold">Integrações de Sistema</h2>
+              <p className="text-sm text-white/20">Gerencie Webhooks (N8N), E-mail (Resend) e APIs (ReceitaWS).</p>
             </div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold">Módulo em Desenvolvimento</h3>
-              <p className="text-sm text-white/20 max-w-xs">A aba de {activeTab} está sendo configurada para sua conta.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 font-bold">N8N</div>
+                  <div><p className="text-sm font-bold">Automação N8N</p><p className="text-xs text-white/40">Webhooks para extração e automação de contatos</p></div>
+                  <button className="mt-2 text-[10px] font-bold text-white/40 uppercase tracking-widest border border-white/10 py-2 rounded-lg hover:bg-white/5 transition-all">Configurar</button>
+               </div>
+               <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-black flex items-center justify-center text-white border border-white/10 font-bold">R</div>
+                  <div><p className="text-sm font-bold">Resend</p><p className="text-xs text-white/40">Motor de disparo de e-mails transacionais</p></div>
+                  <button className="mt-2 text-[10px] font-bold text-white/40 uppercase tracking-widest border border-white/10 py-2 rounded-lg hover:bg-white/5 transition-all">Configurar</button>
+               </div>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'Agente IA' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white/[0.03] border border-white/5 rounded-[32px] p-10 space-y-10">
+            <div className="flex justify-between items-center">
+              <div className="space-y-1">
+                <h2 className="text-xl font-bold">Configuração do Agente IA</h2>
+                <p className="text-sm text-white/20">Defina a personalidade e base de conhecimento da Inteligência Artificial</p>
+              </div>
+              <div className="px-4 py-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-xl text-[10px] font-bold uppercase tracking-widest">Ativo</div>
+            </div>
+            <div className="space-y-4">
+               <label className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Prompt Base (Personalidade)</label>
+               <textarea className="w-full h-32 bg-white/[0.02] border border-white/10 rounded-xl py-4 px-6 text-sm text-white outline-none focus:border-primary/40 resize-none" placeholder="Você é um especialista em vendas B2B..."></textarea>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'Busca de Leads' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white/[0.03] border border-white/5 rounded-[32px] p-10 space-y-10">
+            <div className="space-y-1">
+              <h2 className="text-xl font-bold">Parâmetros de Busca</h2>
+              <p className="text-sm text-white/20">Configure os limites e chaves da pesquisa de Leads (CNPJ e Maps).</p>
+            </div>
+            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5">
+               <div className="flex justify-between items-center mb-4">
+                  <p className="text-sm font-bold">API ReceitaWS</p>
+                  <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Conectado</p>
+               </div>
+               <input type="password" value="*************************" readOnly className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 px-4 text-xs text-white/40 outline-none mb-4" />
+               <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Limites de requisição: 3 por minuto (plano grátis)</p>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'Disparo' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white/[0.03] border border-white/5 rounded-[32px] p-10 space-y-10">
+            <div className="space-y-1">
+              <h2 className="text-xl font-bold">Automação de Disparos</h2>
+              <p className="text-sm text-white/20">Configuração do motor de Email e WhatsApp</p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+               <div className="p-8 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col items-center justify-center text-center opacity-50 hover:opacity-100 transition-all cursor-pointer">
+                  <Mail className="w-8 h-8 text-white/40 mb-2" />
+                  <p className="text-sm font-bold">Templates de E-mail</p>
+               </div>
+               <div className="p-8 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col items-center justify-center text-center opacity-50 hover:opacity-100 transition-all cursor-pointer">
+                  <Send className="w-8 h-8 text-emerald-500 mb-2" />
+                  <p className="text-sm font-bold">Templates de WhatsApp</p>
+               </div>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'Usuários' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white/[0.03] border border-white/5 rounded-[32px] p-10 space-y-8">
+            <div className="flex justify-between items-center">
+              <div className="space-y-1">
+                <h2 className="text-xl font-bold">Gestão de Usuários</h2>
+                <p className="text-sm text-white/20">Convide ou remova membros da sua plataforma</p>
+              </div>
+              <button className="bg-primary px-6 py-2 rounded-xl text-white text-[10px] font-bold uppercase tracking-widest">Novo Usuário</button>
+            </div>
+            <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02] flex items-center justify-between">
+               <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">GD</div>
+                  <div><p className="text-sm font-bold">Gabriel Sousa (Você)</p><p className="text-[10px] text-white/40 uppercase tracking-widest">Administrador</p></div>
+               </div>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'Times' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white/[0.03] border border-white/5 rounded-[32px] p-10 space-y-8">
+            <div className="flex justify-between items-center">
+              <div className="space-y-1">
+                <h2 className="text-xl font-bold">Hierarquia de Times</h2>
+                <p className="text-sm text-white/20">Agrupe usuários em esquadrões de vendas</p>
+              </div>
+              <button className="bg-primary/10 text-primary border border-primary/20 px-6 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest">Novo Time</button>
+            </div>
+            <div className="p-8 rounded-2xl border border-dashed border-white/10 flex flex-col items-center justify-center text-center opacity-50">
+               <Users className="w-8 h-8 mb-2" />
+               <p className="text-sm font-bold">Nenhum time criado</p>
+               <p className="text-[10px] uppercase tracking-widest mt-1">Crie um time para agrupar as métricas no Dashboard</p>
             </div>
           </motion.div>
         )}

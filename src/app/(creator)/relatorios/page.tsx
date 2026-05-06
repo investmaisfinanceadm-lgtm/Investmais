@@ -58,7 +58,7 @@ export default function RelatoriosPage() {
   const [periodo, setPeriodo] = useState('Últimos 7 dias')
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-6 lg:p-10 space-y-10">
+    <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#050505] text-slate-900 dark:text-white p-6 lg:p-10 space-y-10 transition-colors duration-300">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
         <div className="space-y-1">
@@ -114,7 +114,7 @@ export default function RelatoriosPage() {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard label="Leads que entraram" value="121" icon={Activity} color="bg-primary/10 border-primary/20 text-primary" />
         <StatCard label="Ganhos" value="0" subtext="0.0% de conversão" icon={Target} color="bg-emerald-500/10 border-emerald-500/20 text-emerald-400" />
         <StatCard label="Perdidos" value="2" icon={ArrowDownRight} color="bg-red-500/10 border-red-500/20 text-red-500" />

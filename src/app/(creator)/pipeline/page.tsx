@@ -614,7 +614,7 @@ export default function PipelinePage() {
   )
 
   return (
-    <div className="min-h-screen bg-[#050505] flex flex-col">
+    <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#050505] text-slate-900 dark:text-white flex flex-col transition-colors duration-300">
       {/* ── Header ── */}
       <div className="p-8 lg:p-10 pb-0 space-y-6">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
