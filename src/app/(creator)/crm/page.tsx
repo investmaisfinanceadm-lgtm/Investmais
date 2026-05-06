@@ -630,7 +630,7 @@ export default function CRMPage() {
       {/* Modals */}
       <AnimatePresence>
         {isAddOpen && <AddContactModal onClose={() => setIsAddOpen(false)} onAdd={(c) => { setContacts([c, ...contacts]); setIsAddOpen(false); toast.success('Contato sincronizado.'); }} />}
-        {isScrapeOpen && <ScrapeLeadsModal onClose={() => setIsScrapeOpen(false)} onProspected={() => fetchContacts()} />}
+        {/* isScrapeOpen && <ScrapeLeadsModal onClose={() => setIsScrapeOpen(false)} onProspected={() => fetchContacts()} /> */}
         {isDetailOpen && selectedContact && (
           <LeadDetailModal
             contact={selectedContact}
