@@ -567,7 +567,9 @@ function CardDetailModal({
               <button className="w-10 h-10 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/[0.05] transition-all">
                  <Mail className="w-4 h-4" />
               </button>
-                <div className="flex items-center gap-3">
+           </div>
+           
+           <div className="flex items-center gap-3">
               <button className="px-6 py-2.5 rounded-xl border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/10 text-xs font-bold flex items-center gap-2 transition-all">
                  <CheckCircle2 className="w-4 h-4" /> Ganho
               </button>
