@@ -9,9 +9,23 @@ export async function GET(req: Request) {
     if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     const userId = (session.user as any).id
 
+    const { searchParams } = new URL(req.url)
+    const boardId = searchParams.get('board_id')
+
+    const allBoards = await prisma.pipelineBoard.findMany({
+      where: { user_id: userId },
+      select: { id: true, nome: true, is_default: true },
+      orderBy: { created_at: 'asc' }
+    })
+
+    const vendedores = await prisma.profile.findMany({
+      select: { id: true, nome: true, cor: true, avatar_url: true },
+      orderBy: { nome: 'asc' }
+    })
+
     // Busca o board padrão do usuário
     let board = await prisma.pipelineBoard.findFirst({
-      where: { user_id: userId },
+      where: boardId ? { id: boardId, user_id: userId } : { user_id: userId },
       include: {
         colunas: {
           orderBy: { ordem: 'asc' },
@@ -99,7 +113,7 @@ export async function GET(req: Request) {
         }
       })
       
-      if (!refreshedBoard) return NextResponse.json({ columns: [] })
+      if (!refreshedBoard) return NextResponse.json({ columns: [], vendedores, boards: allBoards, currentBoardId: null })
       board = refreshedBoard
     }
 
@@ -130,6 +144,7 @@ export async function GET(req: Request) {
         createdAt: card.created_at.toISOString(),
         updatedAt: card.created_at.toISOString(),
         linkedContact: card.contato ? {
+          id: card.contato.id,
           name: card.contato.nome,
           phone: card.contato.telefone,
           email: card.contato.email
@@ -137,7 +152,7 @@ export async function GET(req: Request) {
       }))
     }))
 
-    return NextResponse.json({ columns })
+    return NextResponse.json({ columns, vendedores, boards: allBoards, currentBoardId: board.id })
   } catch (err) {
     console.error('PIPELINE BOARD GET error:', err)
     return NextResponse.json({ error: 'Erro ao buscar pipeline' }, { status: 500 })

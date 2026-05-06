@@ -2,20 +2,23 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { 
+import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
     AreaChart, Area
 } from 'recharts'
-import { 
-    Plus, Search, Bell, Moon, Sun, 
-    Users, TrendingUp, DollarSign, Target, 
-    ArrowUpRight, ArrowDownRight, 
+import {
+    Plus, Search, Bell, Moon, Sun,
+    Users, TrendingUp, DollarSign, Target,
+    ArrowUpRight, ArrowDownRight,
     Clock, Phone, MessageSquare, ChevronDown,
-    MoreHorizontal, Filter, Download
+    MoreHorizontal, Filter, Download,
+    X, Mail, FileText, CheckCircle2,
+    Loader2,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn, formatDateTime } from '@/lib/utils'
 import { formatCurrency as formatBRL } from '@/lib/crm-utils'
+import toast from 'react-hot-toast'
 
 interface DashboardContact {
     id: string
@@ -37,10 +40,113 @@ interface UserStats {
     contatosRecentes: DashboardContact[]
 }
 
+const TIPO_ACTIVITY: Record<string, { label: string; color: string; Icon: any }> = {
+    phone:   { label: 'Ligação',  color: 'text-blue-400',    Icon: Phone },
+    email:   { label: 'Email',    color: 'text-red-400',     Icon: Mail },
+    message: { label: 'WhatsApp', color: 'text-emerald-400', Icon: MessageSquare },
+    meeting: { label: 'Reunião',  color: 'text-purple-400',  Icon: Users },
+    note:    { label: 'Nota',     color: 'text-white/50',    Icon: FileText },
+    task:    { label: 'Tarefa',   color: 'text-amber-400',   Icon: CheckCircle2 },
+}
+
+function QuickActivityModal({ onClose, contacts }: { onClose: () => void; contacts: { id: string; nome: string }[] }) {
+    const [tipo, setTipo] = useState('phone')
+    const [descricao, setDescricao] = useState('')
+    const [selectedContactId, setSelectedContactId] = useState('')
+    const [contactSearch, setContactSearch] = useState('')
+    const [isSaving, setIsSaving] = useState(false)
+
+    const filteredContacts = contacts.filter(c =>
+        c.nome.toLowerCase().includes(contactSearch.toLowerCase())
+    ).slice(0, 5)
+
+    const selectedContact = contacts.find(c => c.id === selectedContactId)
+
+    const handleSave = async () => {
+        if (!selectedContactId) { toast.error('Selecione um contato'); return }
+        setIsSaving(true)
+        try {
+            const res = await fetch('/api/creator/atividades', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contato_id: selectedContactId,
+                    tipo,
+                    descricao: descricao || `Nova ${TIPO_ACTIVITY[tipo]?.label}`,
+                    status: 'pendente',
+                    data: new Date().toISOString(),
+                }),
+            })
+            if (res.ok) { toast.success('Atividade criada!'); onClose() }
+            else toast.error('Erro ao criar atividade')
+        } finally { setIsSaving(false) }
+    }
+
+    return (
+        <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60]" />
+            <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                className="fixed inset-0 z-[70] flex items-center justify-center p-4"
+            >
+                <div className="w-full max-w-md bg-[#0A0A0B] border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
+                    <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.04]">
+                        <h2 className="text-sm font-bold text-white">Nova Atividade Rápida</h2>
+                        <button onClick={onClose} className="w-7 h-7 rounded-lg bg-white/[0.02] border border-white/5 flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                            <X className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
+                    <div className="p-6 space-y-4">
+                        <div className="grid grid-cols-3 gap-2">
+                            {Object.entries(TIPO_ACTIVITY).map(([key, { label, Icon }]) => (
+                                <button key={key} onClick={() => setTipo(key)} className={cn('flex items-center gap-2 p-2.5 rounded-xl border text-[10px] font-bold transition-all', tipo === key ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-white/[0.02] border-white/5 text-white/30 hover:text-white/50')}>
+                                    <Icon className="w-3.5 h-3.5" />{label}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
+                            {selectedContact ? (
+                                <div className="flex items-center gap-3 bg-white/[0.02] border border-white/5 rounded-xl px-4 py-3">
+                                    <span className="text-sm text-white flex-1">{selectedContact.nome}</span>
+                                    <button onClick={() => { setSelectedContactId(''); setContactSearch('') }} className="text-white/20 hover:text-white/60"><X className="w-3.5 h-3.5" /></button>
+                                </div>
+                            ) : (
+                                <input type="text" placeholder="Buscar contato..." value={contactSearch} onChange={e => setContactSearch(e.target.value)} className="w-full bg-white/[0.02] border border-white/5 rounded-xl pl-9 pr-4 py-3 text-sm text-white placeholder-white/20 outline-none focus:border-primary/40" />
+                            )}
+                            {!selectedContact && contactSearch && (
+                                <div className="absolute top-full left-0 right-0 mt-1 bg-[#111113] border border-white/10 rounded-xl shadow-xl z-10 overflow-hidden">
+                                    {filteredContacts.map(c => (
+                                        <button key={c.id} onClick={() => { setSelectedContactId(c.id); setContactSearch('') }} className="w-full text-left px-4 py-3 hover:bg-white/[0.04] text-sm text-white/60 hover:text-white">
+                                            {c.nome}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <textarea placeholder="Descrição da atividade..." value={descricao} onChange={e => setDescricao(e.target.value)} rows={2} className="w-full bg-white/[0.02] border border-white/5 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 outline-none focus:border-primary/40 resize-none" />
+                    </div>
+                    <div className="px-6 pb-6 flex gap-3">
+                        <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-white/40 text-xs font-bold hover:text-white">Cancelar</button>
+                        <button onClick={handleSave} disabled={isSaving} className="flex-1 py-2.5 rounded-xl bg-primary text-white text-xs font-bold shadow-lg disabled:opacity-50 flex items-center justify-center gap-2">
+                            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                            Criar
+                        </button>
+                    </div>
+                </div>
+            </motion.div>
+        </>
+    )
+}
+
 export default function DashboardPage() {
     const [stats, setStats] = useState<UserStats | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [greeting, setGreeting] = useState('Bem-vindo')
+    const [showQuickActivity, setShowQuickActivity] = useState(false)
+    const [contacts, setContacts] = useState<{ id: string; nome: string }[]>([])
 
     useEffect(() => {
         const hour = new Date().getHours()
@@ -52,10 +158,17 @@ export default function DashboardPage() {
     useEffect(() => {
         async function loadData() {
             try {
-                const response = await fetch('/api/creator/dashboard')
-                if (response.ok) {
-                    const data = await response.json()
+                const [dashRes, crmRes] = await Promise.all([
+                    fetch('/api/creator/dashboard'),
+                    fetch('/api/creator/crm'),
+                ])
+                if (dashRes.ok) {
+                    const data = await dashRes.json()
                     if (data.profile) setStats(data.profile)
+                }
+                if (crmRes.ok) {
+                    const data = await crmRes.json()
+                    if (Array.isArray(data)) setContacts(data.map((c: any) => ({ id: c.id, nome: c.nome })))
                 }
             } catch (error) {
                 console.error("Error loading dashboard data:", error)
@@ -154,7 +267,13 @@ export default function DashboardPage() {
                     <div className="p-6 border-b border-white/5 flex items-center justify-between">
                         <h2 className="text-base font-bold">Atividades de Hoje</h2>
                         <div className="flex items-center gap-2">
-                            <Plus className="w-4 h-4 text-white/40 cursor-pointer hover:text-white" />
+                            <button
+                                onClick={() => setShowQuickActivity(true)}
+                                className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/20 transition-all"
+                                title="Nova atividade"
+                            >
+                                <Plus className="w-3.5 h-3.5" />
+                            </button>
                             <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
                                 <Clock className="w-4 h-4" />
                             </div>
@@ -281,6 +400,16 @@ export default function DashboardPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Quick Activity Modal */}
+            <AnimatePresence>
+                {showQuickActivity && (
+                    <QuickActivityModal
+                        onClose={() => setShowQuickActivity(false)}
+                        contacts={contacts}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     )
 }

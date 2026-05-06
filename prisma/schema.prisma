@@ -164,6 +164,7 @@ model PipelineCard {
   origem        String?
   status        DealStatus         @default(open)
   vendedor_id   String?
+  atividades    AtividadeCRM[]
   movimentacoes DealStageHistory[]
   coluna        PipelineColuna     @relation(fields: [coluna_id], references: [id], onDelete: Cascade)
   contato       Contato?           @relation(fields: [contato_id], references: [id])
@@ -215,12 +216,16 @@ model Contato {
 }
 
 model AtividadeCRM {
-  id         String   @id @default(uuid())
+  id         String        @id @default(uuid())
   contato_id String
+  deal_id    String?
   tipo       String
+  titulo     String?
   descricao  String
-  data       DateTime @default(now())
-  contato    Contato  @relation(fields: [contato_id], references: [id], onDelete: Cascade)
+  status     String        @default("pendente")
+  data       DateTime      @default(now())
+  contato    Contato       @relation(fields: [contato_id], references: [id], onDelete: Cascade)
+  deal       PipelineCard? @relation(fields: [deal_id], references: [id], onDelete: SetNull)
 
   @@map("atividades_crm")
 }
