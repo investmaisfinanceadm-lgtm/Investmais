@@ -229,6 +229,3 @@ export default function ConfiguracoesPage() {
     </div>
   )
 }
-    </div>
-  )
-}
