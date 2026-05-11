@@ -38,6 +38,7 @@ interface UserStats {
     ticketMedio: number
     taxaConversao: number
     contatosRecentes: DashboardContact[]
+    recentCards: any[]
 }
 
 const TIPO_ACTIVITY: Record<string, { label: string; color: string; Icon: any }> = {
@@ -144,6 +145,8 @@ function QuickActivityModal({ onClose, contacts }: { onClose: () => void; contac
 export default function DashboardPage() {
     const [stats, setStats] = useState<UserStats | null>(null)
     const [isLoading, setIsLoading] = useState(true)
+    const [boards, setBoards] = useState<{ id: string; nome: string }[]>([])
+    const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null)
     const [greeting, setGreeting] = useState('Bem-vindo')
     const [showQuickActivity, setShowQuickActivity] = useState(false)
     const [contacts, setContacts] = useState<{ id: string; nome: string }[]>([])
@@ -156,10 +159,28 @@ export default function DashboardPage() {
     }, [])
 
     useEffect(() => {
-        async function loadData() {
+        async function loadBoards() {
             try {
+                const res = await fetch('/api/creator/pipeline-config')
+                if (res.ok) {
+                    const data = await res.json()
+                    setBoards(data)
+                }
+            } catch (err) { console.error('Error loading boards:', err) }
+        }
+        loadBoards()
+    }, [])
+
+    useEffect(() => {
+        async function loadData() {
+            setIsLoading(true)
+            try {
+                const url = selectedBoardId 
+                    ? `/api/creator/dashboard?board_id=${selectedBoardId}` 
+                    : '/api/creator/dashboard'
+                
                 const [dashRes, crmRes] = await Promise.all([
-                    fetch('/api/creator/dashboard'),
+                    fetch(url),
                     fetch('/api/creator/crm'),
                 ])
                 if (dashRes.ok) {
@@ -177,7 +198,7 @@ export default function DashboardPage() {
             }
         }
         loadData()
-    }, [])
+    }, [selectedBoardId])
 
     return (
         <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#050505] text-slate-900 dark:text-white p-6 lg:p-10 space-y-10 transition-colors duration-300">
@@ -224,10 +245,16 @@ export default function DashboardPage() {
                     <p className="text-white/40 text-sm">Visão geral do seu CRM</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 bg-white/[0.03] border border-white/5 px-4 py-2 rounded-xl text-xs font-semibold text-white/60 hover:text-white transition-all">
-                        Todos os produtos
-                        <ChevronDown className="w-4 h-4" />
-                    </button>
+                    <select 
+                        value={selectedBoardId || ''} 
+                        onChange={e => setSelectedBoardId(e.target.value || null)}
+                        className="bg-white/[0.03] border border-white/5 px-4 py-2 rounded-xl text-xs font-semibold text-white/60 hover:text-white transition-all outline-none cursor-pointer"
+                    >
+                        <option value="" className="bg-[#0A0A0B]">Todos os produtos</option>
+                        {boards.map(b => (
+                            <option key={b.id} value={b.id} className="bg-[#0A0A0B]">{b.nome}</option>
+                        ))}
+                    </select>
                 </div>
             </div>
 
@@ -311,18 +338,26 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     <div className="p-4 space-y-2 flex-1 overflow-y-auto max-h-[400px] scrollbar-thin">
-                        {stats?.contatosRecentes?.map((deal, i) => (
+                        {stats?.recentCards?.map((deal, i) => (
                             <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
-                                <p className="text-sm font-bold text-white/90">{deal.nome}</p>
+                                <div>
+                                    <p className="text-sm font-bold text-white/90">{deal.nome}</p>
+                                    <p className="text-[10px] text-white/30 truncate max-w-[150px]">{deal.titulo}</p>
+                                </div>
                                 <div className="text-right">
-                                    <p className="text-xs font-bold text-primary">Em Negociação</p>
-                                    <span className="text-[9px] px-2 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20 uppercase font-black">
-                                        Média
+                                    <p className="text-xs font-bold text-primary">{formatBRL(deal.valor || 0)}</p>
+                                    <span className={cn(
+                                        "text-[9px] px-2 py-0.5 rounded border uppercase font-black",
+                                        deal.status === 'won' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                        deal.status === 'lost' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                        'bg-orange-500/10 text-orange-400 border-orange-500/20'
+                                    )}>
+                                        {deal.status === 'won' ? 'Ganho' : deal.status === 'lost' ? 'Perdido' : 'Aberto'}
                                     </span>
                                 </div>
                             </div>
                         ))}
-                        {(!stats?.contatosRecentes || stats.contatosRecentes.length === 0) && (
+                        {(!stats?.recentCards || stats.recentCards.length === 0) && (
                             <div className="h-40 flex items-center justify-center text-white/20 text-xs italic">
                                 Nenhum deal encontrado
                             </div>

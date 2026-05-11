@@ -50,17 +50,34 @@ export async function PATCH(req: NextRequest) {
   return NextResponse.json(coluna)
 }
 
-// DELETE — delete stage
+// DELETE — delete stage (optionally move cards to another stage first)
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   const userId = (session.user as any).id
   const { searchParams } = new URL(req.url)
   const id = searchParams.get('id')
+  const targetColumnId = searchParams.get('target_column_id')
   if (!id) return NextResponse.json({ error: 'ID obrigatório' }, { status: 400 })
 
   const board = await prisma.pipelineBoard.findFirst({ where: { user_id: userId } })
   if (!board) return NextResponse.json({ error: 'Board não encontrado' }, { status: 404 })
+
+  // Count cards in this stage
+  const cardCount = await prisma.pipelineCard.count({ where: { coluna_id: id, status: 'open', deleted_at: null } })
+
+  // If there are cards and no target specified, return the count so frontend can prompt
+  if (cardCount > 0 && !targetColumnId) {
+    return NextResponse.json({ needsTarget: true, cardCount }, { status: 409 })
+  }
+
+  // Move cards to target column if specified
+  if (targetColumnId && cardCount > 0) {
+    await prisma.pipelineCard.updateMany({
+      where: { coluna_id: id },
+      data: { coluna_id: targetColumnId }
+    })
+  }
 
   await prisma.pipelineColuna.deleteMany({ where: { id, board_id: board.id } })
   return NextResponse.json({ success: true })

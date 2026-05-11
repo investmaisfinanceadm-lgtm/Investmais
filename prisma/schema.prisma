@@ -150,6 +150,7 @@ model PipelineCard {
   coluna_id     String
   titulo        String
   descricao     String?
+  anotacoes     String?
   responsavel   String?
   valor         Float?
   vencimento    DateTime?
@@ -160,6 +161,7 @@ model PipelineCard {
   created_at    DateTime           @default(now())
   contato_id    String?
   fechado_em    DateTime?
+  deleted_at    DateTime?
   lost_reason   String?
   origem        String?
   status        DealStatus         @default(open)

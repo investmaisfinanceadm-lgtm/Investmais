@@ -5,13 +5,15 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions)
     if (!session) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
+    const { searchParams } = new URL(req.url)
+    const boardId = searchParams.get('board_id')
     const userId = (session.user as any).id
     const isDev = userId === 'dev-admin-id'
 
@@ -19,12 +21,17 @@ export async function GET() {
       const startOfDay = new Date()
       startOfDay.setHours(0, 0, 0, 0)
 
+      const pipelineWhere = boardId 
+        ? { board: { id: boardId, user_id: userId } }
+        : { board: { user_id: userId } }
+
       const [
         profile, 
         totalLeads, 
         leadsHoje, 
         dealsStats,
-        contatosRecentes
+        contatosRecentes,
+        recentCards
       ] = await Promise.all([
         prisma.profile.findUnique({
           where: { id: userId },
@@ -39,7 +46,7 @@ export async function GET() {
         }),
         prisma.pipelineCard.aggregate({
           where: {
-            coluna: { board: { user_id: userId } }
+            coluna: pipelineWhere
           },
           _sum: { valor: true },
           _count: { id: true },
@@ -57,11 +64,27 @@ export async function GET() {
           orderBy: { created_at: 'desc' },
           take: 10,
         }),
+        prisma.pipelineCard.findMany({
+          where: {
+            coluna: pipelineWhere,
+            deleted_at: null
+          },
+          select: {
+            id: true,
+            titulo: true,
+            valor: true,
+            status: true,
+            created_at: true,
+            contato: { select: { nome: true } }
+          },
+          orderBy: { created_at: 'desc' },
+          take: 10
+        })
       ])
 
       const wonDeals = await prisma.pipelineCard.aggregate({
         where: {
-          coluna: { board: { user_id: userId } },
+          coluna: pipelineWhere,
           status: 'won'
         },
         _sum: { valor: true },
@@ -85,6 +108,11 @@ export async function GET() {
               taxaConversao,
               contatosRecentes: contatosRecentes.map((c: any) => ({
                 ...c,
+                created_at: c.created_at.toISOString()
+              })),
+              recentCards: recentCards.map((c: any) => ({
+                ...c,
+                nome: c.contato?.nome || c.titulo,
                 created_at: c.created_at.toISOString()
               }))
             }

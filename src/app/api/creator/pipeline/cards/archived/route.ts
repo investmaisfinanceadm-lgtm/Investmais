@@ -9,17 +9,23 @@ export async function GET(req: Request) {
     if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     const userId = (session.user as any).id
 
+    const { searchParams } = new URL(req.url)
+    const type = searchParams.get('type') // 'archived' | 'deleted' | all
+
     const cards = await prisma.pipelineCard.findMany({
       where: {
-        coluna: {
-          board: {
-            user_id: userId
-          }
-        },
-        status: { in: ['won', 'lost'] }
+        coluna: { board: { user_id: userId } },
+        ...(type === 'deleted'
+          ? { deleted_at: { not: null } }
+          : type === 'archived'
+          ? { status: { in: ['won', 'lost'] }, deleted_at: null }
+          : { OR: [{ status: { in: ['won', 'lost'] }, deleted_at: null }, { deleted_at: { not: null } }] }
+        )
       },
       include: {
-        vendedor: { select: { nome: true } }
+        vendedor: { select: { nome: true } },
+        contato: { select: { id: true, nome: true, telefone: true } },
+        coluna: { select: { nome: true } }
       },
       orderBy: { fechado_em: 'desc' }
     })

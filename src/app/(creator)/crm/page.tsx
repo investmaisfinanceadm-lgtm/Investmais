@@ -357,7 +357,7 @@ export default function CRMPage() {
   const filteredContacts = contacts.filter((c) => {
     const matchFilter =
       activeFilter === 'todos' ? true :
-      activeFilter === 'leads' ? (c.status === 'lead' || c.status === 'qualificado' || c.status === 'proposta') :
+      activeFilter === 'leads' ? (c.status === 'lead' || c.status === 'qualificado' || c.status === 'proposta' || c.status === 'oportunidade') :
       activeFilter === 'clientes' ? c.status === 'cliente' :
       activeFilter === 'inativos' ? c.status === 'inativo' : true
 

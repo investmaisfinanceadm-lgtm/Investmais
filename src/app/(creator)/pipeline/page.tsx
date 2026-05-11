@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useSession } from 'next-auth/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus,
@@ -43,6 +44,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import toast from 'react-hot-toast'
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -74,6 +76,9 @@ interface KanbanCard {
   status: string
   createdAt?: string
   linkedContact?: LinkedContact
+  pendingTasksCount?: number
+  anotacoes?: string
+  boardId?: string
 }
 
 interface KanbanColumn {
@@ -135,12 +140,14 @@ function KanbanCardItem({
   isSelectMode,
   isSelected,
   onToggleSelect,
+  index,
 }: {
   card: KanbanCard
   onClick: () => void
   isSelectMode: boolean
   isSelected: boolean
   onToggleSelect: (id: string) => void
+  index: number
 }) {
   const isEmerald = card.category === 'LEAD AP'
 
@@ -150,79 +157,100 @@ function KanbanCardItem({
   }
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: isSelectMode ? 1 : 1.015, y: isSelectMode ? 0 : -3 }}
-      onClick={handleClick}
-      className={cn(
-        'relative cursor-pointer rounded-2xl border bg-[#0D0D0E] p-5',
-        'transition-all duration-200 border-l-4',
-        isSelected
-          ? 'border-primary/60 bg-primary/5 shadow-lg shadow-primary/10'
-          : 'border-white/5 hover:border-white/10 hover:shadow-xl'
-      )}
-      style={{ borderLeftColor: isSelected ? undefined : isEmerald ? '#10B981' : '#F59E0B' }}
-    >
-      {/* Selection checkbox */}
-      {isSelectMode && (
-        <div className={cn(
-          'absolute top-3 right-3 w-5 h-5 rounded flex items-center justify-center border transition-all',
-          isSelected ? 'bg-primary border-primary' : 'bg-white/5 border-white/20 hover:border-primary/40'
-        )}>
-          {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
-        </div>
-      )}
+    <Draggable draggableId={card.id} index={index} isDragDisabled={isSelectMode}>
+      {(provided, snapshot) => (
+        <motion.div
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+          layout
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          whileHover={{ scale: isSelectMode ? 1 : 1.015, y: isSelectMode ? 0 : -3 }}
+          onClick={handleClick}
+          className={cn(
+            'relative cursor-pointer rounded-2xl border bg-[#0D0D0E] p-5',
+            'transition-all duration-200 border-l-4',
+            isSelected
+              ? 'border-primary/60 bg-primary/5 shadow-lg shadow-primary/10'
+              : 'border-white/5 hover:border-white/10 hover:shadow-xl',
+            snapshot.isDragging && 'z-50 shadow-2xl border-primary/40'
+          )}
+          style={{ 
+            ...provided.draggableProps.style,
+            borderLeftColor: isSelected ? undefined : isEmerald ? '#10B981' : '#F59E0B' 
+          }}
+        >
+          {/* Selection checkbox */}
+          {isSelectMode && (
+            <div className={cn(
+              'absolute top-3 right-3 w-5 h-5 rounded flex items-center justify-center border transition-all',
+              isSelected ? 'bg-primary border-primary' : 'bg-white/5 border-white/20 hover:border-primary/40'
+            )}>
+              {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+            </div>
+          )}
 
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2 mb-4">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className={cn('mt-0.5 w-2 h-2 flex-shrink-0 rounded-full', isEmerald ? 'bg-emerald-500' : 'bg-amber-500')} />
-          <h3 className="text-sm font-bold text-white/90 leading-tight truncate">{card.title}</h3>
-        </div>
-        {!isSelectMode && (
-          <button onClick={e => e.stopPropagation()} className="flex-shrink-0 text-white/20 hover:text-white/60 transition-colors">
-            <MoreHorizontal className="w-4 h-4" />
-          </button>
-        )}
-      </div>
-
-      {/* Contact info */}
-      <div className="space-y-1 mb-5">
-        {card.linkedContact?.name && <p className="text-xs text-white/40 font-medium">{card.linkedContact.name}</p>}
-        {card.linkedContact?.phone && (
-          <div className="flex items-center gap-1.5 text-[11px] text-white/20">
-            <Phone className="w-3 h-3" /><span>{card.linkedContact.phone}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Badges */}
-      <div className="flex flex-col gap-2 mb-5">
-        <div className="flex items-center gap-2 w-fit px-2.5 py-1 rounded-full bg-[hsl(215_100%_50%/0.08)] border border-[hsl(215_100%_50%/0.15)]">
-          <div className="w-4 h-4 rounded-full overflow-hidden bg-primary/20 flex items-center justify-center flex-shrink-0">
-            {card.responsible.avatar_url ? (
-              <img src={card.responsible.avatar_url} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <User className="w-2.5 h-2.5 text-primary" />
+          {/* Header */}
+          <div className="flex items-start justify-between gap-2 mb-4">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className={cn('mt-0.5 w-2 h-2 flex-shrink-0 rounded-full', isEmerald ? 'bg-emerald-500' : 'bg-amber-500')} />
+              <h3 className="text-sm font-bold text-white/90 leading-tight truncate">{card.title}</h3>
+            </div>
+            {!isSelectMode && (
+              <button onClick={e => e.stopPropagation()} className="flex-shrink-0 text-white/20 hover:text-white/60 transition-colors">
+                <MoreHorizontal className="w-4 h-4" />
+              </button>
             )}
           </div>
-          <span className="text-[9px] font-bold text-primary uppercase tracking-wide">{card.responsible.name}</span>
-        </div>
 
-        <div className={cn('flex items-center gap-2 w-fit px-2.5 py-1 rounded-full border', isEmerald ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-400')}>
-          <div className={cn('w-1.5 h-1.5 rounded-full', isEmerald ? 'bg-emerald-500' : 'bg-amber-500')} />
-          <span className="text-[9px] font-bold uppercase tracking-wide">{card.category}</span>
-        </div>
-      </div>
+          {/* Contact info */}
+          <div className="space-y-1 mb-5">
+            {card.linkedContact?.name && <p className="text-xs text-white/40 font-medium">{card.linkedContact.name}</p>}
+            {card.linkedContact?.phone && (
+              <div className="flex items-center gap-1.5 text-[11px] text-white/20">
+                <Phone className="w-3 h-3" /><span>{card.linkedContact.phone}</span>
+              </div>
+            )}
+          </div>
 
-      {/* Footer */}
-      <div className="flex items-center justify-between pt-4 border-t border-white/[0.04]">
-        <span className="text-sm font-bold text-primary">{formatCurrency(card.value)}</span>
-        <MessageSquare className="w-4 h-4 text-emerald-500/30" />
-      </div>
-    </motion.div>
+          {/* Badges */}
+          <div className="flex flex-col gap-2 mb-5">
+            <div className="flex items-center gap-2 w-fit px-2.5 py-1 rounded-full bg-[hsl(215_100%_50%/0.08)] border border-[hsl(215_100%_50%/0.15)]">
+              <div className="w-4 h-4 rounded-full overflow-hidden bg-primary/20 flex items-center justify-center flex-shrink-0">
+                {card.responsible.avatar_url ? (
+                  <img src={card.responsible.avatar_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-2.5 h-2.5 text-primary" />
+                )}
+              </div>
+              <span className="text-[9px] font-bold text-primary uppercase tracking-wide">{card.responsible.name}</span>
+            </div>
+
+            <div className={cn('flex items-center gap-2 w-fit px-2.5 py-1 rounded-full border', isEmerald ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-400')}>
+              <div className={cn('w-1.5 h-1.5 rounded-full', isEmerald ? 'bg-emerald-500' : 'bg-amber-500')} />
+              <span className="text-[9px] font-bold uppercase tracking-wide">{card.category}</span>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-4 border-t border-white/[0.04]">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-bold text-primary">{formatCurrency(card.value)}</span>
+              {(card.pendingTasksCount ?? 0) > 0 && (
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                  <Activity className="w-3 h-3" />
+                  <span className="text-[10px] font-bold">{card.pendingTasksCount}</span>
+                </div>
+              )}
+            </div>
+            <MessageSquare className="w-4 h-4 text-emerald-500/30" />
+          </div>
+        </motion.div>
+      )}
+    </Draggable>
+  )
+}
   )
 }
 
@@ -261,25 +289,38 @@ function KanbanColumnComponent({
         <div className="h-full rounded-full transition-all duration-700" style={{ width: '40%', backgroundColor: column.color }} />
       </div>
 
-      <div className="flex flex-col gap-3 flex-1 min-h-[400px] pb-10">
-        <AnimatePresence>
-          {column.cards.map(card => (
-            <KanbanCardItem
-              key={card.id}
-              card={card}
-              onClick={() => onCardClick(card)}
-              isSelectMode={isSelectMode}
-              isSelected={selectedCards.has(card.id)}
-              onToggleSelect={onToggleSelect}
-            />
-          ))}
-        </AnimatePresence>
-        {!isSelectMode && (
-          <button className="w-full py-3.5 border border-dashed border-white/[0.06] rounded-2xl text-[10px] font-bold uppercase tracking-widest text-white/10 hover:text-white/20 hover:border-white/10 transition-all">
-            + Novo Card
-          </button>
+      <Droppable droppableId={column.id}>
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className={cn(
+              "flex flex-col gap-3 flex-1 min-h-[400px] pb-10 transition-colors rounded-2xl",
+              snapshot.isDraggingOver && "bg-white/[0.02]"
+            )}
+          >
+            <AnimatePresence>
+              {column.cards.map((card, index) => (
+                <KanbanCardItem
+                  key={card.id}
+                  card={card}
+                  index={index}
+                  onClick={() => onCardClick(card)}
+                  isSelectMode={isSelectMode}
+                  isSelected={selectedCards.has(card.id)}
+                  onToggleSelect={onToggleSelect}
+                />
+              ))}
+            </AnimatePresence>
+            {provided.placeholder}
+            {!isSelectMode && (
+              <button className="w-full py-3.5 border border-dashed border-white/[0.06] rounded-2xl text-[10px] font-bold uppercase tracking-widest text-white/10 hover:text-white/20 hover:border-white/10 transition-all">
+                + Novo Card
+              </button>
+            )}
+          </div>
         )}
-      </div>
+      </Droppable>
     </div>
   )
 }
@@ -297,6 +338,27 @@ function ArchivedModal({ onClose }: { onClose: () => void }) {
       .catch(() => setCards([]))
       .finally(() => setIsLoading(false))
   }, [])
+
+  const handleRestore = async (id: string) => {
+    const res = await fetch(`/api/creator/pipeline/cards/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deleted_at: null, status: 'open' }),
+    })
+    if (res.ok) {
+      setCards(prev => prev.filter(c => c.id !== id))
+      toast.success('Deal restaurado!')
+    }
+  }
+
+  const handleDeletePermanent = async (id: string) => {
+    if (!confirm('Excluir permanentemente este deal?')) return
+    const res = await fetch(`/api/creator/pipeline/cards/${id}?permanent=true`, { method: 'DELETE' })
+    if (res.ok) {
+      setCards(prev => prev.filter(c => c.id !== id))
+      toast.success('Excluído permanentemente')
+    }
+  }
 
   return (
     <>
@@ -350,18 +412,36 @@ function ArchivedModal({ onClose }: { onClose: () => void }) {
                       <p className="text-[10px] text-white/30 mt-0.5">{formatDate(card.fechado_em)}</p>
                     )}
                   </div>
-                  <span className={cn(
-                    'px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest border',
-                    card.status === 'won'
-                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                      : 'bg-red-500/10 border-red-500/20 text-red-400'
-                  )}>
-                    {card.status === 'won' ? (
-                      <span className="flex items-center gap-1"><Trophy className="w-2.5 h-2.5" /> Ganho</span>
-                    ) : (
-                      <span className="flex items-center gap-1"><XCircle className="w-2.5 h-2.5" /> Perdido</span>
-                    )}
-                  </span>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className={cn(
+                      'px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest border',
+                      card.status === 'won'
+                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                        : 'bg-red-500/10 border-red-500/20 text-red-400'
+                    )}>
+                      {card.status === 'won' ? (
+                        <span className="flex items-center gap-1"><Trophy className="w-2.5 h-2.5" /> Ganho</span>
+                      ) : (
+                        <span className="flex items-center gap-1"><XCircle className="w-2.5 h-2.5" /> Perdido</span>
+                      )}
+                    </span>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => handleRestore(card.id)}
+                        className="p-1.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-all"
+                        title="Restaurar"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </button>
+                      <button 
+                        onClick={() => handleDeletePermanent(card.id)}
+                        className="p-1.5 rounded bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all"
+                        title="Excluir Permanentemente"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 {card.valor && (
                   <p className="text-sm font-bold text-primary">{formatCurrency(card.valor)}</p>
@@ -522,7 +602,11 @@ function CardDetailModal({
 }: {
   card: KanbanCard
   columns: KanbanColumn[]
+  vendedores: Vendor[]
+  boards: Board[]
+  userPerfil?: string
   onClose: () => void
+  onUpdate?: () => void
 }) {
   const [activeTab, setActiveTab] = useState<string>('dados')
   const [activityFilter, setActivityFilter] = useState<string>('todas')
@@ -530,7 +614,16 @@ function CardDetailModal({
   const [activitiesLoading, setActivitiesLoading] = useState(false)
   const [newActivityTipo, setNewActivityTipo] = useState<string | null>(null)
   const [newActivityDesc, setNewActivityDesc] = useState('')
+  const [newActivityData, setNewActivityData] = useState(new Date().toISOString().slice(0, 16))
   const [savingActivity, setSavingActivity] = useState(false)
+  
+  // States for editing fields
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedTitle, setEditedTitle] = useState(card.title)
+  const [editedValue, setEditedValue] = useState(card.value.toString())
+  const [editedAnotacoes, setEditedAnotacoes] = useState(card.anotacoes || '')
+  const [isSavingNotes, setIsSavingNotes] = useState(false)
+  const [isUpdatingDeal, setIsUpdatingDeal] = useState(false)
 
   const isEmerald = card.category === 'LEAD AP'
   const initials = card.linkedContact?.name
@@ -566,7 +659,7 @@ function CardDetailModal({
           tipo: newActivityTipo,
           descricao: newActivityDesc || `${TIPO_ACTIVITY[newActivityTipo]?.label} para ${card.linkedContact.name}`,
           status: 'pendente',
-          data: new Date().toISOString(),
+          data: new Date(newActivityData).toISOString(),
         }),
       })
       if (res.ok) {
@@ -591,6 +684,64 @@ function CardDetailModal({
     if (res.ok) {
       const updated = await res.json()
       setCardActivities(prev => prev.map(a => a.id === activity.id ? updated : a))
+    }
+  }
+
+  const handleUpdateDeal = async (updates: any) => {
+    setIsUpdatingDeal(true)
+    try {
+      const res = await fetch(`/api/creator/pipeline/cards/${card.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      })
+      if (res.ok) {
+        toast.success('Deal atualizado!')
+        if (onUpdate) onUpdate()
+      }
+    } catch (err) {
+      toast.error('Erro ao atualizar deal')
+    } finally {
+      setIsUpdatingDeal(false)
+      setIsEditing(false)
+    }
+  }
+
+  const handleSaveNotes = async () => {
+    setIsSavingNotes(true)
+    try {
+      const res = await fetch(`/api/creator/pipeline/cards/${card.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ anotacoes: editedAnotacoes }),
+      })
+      if (res.ok) {
+        toast.success('Anotações salvas!')
+        if (onUpdate) onUpdate()
+      }
+    } finally {
+      setIsSavingNotes(false)
+    }
+  }
+
+  const handleSetStatus = async (status: 'won' | 'lost') => {
+    let lost_reason = ''
+    if (status === 'lost') {
+      lost_reason = prompt('Motivo da perda?') || ''
+      if (!lost_reason) return
+    }
+    
+    await handleUpdateDeal({ status, lost_reason, fechado_em: new Date().toISOString() })
+    onClose()
+  }
+
+  const handleDeleteDeal = async () => {
+    if (!confirm('Deseja arquivar este deal? Ele poderá ser restaurado depois.')) return
+    const res = await fetch(`/api/creator/pipeline/cards/${card.id}`, { method: 'DELETE' })
+    if (res.ok) {
+      toast.success('Deal arquivado!')
+      onClose()
+      if (onUpdate) onUpdate()
     }
   }
 
@@ -621,8 +772,23 @@ function CardDetailModal({
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-bold text-white tracking-tight">{card.title}</h2>
-                  <button className="text-white/20 hover:text-white transition-colors"><Pencil className="w-4 h-4" /></button>
+                  {isEditing ? (
+                    <input
+                      value={editedTitle}
+                      onChange={e => setEditedTitle(e.target.value)}
+                      onBlur={() => handleUpdateDeal({ titulo: editedTitle })}
+                      className="bg-white/5 border border-primary/30 rounded px-2 py-1 text-sm text-white outline-none"
+                      autoFocus
+                    />
+                  ) : (
+                    <h2 className="text-xl font-bold text-white tracking-tight">{card.title}</h2>
+                  )}
+                  <button 
+                    onClick={() => setIsEditing(!isEditing)} 
+                    className="text-white/20 hover:text-white transition-colors"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
                 </div>
                 <p className="text-xs text-white/40">{card.linkedContact?.name || 'Sem contato vinculado'}</p>
               </div>
@@ -639,11 +805,30 @@ function CardDetailModal({
               <div className={cn('w-1.5 h-1.5 rounded-full', isEmerald ? 'bg-emerald-500' : 'bg-amber-500')} />
               {card.category}
             </span>
-            {currentColumn && (
-              <span className="px-4 py-1 rounded-full text-white text-[10px] font-bold uppercase tracking-widest ml-auto shadow-lg" style={{ backgroundColor: currentColumn.color }}>
-                {currentColumn.name}
-              </span>
-            )}
+            <select
+              value={card.columnId}
+              onChange={e => handleUpdateDeal({ coluna_id: e.target.value })}
+              className="px-4 py-1 rounded-full bg-white/5 border border-white/10 text-white text-[10px] font-bold uppercase tracking-widest ml-auto outline-none focus:border-primary/40 transition-all cursor-pointer"
+              style={{ backgroundColor: currentColumn?.color }}
+            >
+              {columns.map(col => (
+                <option key={col.id} value={col.id} className="bg-[#0A0A0B]">{col.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-3 mb-6">
+            <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Pipeline:</span>
+            <select
+              value={card.boardId || ''}
+              onChange={e => handleUpdateDeal({ board_id: e.target.value })}
+              className="bg-transparent text-[10px] font-bold text-white/60 uppercase tracking-widest outline-none cursor-pointer hover:text-white"
+            >
+              <option value="" className="bg-[#0A0A0B]">Mudar Pipeline...</option>
+              {boards.map(b => (
+                <option key={b.id} value={b.id} className="bg-[#0A0A0B]">{b.nome}</option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -708,12 +893,22 @@ function CardDetailModal({
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <button className="px-4 py-2 rounded-xl bg-white/[0.03] border border-white/5 text-[10px] font-bold text-white uppercase tracking-widest hover:bg-white/[0.05] flex items-center gap-2">
+                      <a 
+                        href={`/crm?id=${card.linkedContact?.id}`}
+                        className="px-4 py-2 rounded-xl bg-white/[0.03] border border-white/5 text-[10px] font-bold text-white uppercase tracking-widest hover:bg-white/[0.05] flex items-center gap-2"
+                      >
                         <ExternalLink className="w-3.5 h-3.5" /> Ver
-                      </button>
-                      <button className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-500 uppercase tracking-widest hover:bg-emerald-500/20 flex items-center gap-2">
-                        WhatsApp
-                      </button>
+                      </a>
+                      {card.linkedContact?.phone && (
+                        <a 
+                          href={`https://wa.me/55${card.linkedContact.phone.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-500 uppercase tracking-widest hover:bg-emerald-500/20 flex items-center gap-2"
+                        >
+                          WhatsApp
+                        </a>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -736,11 +931,31 @@ function CardDetailModal({
                     </div>
                     <div>
                       <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1.5">Responsável</p>
-                      <p className="text-sm text-white/80 font-bold">{card.responsible.name}</p>
+                      <select
+                        value={vendedores.find(v => v.nome === card.responsible.name)?.id || ''}
+                        onChange={e => handleUpdateDeal({ vendedor_id: e.target.value })}
+                        disabled={userPerfil !== 'admin'}
+                        className="bg-transparent text-sm text-white/80 font-bold outline-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <option value="" className="bg-[#0A0A0B]">Sem responsável</option>
+                        {vendedores.map(v => (
+                          <option key={v.id} value={v.id} className="bg-[#0A0A0B]">{v.nome}</option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1.5">Valor</p>
-                      <p className="text-sm text-primary font-bold">{formatCurrency(card.value)}</p>
+                      {isEditing ? (
+                        <input
+                          type="number"
+                          value={editedValue}
+                          onChange={e => setEditedValue(e.target.value)}
+                          onBlur={() => handleUpdateDeal({ valor: parseFloat(editedValue) || 0 })}
+                          className="bg-white/5 border border-primary/30 rounded px-2 py-1 text-sm text-white outline-none w-24"
+                        />
+                      ) : (
+                        <p className="text-sm text-primary font-bold">{formatCurrency(card.value)}</p>
+                      )}
                     </div>
                     {card.createdAt && (
                       <div>
@@ -801,6 +1016,15 @@ function CardDetailModal({
                         rows={2}
                         className="w-full bg-white/[0.02] border border-white/5 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 outline-none focus:border-primary/40 transition-all resize-none"
                       />
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-white/20 uppercase tracking-widest px-1">Data e Hora</label>
+                        <input 
+                          type="datetime-local" 
+                          value={newActivityData}
+                          onChange={e => setNewActivityData(e.target.value)}
+                          className="w-full bg-white/[0.02] border border-white/5 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-primary/40 transition-all"
+                        />
+                      </div>
                       <div className="flex gap-2">
                         <button
                           onClick={() => { setNewActivityTipo(null); setNewActivityDesc('') }}
@@ -902,12 +1126,23 @@ function CardDetailModal({
 
             {activeTab === 'anotacoes' && (
               <motion.div key="anotacoes" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-6">
-                <div className="space-y-3">
                   <div className="flex items-center gap-2 text-[10px] font-bold text-white/20 uppercase tracking-widest">
                     <FileText className="w-3.5 h-3.5" /> Anotações do Deal
                   </div>
-                  <textarea className="w-full h-32 bg-white/[0.02] border border-white/5 rounded-2xl p-4 text-sm text-white placeholder-white/20 outline-none focus:border-primary/40 transition-all resize-none" placeholder="Registre informações importantes sobre este lead: dores, objeções, próximos passos..." />
-                  <button className="bg-primary/10 text-primary hover:bg-primary hover:text-white border border-primary/20 px-6 py-2 rounded-xl text-xs font-bold transition-all">Salvar</button>
+                  <textarea 
+                    value={editedAnotacoes}
+                    onChange={e => setEditedAnotacoes(e.target.value)}
+                    className="w-full h-32 bg-white/[0.02] border border-white/5 rounded-2xl p-4 text-sm text-white placeholder-white/20 outline-none focus:border-primary/40 transition-all resize-none" 
+                    placeholder="Registre informações importantes sobre este lead: dores, objeções, próximos passos..." 
+                  />
+                  <button 
+                    onClick={handleSaveNotes}
+                    disabled={isSavingNotes}
+                    className="bg-primary/10 text-primary hover:bg-primary hover:text-white border border-primary/20 px-6 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
+                  >
+                    {isSavingNotes ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                    Salvar
+                  </button>
                 </div>
               </motion.div>
             )}
@@ -937,10 +1172,18 @@ function CardDetailModal({
             )}
           </div>
           <div className="flex items-center gap-3">
-            <button className="px-6 py-2.5 rounded-xl border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/10 text-xs font-bold flex items-center gap-2 transition-all">
+            <button 
+              onClick={() => handleSetStatus('won')}
+              disabled={isUpdatingDeal}
+              className="px-6 py-2.5 rounded-xl border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/10 text-xs font-bold flex items-center gap-2 transition-all disabled:opacity-50"
+            >
               <CheckCircle2 className="w-4 h-4" /> Ganho
             </button>
-            <button className="px-6 py-2.5 rounded-xl border border-red-500/20 text-red-500 hover:bg-red-500/10 text-xs font-bold flex items-center gap-2 transition-all">
+            <button 
+              onClick={() => handleSetStatus('lost')}
+              disabled={isUpdatingDeal}
+              className="px-6 py-2.5 rounded-xl border border-red-500/20 text-red-500 hover:bg-red-500/10 text-xs font-bold flex items-center gap-2 transition-all disabled:opacity-50"
+            >
               <X className="w-4 h-4" /> Perdido
             </button>
           </div>
@@ -1019,6 +1262,27 @@ function CreateDealModal({ columns, onClose, onCreated }: { columns: KanbanColum
                   ))}
                 </div>
               )}
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button 
+                onClick={() => {
+                  const nome = prompt('Nome do lead?')
+                  const telefone = prompt('Telefone?')
+                  if (nome && telefone) {
+                    fetch('/api/creator/crm', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ nome, telefone, status_funil: 'lead' })
+                    }).then(r => r.json()).then(data => {
+                      setSelectedContato(data)
+                      toast.success('Lead criado!')
+                    })
+                  }
+                }}
+                className="flex-1 py-3 rounded-xl border border-primary/20 text-primary text-sm font-bold hover:bg-primary/5 transition-all"
+              >
+                + Novo Lead
+              </button>
             </div>
             <div className="flex gap-3 pt-2">
               <button onClick={onClose} className="flex-1 py-3 rounded-xl border border-white/10 text-sm font-bold text-white/40 hover:text-white transition-all">Cancelar</button>
@@ -1179,8 +1443,26 @@ function PipelineManagementModal({ boards, currentBoardId, onClose, onBoardChang
   }
 
   const handleDeleteStage = async (boardId: string, stageId: string) => {
-    const res = await fetch(`/api/creator/pipeline-config/stages?id=${stageId}`, { method: 'DELETE' })
+    const targetStageId = prompt('Para qual estágio deseja mover os deals deste estágio? (ID ou nome aproximado)')
+    if (!targetStageId) return
+
+    const res = await fetch(`/api/creator/pipeline-config/stages?id=${stageId}&move_to=${targetStageId}`, { method: 'DELETE' })
     if (res.ok) { setBoardDetails(prev => ({ ...prev, [boardId]: (prev[boardId] || []).filter((s: any) => s.id !== stageId) })); toast.success('Estágio removido') }
+  }
+
+  const handleAddStage = async (boardId: string) => {
+    const nome = prompt('Nome do novo estágio?')
+    if (!nome) return
+    const res = await fetch('/api/creator/pipeline-config/stages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ board_id: boardId, nome, cor: '#3B82F6' })
+    })
+    if (res.ok) {
+      const newStage = await res.json()
+      setBoardDetails(prev => ({ ...prev, [boardId]: [...(prev[boardId] || []), newStage] }))
+      toast.success('Estágio adicionado!')
+    }
   }
 
   return (
@@ -1230,6 +1512,12 @@ function PipelineManagementModal({ boards, currentBoardId, onClose, onBoardChang
                     </div>
                   ))}
                   {(boardDetails[board.id] || []).length === 0 && <p className="text-xs text-white/20 py-2 text-center">Nenhum estágio</p>}
+                  <button 
+                    onClick={() => handleAddStage(board.id)}
+                    className="w-full py-2 border border-dashed border-white/10 rounded-xl text-[10px] font-bold uppercase tracking-widest text-white/20 hover:text-white/40 hover:border-white/20 transition-all"
+                  >
+                    + Adicionar Estágio
+                  </button>
                 </div>
               )}
             </div>
@@ -1252,6 +1540,9 @@ function PipelineManagementModal({ boards, currentBoardId, onClose, onBoardChang
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function PipelinePage() {
+  const { data: session } = useSession()
+  const userPerfil = (session?.user as any)?.perfil
+
   const [columns, setColumns] = useState<KanbanColumn[]>([])
   const [selectedCard, setSelectedCard] = useState<KanbanCard | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -1304,6 +1595,47 @@ export default function PipelinePage() {
       return next
     })
   }, [])
+
+  const onDragEnd = async (result: DropResult) => {
+    const { destination, source, draggableId } = result
+    if (!destination) return
+    if (destination.droppableId === source.droppableId && destination.index === source.index) return
+
+    // Optimistic update
+    setColumns(prev => {
+      const sourceCol = prev.find(c => c.id === source.droppableId)
+      const destCol = prev.find(c => c.id === destination.droppableId)
+      if (!sourceCol || !destCol) return prev
+
+      const newSourceCards = Array.from(sourceCol.cards)
+      const [movedCard] = newSourceCards.splice(source.index, 1)
+      movedCard.columnId = destination.droppableId
+
+      if (source.droppableId === destination.droppableId) {
+        newSourceCards.splice(destination.index, 0, movedCard)
+        return prev.map(c => c.id === source.droppableId ? { ...c, cards: newSourceCards } : c)
+      } else {
+        const newDestCards = Array.from(destCol.cards)
+        newDestCards.splice(destination.index, 0, movedCard)
+        return prev.map(c => {
+          if (c.id === source.droppableId) return { ...c, cards: newSourceCards }
+          if (c.id === destination.droppableId) return { ...c, cards: newDestCards }
+          return c
+        })
+      }
+    })
+
+    try {
+      await fetch(`/api/creator/pipeline/cards/${draggableId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coluna_id: destination.droppableId, ordem: destination.index }),
+      })
+    } catch {
+      toast.error('Erro ao mover card')
+      loadPipeline(currentBoardId || undefined)
+    }
+  }
 
   const handleSelectAll = () => {
     const allIds = columns.flatMap(c => c.cards.map(card => card.id))
@@ -1500,28 +1832,30 @@ export default function PipelinePage() {
       </div>
 
       {/* Board */}
-      <div className="flex-1 overflow-x-auto p-8 lg:p-10 scrollbar-none">
-        {isLoading ? (
-          <div className="flex gap-8">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="flex-shrink-0 w-[300px] h-[600px] bg-white/[0.01] border border-white/5 rounded-2xl animate-pulse" />
-            ))}
-          </div>
-        ) : (
-          <div className="flex gap-8 min-w-max">
-            {columns.map(col => (
-              <KanbanColumnComponent
-                key={col.id}
-                column={col}
-                onCardClick={setSelectedCard}
-                isSelectMode={isSelectMode}
-                selectedCards={selectedCards}
-                onToggleSelect={toggleSelect}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div className="flex-1 overflow-x-auto p-8 lg:p-10 scrollbar-none">
+          {isLoading ? (
+            <div className="flex gap-8">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="flex-shrink-0 w-[300px] h-[600px] bg-white/[0.01] border border-white/5 rounded-2xl animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <div className="flex gap-8 min-w-max">
+              {columns.map(col => (
+                <KanbanColumnComponent
+                  key={col.id}
+                  column={col}
+                  onCardClick={setSelectedCard}
+                  isSelectMode={isSelectMode}
+                  selectedCards={selectedCards}
+                  onToggleSelect={toggleSelect}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </DragDropContext>
 
       {/* Card Detail Drawer */}
       <AnimatePresence>
@@ -1529,7 +1863,11 @@ export default function PipelinePage() {
           <CardDetailModal
             card={selectedCard}
             columns={columns}
+            vendedores={vendedores}
+            boards={boards}
+            userPerfil={userPerfil}
             onClose={() => setSelectedCard(null)}
+            onUpdate={() => loadPipeline(currentBoardId || undefined)}
           />
         )}
       </AnimatePresence>

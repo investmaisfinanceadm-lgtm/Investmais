@@ -31,11 +31,12 @@ export async function GET(req: Request) {
           orderBy: { ordem: 'asc' },
           include: {
             cards: {
-              where: { status: 'open' },
+              where: { status: 'open', deleted_at: null },
               orderBy: { ordem: 'asc' },
               include: {
                 contato: { select: { id: true, nome: true, telefone: true, email: true, tags: true } },
-                vendedor: { select: { id: true, nome: true, cor: true, avatar_url: true } }
+                vendedor: { select: { id: true, nome: true, cor: true, avatar_url: true } },
+                _count: { select: { atividades: { where: { status: 'pendente' } } } }
               }
             }
           }
@@ -101,11 +102,12 @@ export async function GET(req: Request) {
             orderBy: { ordem: 'asc' },
             include: {
               cards: {
-                where: { status: 'open' },
+                where: { status: 'open', deleted_at: null },
                 orderBy: { ordem: 'asc' },
                 include: {
                   contato: { select: { id: true, nome: true, telefone: true, email: true, tags: true } },
-                  vendedor: { select: { id: true, nome: true, cor: true, avatar_url: true } }
+                  vendedor: { select: { id: true, nome: true, cor: true, avatar_url: true } },
+                  _count: { select: { atividades: { where: { status: 'pendente' } } } }
                 }
               }
             }
@@ -139,10 +141,12 @@ export async function GET(req: Request) {
         dueDate: card.vencimento ? card.vencimento.toISOString() : new Date().toISOString(),
         value: card.valor || 0,
         description: card.descricao || '',
+        anotacoes: (card as any).anotacoes || '',
         columnId: col.id,
         status: card.status,
         createdAt: card.created_at.toISOString(),
         updatedAt: card.created_at.toISOString(),
+        pendingTasksCount: (card as any)._count?.atividades ?? 0,
         linkedContact: card.contato ? {
           id: card.contato.id,
           name: card.contato.nome,
