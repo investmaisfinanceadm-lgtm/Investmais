@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -148,6 +148,7 @@ function KanbanCardItem({
   isSelected: boolean
   onToggleSelect: (id: string) => void
   index: number
+  isDragDisabled?: boolean
 }) {
   const isEmerald = card.category === 'LEAD AP'
 
@@ -157,7 +158,7 @@ function KanbanCardItem({
   }
 
   return (
-    <Draggable draggableId={card.id} index={index} isDragDisabled={isSelectMode}>
+    <Draggable draggableId={card.id} index={index} isDragDisabled={isDragDisabled}>
       {(provided, snapshot) => (
         <motion.div
           ref={provided.innerRef}
@@ -251,8 +252,6 @@ function KanbanCardItem({
     </Draggable>
   )
 }
-  )
-}
 
 // ─── Column Component ─────────────────────────────────────────────────────────
 
@@ -268,6 +267,7 @@ function KanbanColumnComponent({
   isSelectMode: boolean
   selectedCards: Set<string>
   onToggleSelect: (id: string) => void
+  isDragDisabled?: boolean
 }) {
   const totalValue = column.cards.reduce((sum, c) => sum + (c.value || 0), 0)
 
@@ -309,6 +309,7 @@ function KanbanColumnComponent({
                   isSelectMode={isSelectMode}
                   isSelected={selectedCards.has(card.id)}
                   onToggleSelect={onToggleSelect}
+                  isDragDisabled={isDragDisabled}
                 />
               ))}
             </AnimatePresence>
@@ -598,7 +599,11 @@ function BulkActionToolbar({
 function CardDetailModal({
   card,
   columns,
+  vendedores,
+  boards,
+  userPerfil,
   onClose,
+  onUpdate,
 }: {
   card: KanbanCard
   columns: KanbanColumn[]
@@ -640,11 +645,11 @@ function CardDetailModal({
       .finally(() => setActivitiesLoading(false))
   }, [activeTab, card.id])
 
-  const filteredCardActivities = cardActivities.filter(a => {
+  const filteredCardActivities = useMemo(() => cardActivities.filter(a => {
     if (activityFilter === 'pendentes') return a.status === 'pendente'
     if (activityFilter === 'concluidas') return a.status === 'concluida'
     return true
-  })
+  }), [cardActivities, activityFilter])
 
   const handleCreateActivity = async () => {
     if (!newActivityTipo || !card.linkedContact?.id) return
@@ -1143,9 +1148,8 @@ function CardDetailModal({
                     {isSavingNotes ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
                     Salvar
                   </button>
-                </div>
-              </motion.div>
-            )}
+                </motion.div>
+              )}
 
             {activeTab === 'utm' && (
               <motion.div key="utm" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="py-20 flex flex-col items-center justify-center opacity-30">
@@ -1566,6 +1570,7 @@ export default function PipelinePage() {
   const [showCreateDeal, setShowCreateDeal] = useState(false)
   const [showImport, setShowImport] = useState(false)
   const [showPipelineMgmt, setShowPipelineMgmt] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
 
   const loadPipeline = useCallback(async (boardId?: string) => {
     setIsLoading(true)
@@ -1699,8 +1704,18 @@ export default function PipelinePage() {
   }
 
   const currentBoard = boards.find(b => b.id === currentBoardId)
-  const totalCards = columns.reduce((a, c) => a + c.cards.length, 0)
-  const totalValue = columns.reduce((a, c) => a + c.cards.reduce((s, card) => s + (card.value || 0), 0), 0)
+  
+  const filteredColumns = useMemo(() => columns.map(col => ({
+    ...col,
+    cards: col.cards.filter(card => 
+      card.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      card.linkedContact?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      card.linkedContact?.phone?.includes(searchTerm)
+    )
+  })), [columns, searchTerm])
+
+  const totalCards = useMemo(() => columns.reduce((a, c) => a + c.cards.length, 0), [columns])
+  const totalValue = useMemo(() => columns.reduce((a, c) => a + c.cards.reduce((s, card) => s + (card.value || 0), 0), 0), [columns])
 
   return (
     <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#050505] text-slate-900 dark:text-white flex flex-col transition-colors duration-300">
@@ -1755,7 +1770,28 @@ export default function PipelinePage() {
             </div>
           </div>
 
-          {/* Right: Actions */}
+          <div className="flex items-center gap-4 flex-wrap">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+              <input
+                type="text"
+                placeholder="Buscar deals..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 bg-white/[0.03] border border-white/5 rounded-xl text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/40 transition-all w-64"
+              />
+              {searchTerm && (
+                <button 
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-white"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Right: Actions */}
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => {
@@ -1842,7 +1878,7 @@ export default function PipelinePage() {
             </div>
           ) : (
             <div className="flex gap-8 min-w-max">
-              {columns.map(col => (
+              {filteredColumns.map(col => (
                 <KanbanColumnComponent
                   key={col.id}
                   column={col}
@@ -1850,6 +1886,7 @@ export default function PipelinePage() {
                   isSelectMode={isSelectMode}
                   selectedCards={selectedCards}
                   onToggleSelect={toggleSelect}
+                  isDragDisabled={isSelectMode || !!searchTerm}
                 />
               ))}
             </div>
