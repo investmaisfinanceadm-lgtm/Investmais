@@ -120,7 +120,13 @@ function formatCurrency(value: number | null | undefined) {
 }
 
 function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })
+  try {
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return '—'
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })
+  } catch {
+    return '—'
+  }
 }
 
 const TIPO_ACTIVITY: Record<string, { label: string; color: string; bg: string; border: string; Icon: any }> = {
@@ -141,6 +147,7 @@ function KanbanCardItem({
   isSelected,
   onToggleSelect,
   index,
+  isDragDisabled,
 }: {
   card: KanbanCard
   onClick: () => void
@@ -219,13 +226,13 @@ function KanbanCardItem({
           <div className="flex flex-col gap-2 mb-5">
             <div className="flex items-center gap-2 w-fit px-2.5 py-1 rounded-full bg-[hsl(215_100%_50%/0.08)] border border-[hsl(215_100%_50%/0.15)]">
               <div className="w-4 h-4 rounded-full overflow-hidden bg-primary/20 flex items-center justify-center flex-shrink-0">
-                {card.responsible.avatar_url ? (
+                {card.responsible?.avatar_url ? (
                   <img src={card.responsible.avatar_url} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <User className="w-2.5 h-2.5 text-primary" />
                 )}
               </div>
-              <span className="text-[9px] font-bold text-primary uppercase tracking-wide">{card.responsible.name}</span>
+              <span className="text-[9px] font-bold text-primary uppercase tracking-wide">{card.responsible?.name || 'N/A'}</span>
             </div>
 
             <div className={cn('flex items-center gap-2 w-fit px-2.5 py-1 rounded-full border', isEmerald ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-400')}>
@@ -261,6 +268,7 @@ function KanbanColumnComponent({
   isSelectMode,
   selectedCards,
   onToggleSelect,
+  isDragDisabled,
 }: {
   column: KanbanColumn
   onCardClick: (card: KanbanCard) => void
@@ -269,7 +277,7 @@ function KanbanColumnComponent({
   onToggleSelect: (id: string) => void
   isDragDisabled?: boolean
 }) {
-  const totalValue = column.cards.reduce((sum, c) => sum + (c.value || 0), 0)
+  const totalValue = (column.cards || []).reduce((sum, c) => sum + (c.value || 0), 0)
 
   return (
     <div className="flex-shrink-0 w-[300px] flex flex-col gap-5">
@@ -277,7 +285,7 @@ function KanbanColumnComponent({
         <div className="flex items-center gap-2.5">
           <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: column.color }} />
           <span className="text-sm font-bold text-white">{column.name}</span>
-          <span className="text-[10px] font-bold text-white/30 bg-white/5 px-2 py-0.5 rounded-md">{column.cards.length}</span>
+          <span className="text-[10px] font-bold text-white/30 bg-white/5 px-2 py-0.5 rounded-md">{(column.cards || []).length}</span>
         </div>
         <div className="flex items-center gap-1 text-primary">
           <DollarSign className="w-3.5 h-3.5" />
@@ -300,7 +308,7 @@ function KanbanColumnComponent({
             )}
           >
             <AnimatePresence>
-              {column.cards.map((card, index) => (
+              {(column.cards || []).map((card, index) => (
                 <KanbanCardItem
                   key={card.id}
                   card={card}
@@ -624,8 +632,8 @@ function CardDetailModal({
   
   // States for editing fields
   const [isEditing, setIsEditing] = useState(false)
-  const [editedTitle, setEditedTitle] = useState(card.title)
-  const [editedValue, setEditedValue] = useState(card.value.toString())
+  const [editedTitle, setEditedTitle] = useState(card.title || '')
+  const [editedValue, setEditedValue] = useState((card.value || 0).toString())
   const [editedAnotacoes, setEditedAnotacoes] = useState(card.anotacoes || '')
   const [isSavingNotes, setIsSavingNotes] = useState(false)
   const [isUpdatingDeal, setIsUpdatingDeal] = useState(false)
@@ -937,7 +945,7 @@ function CardDetailModal({
                     <div>
                       <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1.5">Responsável</p>
                       <select
-                        value={vendedores.find(v => v.nome === card.responsible.name)?.id || ''}
+                        value={vendedores.find(v => v.nome === card.responsible?.name)?.id || ''}
                         onChange={e => handleUpdateDeal({ vendedor_id: e.target.value })}
                         disabled={userPerfil !== 'admin'}
                         className="bg-transparent text-sm text-white/80 font-bold outline-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
@@ -1608,23 +1616,24 @@ export default function PipelinePage() {
 
     // Optimistic update
     setColumns(prev => {
+      if (!prev) return []
       const sourceCol = prev.find(c => c.id === source.droppableId)
       const destCol = prev.find(c => c.id === destination.droppableId)
       if (!sourceCol || !destCol) return prev
 
-      const newSourceCards = Array.from(sourceCol.cards)
-      const [movedCard] = newSourceCards.splice(source.index, 1)
-      movedCard.columnId = destination.droppableId
+      const sourceCards = Array.from(sourceCol.cards || [])
+      const [movedCard] = sourceCards.splice(source.index, 1)
+      if (movedCard) movedCard.columnId = destination.droppableId
 
       if (source.droppableId === destination.droppableId) {
-        newSourceCards.splice(destination.index, 0, movedCard)
-        return prev.map(c => c.id === source.droppableId ? { ...c, cards: newSourceCards } : c)
+        if (movedCard) sourceCards.splice(destination.index, 0, movedCard)
+        return prev.map(c => c.id === source.droppableId ? { ...c, cards: sourceCards } : c)
       } else {
-        const newDestCards = Array.from(destCol.cards)
-        newDestCards.splice(destination.index, 0, movedCard)
+        const destCards = Array.from(destCol.cards || [])
+        if (movedCard) destCards.splice(destination.index, 0, movedCard)
         return prev.map(c => {
-          if (c.id === source.droppableId) return { ...c, cards: newSourceCards }
-          if (c.id === destination.droppableId) return { ...c, cards: newDestCards }
+          if (c.id === source.droppableId) return { ...c, cards: sourceCards }
+          if (c.id === destination.droppableId) return { ...c, cards: destCards }
           return c
         })
       }
@@ -1643,7 +1652,7 @@ export default function PipelinePage() {
   }
 
   const handleSelectAll = () => {
-    const allIds = columns.flatMap(c => c.cards.map(card => card.id))
+    const allIds = (columns || []).flatMap(c => (c.cards || []).map(card => card.id))
     setSelectedCards(prev => prev.size === allIds.length ? new Set() : new Set(allIds))
   }
 
@@ -1663,21 +1672,21 @@ export default function PipelinePage() {
 
     if (field === 'coluna_id') {
       setColumns(prev => {
-        const cardsToMove = prev.flatMap(c => c.cards).filter(c => selectedCards.has(c.id))
+        const cardsToMove = (prev || []).flatMap(c => c.cards || []).filter(c => selectedCards.has(c.id))
         return prev.map(col => {
           if (col.id === value) {
-            const existing = col.cards.filter(c => !selectedCards.has(c.id))
+            const existing = (col.cards || []).filter(c => !selectedCards.has(c.id))
             return { ...col, cards: [...existing, ...cardsToMove.map(c => ({ ...c, columnId: value }))] }
           }
-          return { ...col, cards: col.cards.filter(c => !selectedCards.has(c.id)) }
+          return { ...col, cards: (col.cards || []).filter(c => !selectedCards.has(c.id)) }
         })
       })
     } else if (field === 'vendedor_id') {
-      const vendedor = vendedores.find(v => v.id === value)
+      const vendedor = (vendedores || []).find(v => v.id === value)
       if (vendedor) {
-        setColumns(prev => prev.map(col => ({
+        setColumns(prev => (prev || []).map(col => ({
           ...col,
-          cards: col.cards.map(card =>
+          cards: (col.cards || []).map(card =>
             selectedCards.has(card.id)
               ? { ...card, responsible: { name: vendedor.nome, initials: vendedor.nome.substring(0, 2).toUpperCase(), color: vendedor.cor, avatar_url: vendedor.avatar_url } }
               : card
@@ -1685,15 +1694,15 @@ export default function PipelinePage() {
         })))
       }
     } else if (field === 'valor') {
-      setColumns(prev => prev.map(col => ({
+      setColumns(prev => (prev || []).map(col => ({
         ...col,
-        cards: col.cards.map(card => selectedCards.has(card.id) ? { ...card, value: Number(value) } : card)
+        cards: (col.cards || []).map(card => selectedCards.has(card.id) ? { ...card, value: Number(value) } : card)
       })))
     } else if (field === 'status') {
       if (value !== 'open') {
-        setColumns(prev => prev.map(col => ({
+        setColumns(prev => (prev || []).map(col => ({
           ...col,
-          cards: col.cards.filter(card => !selectedCards.has(card.id))
+          cards: (col.cards || []).filter(card => !selectedCards.has(card.id))
         })))
       }
     }
@@ -1705,17 +1714,17 @@ export default function PipelinePage() {
 
   const currentBoard = boards.find(b => b.id === currentBoardId)
   
-  const filteredColumns = useMemo(() => columns.map(col => ({
+  const filteredColumns = useMemo(() => (columns || []).map(col => ({
     ...col,
-    cards: col.cards.filter(card => 
-      card.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      card.linkedContact?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      card.linkedContact?.phone?.includes(searchTerm)
+    cards: (col.cards || []).filter(card => 
+      (card.title || '').toLowerCase().includes((searchTerm || '').toLowerCase()) ||
+      (card.linkedContact?.name || '').toLowerCase().includes((searchTerm || '').toLowerCase()) ||
+      (card.linkedContact?.phone || '').includes(searchTerm || '')
     )
   })), [columns, searchTerm])
 
-  const totalCards = useMemo(() => columns.reduce((a, c) => a + c.cards.length, 0), [columns])
-  const totalValue = useMemo(() => columns.reduce((a, c) => a + c.cards.reduce((s, card) => s + (card.value || 0), 0), 0), [columns])
+  const totalCards = useMemo(() => (columns || []).reduce((a, c) => a + (c.cards?.length || 0), 0), [columns])
+  const totalValue = useMemo(() => (columns || []).reduce((a, c) => a + (c.cards || []).reduce((s, card) => s + (card.value || 0), 0), 0), [columns])
 
   return (
     <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#050505] text-slate-900 dark:text-white flex flex-col transition-colors duration-300">
@@ -1743,14 +1752,14 @@ export default function PipelinePage() {
               </button>
 
               <AnimatePresence>
-                {showBoardDropdown && boards.length > 0 && (
+                {showBoardDropdown && (boards || []).length > 0 && (
                   <motion.div
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                     className="absolute top-full left-0 mt-2 w-56 bg-[#111113] border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden"
                   >
-                    {boards.map(board => (
+                    {(boards || []).map(board => (
                       <button
                         key={board.id}
                         onClick={() => { loadPipeline(board.id); setShowBoardDropdown(false) }}
@@ -1878,7 +1887,7 @@ export default function PipelinePage() {
             </div>
           ) : (
             <div className="flex gap-8 min-w-max">
-              {filteredColumns.map(col => (
+              {(filteredColumns || []).map(col => (
                 <KanbanColumnComponent
                   key={col.id}
                   column={col}
