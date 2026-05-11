@@ -1790,8 +1790,8 @@ export default function PipelinePage() {
                 </button>
               )}
             </div>
+          </div>
 
-            {/* Right: Actions */}
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => {
