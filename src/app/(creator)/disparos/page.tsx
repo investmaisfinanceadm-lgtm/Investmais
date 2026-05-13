@@ -415,7 +415,9 @@ function CriarListaModal({ onClose, onCreate }: { onClose: () => void; onCreate:
                 <span className="text-[10px] font-bold text-primary uppercase tracking-widest">{phones.length} números válidos</span>
             </div>
           </div>
-                <div className="p-6 flex gap-4 bg-background/50 border-t border-border">
+        </div>
+
+        <div className="p-6 flex gap-4 bg-background/50 border-t border-border">
           <button onClick={onClose} className="px-6 text-xs font-bold text-muted-foreground hover:text-foreground transition-all">Cancelar</button>
           <button onClick={handleSubmit} disabled={!canSave || saving}
             className="flex-1 bg-primary hover:bg-primary/90 py-3 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-3 disabled:opacity-40 transition-all shadow-lg">
