@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils'
 import { format, parseISO } from 'date-fns'
 import toast from 'react-hot-toast'
 import { ptBR } from 'date-fns/locale'
+import { useSession } from 'next-auth/react'
 
 // ─── CNPJ helpers ────────────────────────────────────────────────────────────
 function validarCNPJ(cnpj: string): boolean {
@@ -81,7 +82,11 @@ function DataRow({ icon: Icon, label, value }: { icon: any; label: string; value
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export default function CNPJPage() {
+  const { data: session } = useSession()
   const [activeTab, setActiveTab] = useState<'google' | 'cnpj'>('google')
+  const [selectedEstado, setSelectedEstado] = useState('')
+  const [cidades, setCidades] = useState<string[]>([])
+  const [loadingCidades, setLoadingCidades] = useState(false)
   const [cnpjInput, setCnpjInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<CNPJResult | null>(null)
@@ -104,6 +109,27 @@ export default function CNPJPage() {
     } catch { setErrorState('apierror') }
     finally { setIsLoading(false) }
   }
+
+  useEffect(() => {
+    if (!selectedEstado) {
+      setCidades([])
+      return
+    }
+    const loadCidades = async () => {
+      setLoadingCidades(true)
+      try {
+        const res = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedEstado}/municipios`)
+        const data = await res.json()
+        const names = data.map((c: any) => c.nome).sort()
+        setCidades(names)
+      } catch (err) {
+        toast.error('Erro ao carregar cidades')
+      } finally {
+        setLoadingCidades(false)
+      }
+    }
+    loadCidades()
+  }, [selectedEstado])
 
   return (
     <div className="min-h-screen bg-background text-white p-6 lg:p-10 space-y-10">
@@ -148,7 +174,13 @@ export default function CNPJPage() {
                       fetch(webhookUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ estado, cidade, nicho, user_id: 'f8e344d0-b985-44f2-b7c6-818285dd2b2f', acao: 'busca_leads_google' })
+                        body: JSON.stringify({ 
+                          estado, 
+                          cidade, 
+                          nicho, 
+                          user_id: session?.user ? (session.user as any).id : 'f8e344d0-b985-44f2-b7c6-818285dd2b2f', 
+                          acao: 'busca_leads_google' 
+                        })
                       }).then(() => toast.success('Webhook disparado! Iniciando extração no N8N...'))
                         .catch(() => toast.error('Erro ao conectar com N8N.'));
                     }}
@@ -156,16 +188,35 @@ export default function CNPJPage() {
                   >
                       <div className="relative group">
                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-blue-500 transition-colors z-10" />
-                           <select name="estado" required defaultValue="" className="w-full h-16 bg-black/40 border border-white/5 rounded-2xl pl-12 pr-4 text-sm font-bold text-white outline-none focus:border-blue-500/50 transition-all shadow-xl appearance-none cursor-pointer">
-                             <option value="" disabled className="bg-[#0a0a0b]">Estado (UF)</option>
-                             {['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'].map(uf => (
-                               <option key={uf} value={uf} className="bg-[#0a0a0b]">{uf}</option>
-                             ))}
-                           </select>
+                           <select 
+                              name="estado" 
+                              required 
+                              value={selectedEstado}
+                              onChange={e => setSelectedEstado(e.target.value)}
+                              className="w-full h-16 bg-black/40 border border-white/5 rounded-2xl pl-12 pr-4 text-sm font-bold text-white outline-none focus:border-blue-500/50 transition-all shadow-xl appearance-none cursor-pointer"
+                            >
+                              <option value="" disabled className="bg-[#0a0a0b]">Estado (UF)</option>
+                              {['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'].map(uf => (
+                                <option key={uf} value={uf} className="bg-[#0a0a0b]">{uf}</option>
+                              ))}
+                            </select>
                       </div>
                       <div className="relative group">
                            <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-blue-500 transition-colors z-10" />
-                           <input type="text" name="cidade" required placeholder="Cidade (ex: São Paulo)" className="w-full h-16 bg-black/40 border border-white/5 rounded-2xl pl-12 pr-6 text-sm font-bold text-white placeholder-white/20 outline-none focus:border-blue-500/50 transition-all shadow-xl" />
+                           <select 
+                              name="cidade" 
+                              required 
+                              defaultValue=""
+                              disabled={!selectedEstado || loadingCidades}
+                              className="w-full h-16 bg-black/40 border border-white/5 rounded-2xl pl-12 pr-4 text-sm font-bold text-white outline-none focus:border-blue-500/50 transition-all shadow-xl appearance-none cursor-pointer disabled:opacity-40"
+                            >
+                              <option value="" disabled className="bg-[#0a0a0b]">
+                                {loadingCidades ? 'Carregando cidades...' : 'Cidade'}
+                              </option>
+                              {cidades.map(city => (
+                                <option key={city} value={city} className="bg-[#0a0a0b]">{city}</option>
+                              ))}
+                            </select>
                       </div>
                       <div className="relative group">
                            <Target className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-blue-500 transition-colors pointer-events-none z-10" />
