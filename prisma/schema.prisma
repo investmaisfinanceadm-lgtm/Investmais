@@ -29,8 +29,8 @@ model Profile {
   notificacoes     Notificacao[]
   reset_tokens     PasswordResetToken[]
   pastas           Pasta[]
-  pipeline_boards  PipelineBoard[]
-  deals_atribuidos PipelineCard[]       @relation("VendedorDeals")
+  pipelines        Pipeline[]
+  deals_atribuidos Deal[]               @relation("VendedorDeals")
   time             Team?                @relation(fields: [time_id], references: [id])
   videos           Video[]
 
@@ -117,37 +117,37 @@ model PasswordResetToken {
   @@map("password_reset_tokens")
 }
 
-model PipelineBoard {
-  id         String           @id @default(uuid())
+model Pipeline {
+  id         String   @id @default(uuid())
   user_id    String
   nome       String
   descricao  String?
-  created_at DateTime         @default(now())
-  is_default Boolean          @default(false)
-  user       Profile          @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  colunas    PipelineColuna[]
+  created_at DateTime @default(now())
+  is_default Boolean  @default(false)
+  user       Profile  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  stages     Stage[]
 
   @@map("pipeline_boards")
 }
 
-model PipelineColuna {
-  id            String         @id @default(uuid())
-  board_id      String
+model Stage {
+  id            String   @id @default(uuid())
+  pipeline_id   String   @map("board_id")
   nome          String
-  ordem         Int            @default(0)
-  cor           String         @default("#30CB7B")
-  created_at    DateTime       @default(now())
-  probabilidade Int            @default(100)
+  ordem         Int      @default(0)
+  cor           String   @default("#30CB7B")
+  created_at    DateTime @default(now())
+  probabilidade Int      @default(100)
   sla_horas     Int?
-  cards         PipelineCard[]
-  board         PipelineBoard  @relation(fields: [board_id], references: [id], onDelete: Cascade)
+  deals         Deal[]
+  pipeline      Pipeline @relation(fields: [pipeline_id], references: [id], onDelete: Cascade)
 
   @@map("pipeline_colunas")
 }
 
-model PipelineCard {
+model Deal {
   id            String             @id @default(uuid())
-  coluna_id     String
+  stage_id      String             @map("coluna_id")
   titulo        String
   descricao     String?
   anotacoes     String?
@@ -168,7 +168,7 @@ model PipelineCard {
   vendedor_id   String?
   atividades    AtividadeCRM[]
   movimentacoes DealStageHistory[]
-  coluna        PipelineColuna     @relation(fields: [coluna_id], references: [id], onDelete: Cascade)
+  stage         Stage              @relation(fields: [stage_id], references: [id], onDelete: Cascade)
   contato       Contato?           @relation(fields: [contato_id], references: [id])
   vendedor      Profile?           @relation("VendedorDeals", fields: [vendedor_id], references: [id])
 
@@ -176,15 +176,15 @@ model PipelineCard {
 }
 
 model DealStageHistory {
-  id               String       @id @default(uuid())
+  id               String   @id @default(uuid())
   deal_id          String
   etapa_origem_id  String?
   etapa_destino_id String
   user_id          String
-  fonte            String       @default("manual")
-  created_at       DateTime     @default(now())
-  deal             PipelineCard @relation(fields: [deal_id], references: [id], onDelete: Cascade)
-  usuario          Profile      @relation(fields: [user_id], references: [id])
+  fonte            String   @default("manual")
+  created_at       DateTime @default(now())
+  deal             Deal     @relation(fields: [deal_id], references: [id], onDelete: Cascade)
+  usuario          Profile  @relation(fields: [user_id], references: [id])
 
   @@map("deal_stage_history")
 }
@@ -212,22 +212,22 @@ model Contato {
   site         String?
   atividades   AtividadeCRM[]
   user         Profile        @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  deals        PipelineCard[]
+  deals        Deal[]
 
   @@map("contatos")
 }
 
 model AtividadeCRM {
-  id         String        @id @default(uuid())
+  id         String   @id @default(uuid())
   contato_id String
   deal_id    String?
   tipo       String
   titulo     String?
   descricao  String
-  status     String        @default("pendente")
-  data       DateTime      @default(now())
-  contato    Contato       @relation(fields: [contato_id], references: [id], onDelete: Cascade)
-  deal       PipelineCard? @relation(fields: [deal_id], references: [id], onDelete: SetNull)
+  status     String   @default("pendente")
+  data       DateTime @default(now())
+  contato    Contato  @relation(fields: [contato_id], references: [id], onDelete: Cascade)
+  deal       Deal?    @relation(fields: [deal_id], references: [id], onDelete: SetNull)
 
   @@map("atividades_crm")
 }

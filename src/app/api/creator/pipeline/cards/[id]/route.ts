@@ -11,40 +11,46 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
     const data = await req.json()
     let {
-      coluna_id, board_id, ordem, titulo, descricao, anotacoes, valor,
+      stage_id, pipeline_id, coluna_id, board_id, ordem, titulo, descricao, anotacoes, valor,
       vencimento, prioridade, categoria,
       vendedor_id, contato_id, status, lost_reason,
       deleted_at
     } = data
 
-    // If board_id is provided, find the first column of that board
-    if (board_id && !coluna_id) {
-      const firstColumn = await prisma.pipelineStage.findFirst({
-        where: { board_id, board: { user_id: userId } },
+    // Handle old names
+    const targetStageId = stage_id || coluna_id
+    const targetPipelineId = pipeline_id || board_id
+
+    // If pipeline_id is provided, find the first stage of that pipeline
+    if (targetPipelineId && !targetStageId) {
+      const firstStage = await prisma.stage.findFirst({
+        where: { pipeline_id: targetPipelineId, pipeline: { user_id: userId } },
         orderBy: { ordem: 'asc' }
       })
-      if (firstColumn) coluna_id = firstColumn.id
+      if (firstStage) stage_id = firstStage.id
+    } else {
+      stage_id = targetStageId
     }
 
-    // Get current card to check if stage changed
-    const currentCard = await prisma.pipelineCard.findUnique({
+    // Get current deal to check if stage changed
+    const currentDeal = await prisma.deal.findUnique({
       where: { id: params.id },
-      select: { coluna_id: true }
+      select: { stage_id: true }
     })
 
-    const isMoving = coluna_id && currentCard && currentCard.coluna_id !== coluna_id
+    const isMoving = stage_id && currentDeal && currentDeal.stage_id !== stage_id
 
-    const card = await prisma.pipelineCard.update({
+    const deal = await prisma.deal.update({
       where: {
         id: params.id,
-        coluna: {
-          board: {
+        stage: {
+          pipeline: {
             user_id: userId
           }
         }
       },
       data: {
-        coluna_id: coluna_id || undefined,
+        stage_id: stage_id || undefined,
         ordem: typeof ordem === 'number' ? ordem : undefined,
         titulo: titulo || undefined,
         descricao: descricao !== undefined ? (descricao || null) : undefined,
@@ -61,10 +67,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         fechado_em: (status === 'won' || status === 'lost') ? new Date() : undefined,
         movimentacoes: isMoving ? {
           create: {
-            etapa_origem_id: currentCard.coluna_id,
-            etapa_destino_id: coluna_id,
+            etapa_origem_id: currentDeal.stage_id,
+            etapa_destino_id: stage_id,
             user_id: userId,
-            fonte: board_id ? 'pipeline_switch' : 'drag'
+            fonte: targetPipelineId ? 'pipeline_switch' : 'drag'
           }
         } : undefined
       },
@@ -74,10 +80,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       }
     })
 
-    return NextResponse.json(card)
+    return NextResponse.json(deal)
   } catch (err) {
-    console.error('PIPELINE UPDATE error:', err)
-    return NextResponse.json({ error: 'Erro ao atualizar card' }, { status: 500 })
+    console.error('DEAL UPDATE error:', err)
+    return NextResponse.json({ error: 'Erro ao atualizar deal' }, { status: 500 })
   }
 }
 
@@ -91,19 +97,19 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     const permanent = searchParams.get('permanent') === 'true'
 
     if (permanent) {
-      await prisma.pipelineCard.delete({
-        where: { id: params.id, coluna: { board: { user_id: userId } } },
+      await prisma.deal.delete({
+        where: { id: params.id, stage: { pipeline: { user_id: userId } } },
       })
     } else {
-      await prisma.pipelineCard.update({
-        where: { id: params.id, coluna: { board: { user_id: userId } } },
+      await prisma.deal.update({
+        where: { id: params.id, stage: { pipeline: { user_id: userId } } },
         data: { deleted_at: new Date() },
       })
     }
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error('PIPELINE DELETE error:', err)
-    return NextResponse.json({ error: 'Erro ao deletar card' }, { status: 500 })
+    console.error('DEAL DELETE error:', err)
+    return NextResponse.json({ error: 'Erro ao deletar deal' }, { status: 500 })
   }
 }

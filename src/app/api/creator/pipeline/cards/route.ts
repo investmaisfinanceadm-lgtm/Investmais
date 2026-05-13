@@ -9,10 +9,10 @@ export async function GET(req: Request) {
     if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     const userId = (session.user as any).id
 
-    const cards = await prisma.pipelineCard.findMany({
+    const deals = await prisma.deal.findMany({
       where: {
-        coluna: {
-          board: {
+        stage: {
+          pipeline: {
             user_id: userId
           }
         },
@@ -25,10 +25,10 @@ export async function GET(req: Request) {
       orderBy: { ordem: 'asc' }
     })
 
-    return NextResponse.json(cards)
+    return NextResponse.json(deals)
   } catch (err) {
     console.error('PIPELINE GET error:', err)
-    return NextResponse.json({ error: 'Erro ao buscar cards' }, { status: 500 })
+    return NextResponse.json({ error: 'Erro ao buscar deals' }, { status: 500 })
   }
 }
 
@@ -41,13 +41,13 @@ export async function POST(req: Request) {
     const data = await req.json()
     const { 
       titulo, descricao, valor, vencimento, 
-      prioridade, categoria, coluna_id, 
+      prioridade, categoria, stage_id, coluna_id, 
       contato_id, vendedor_id, origem, ordem 
     } = data
 
-    const card = await prisma.pipelineCard.create({
+    const deal = await prisma.deal.create({
       data: {
-        coluna_id,
+        stage_id: stage_id || coluna_id,
         titulo,
         descricao,
         valor: parseFloat(valor) || 0,
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
         status: 'open',
         movimentacoes: {
           create: {
-            etapa_destino_id: coluna_id,
+            etapa_destino_id: stage_id || coluna_id,
             user_id: userId,
             fonte: 'manual'
           }
@@ -73,9 +73,9 @@ export async function POST(req: Request) {
       }
     })
 
-    return NextResponse.json(card)
+    return NextResponse.json(deal)
   } catch (err: any) {
     console.error('PIPELINE POST error:', err)
-    return NextResponse.json({ error: err?.message || 'Erro ao criar card' }, { status: 500 })
+    return NextResponse.json({ error: err?.message || 'Erro ao criar deal' }, { status: 500 })
   }
 }

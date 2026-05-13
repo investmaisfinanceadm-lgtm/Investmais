@@ -201,17 +201,17 @@ export default function DashboardPage() {
     }, [selectedBoardId])
 
     return (
-        <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#050505] text-slate-900 dark:text-white p-6 lg:p-10 space-y-10 transition-colors duration-300">
+        <div className="min-h-screen bg-background text-foreground p-6 lg:p-8 space-y-8 transition-colors duration-300">
             {/* Top Bar */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="relative flex-1 max-w-md group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-primary transition-colors" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20 group-focus-within:text-primary transition-colors" />
                     <input 
                         type="text" 
                         placeholder="Buscar contatos, deals..." 
-                        className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 focus:bg-white/[0.05] transition-all"
+                        className="w-full bg-card/40 border border-border rounded-2xl py-2.5 pl-12 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 focus:bg-card/60 transition-all"
                     />
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded border border-white/10 text-[10px] text-white/20 font-mono">
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded border border-border text-[10px] text-foreground/20 font-mono">
                         ⌘K
                     </div>
                 </div>
@@ -239,10 +239,10 @@ export default function DashboardPage() {
             </div>
 
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-                    <p className="text-white/40 text-sm">Visão geral do seu CRM</p>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div className="space-y-0.5">
+                    <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+                    <p className="text-muted-foreground text-xs">Visão geral do seu CRM</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <select 
@@ -266,21 +266,19 @@ export default function DashboardPage() {
                     { label: 'Taxa de Conversão', value: `${(stats?.taxaConversao || 0).toFixed(0)}%`, icon: TrendingUp, change: '1 ganhos / 5 perdidos', color: 'text-primary' },
                     { label: 'Receita Fechada', value: formatBRL(stats?.totalFaturamento || 0), icon: DollarSign, change: '+8%', color: 'text-emerald-500' },
                 ].map((card, i) => (
-                    <div key={i} className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 space-y-4 hover:bg-white/[0.05] transition-all group">
+                    <div key={i} className="bg-card/40 border border-border rounded-2xl p-5 space-y-3 hover:bg-card/60 transition-all group shadow-sm">
                         <div className="flex items-center justify-between">
-                            <span className="text-white/40 text-xs font-medium uppercase tracking-wider">{card.label}</span>
-                            <div className={cn("w-10 h-10 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-center", card.color)}>
-                                <card.icon className="w-5 h-5" />
+                            <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">{card.label}</span>
+                            <div className={cn("w-9 h-9 rounded-xl bg-background border border-border flex items-center justify-center", card.color)}>
+                                <card.icon className="w-4.5 h-4.5" />
                             </div>
                         </div>
-                        <div className="space-y-1">
-                            <h3 className="text-3xl font-bold tracking-tight">{isLoading ? '...' : card.value}</h3>
+                        <div className="space-y-0.5">
+                            <h3 className="text-2xl font-bold tracking-tight">{isLoading ? '...' : card.value}</h3>
                             <div className="flex items-center gap-2">
-                                <span className={cn("text-xs font-bold", card.change.includes('+') ? card.color : 'text-white/20')}>
+                                <span className={cn("text-[10px] font-bold", card.change.includes('+') ? card.color : 'text-muted-foreground')}>
                                     {card.change.includes('+') && '↗ '} {card.change}
                                 </span>
-                                {card.label === 'Total de Contatos' && <span className="text-white/20 text-[10px] font-medium">vs mês anterior</span>}
-                                {card.label === 'Receita Fechada' && <span className="text-white/20 text-[10px] font-medium">vs mês anterior</span>}
                             </div>
                         </div>
                     </div>

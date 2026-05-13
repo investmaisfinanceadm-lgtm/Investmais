@@ -13,7 +13,7 @@ export async function GET(req: Request) {
     }
 
     const { searchParams } = new URL(req.url)
-    const boardId = searchParams.get('board_id')
+    const pipelineId = searchParams.get('board_id') || searchParams.get('pipeline_id')
     const userId = (session.user as any).id
     const isDev = userId === 'dev-admin-id'
 
@@ -21,9 +21,9 @@ export async function GET(req: Request) {
       const startOfDay = new Date()
       startOfDay.setHours(0, 0, 0, 0)
 
-      const pipelineWhere = boardId 
-        ? { board: { id: boardId, user_id: userId } }
-        : { board: { user_id: userId } }
+      const stageWhere = pipelineId 
+        ? { pipeline: { id: pipelineId, user_id: userId } }
+        : { pipeline: { user_id: userId } }
 
       const [
         profile, 
@@ -31,7 +31,7 @@ export async function GET(req: Request) {
         leadsHoje, 
         dealsStats,
         contatosRecentes,
-        recentCards
+        recentDeals
       ] = await Promise.all([
         prisma.profile.findUnique({
           where: { id: userId },
@@ -44,9 +44,9 @@ export async function GET(req: Request) {
             created_at: { gte: startOfDay }
           } 
         }),
-        prisma.pipelineCard.aggregate({
+        prisma.deal.aggregate({
           where: {
-            coluna: pipelineWhere
+            stage: stageWhere
           },
           _sum: { valor: true },
           _count: { id: true },
@@ -64,9 +64,9 @@ export async function GET(req: Request) {
           orderBy: { created_at: 'desc' },
           take: 10,
         }),
-        prisma.pipelineCard.findMany({
+        prisma.deal.findMany({
           where: {
-            coluna: pipelineWhere,
+            stage: stageWhere,
             deleted_at: null
           },
           select: {
@@ -82,9 +82,9 @@ export async function GET(req: Request) {
         })
       ])
 
-      const wonDeals = await prisma.pipelineCard.aggregate({
+      const wonDeals = await prisma.deal.aggregate({
         where: {
-          coluna: pipelineWhere,
+          stage: stageWhere,
           status: 'won'
         },
         _sum: { valor: true },
@@ -110,7 +110,7 @@ export async function GET(req: Request) {
                 ...c,
                 created_at: c.created_at.toISOString()
               })),
-              recentCards: recentCards.map((c: any) => ({
+              recentCards: recentDeals.map((c: any) => ({
                 ...c,
                 nome: c.contato?.nome || c.titulo,
                 created_at: c.created_at.toISOString()

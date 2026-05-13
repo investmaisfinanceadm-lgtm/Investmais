@@ -177,11 +177,11 @@ function KanbanCardItem({
           whileHover={{ scale: isSelectMode ? 1 : 1.015, y: isSelectMode ? 0 : -3 }}
           onClick={handleClick}
           className={cn(
-            'relative cursor-pointer rounded-2xl border bg-[#0D0D0E] p-5',
+            'relative cursor-pointer rounded-xl border bg-card/60 p-4',
             'transition-all duration-200 border-l-4',
             isSelected
               ? 'border-primary/60 bg-primary/5 shadow-lg shadow-primary/10'
-              : 'border-white/5 hover:border-white/10 hover:shadow-xl',
+              : 'border-border hover:border-border/60 hover:shadow-xl',
             snapshot.isDragging && 'z-50 shadow-2xl border-primary/40'
           )}
           style={{ 
@@ -200,10 +200,10 @@ function KanbanCardItem({
           )}
 
           {/* Header */}
-          <div className="flex items-start justify-between gap-2 mb-4">
+          <div className="flex items-start justify-between gap-2 mb-3">
             <div className="flex items-center gap-2 min-w-0">
               <div className={cn('mt-0.5 w-2 h-2 flex-shrink-0 rounded-full', isEmerald ? 'bg-emerald-500' : 'bg-amber-500')} />
-              <h3 className="text-sm font-bold text-white/90 leading-tight truncate">{card.title}</h3>
+              <h3 className="text-sm font-bold text-foreground leading-tight truncate">{card.title}</h3>
             </div>
             {!isSelectMode && (
               <button onClick={e => e.stopPropagation()} className="flex-shrink-0 text-white/20 hover:text-white/60 transition-colors">
@@ -213,17 +213,17 @@ function KanbanCardItem({
           </div>
 
           {/* Contact info */}
-          <div className="space-y-1 mb-5">
-            {card.linkedContact?.name && <p className="text-xs text-white/40 font-medium">{card.linkedContact.name}</p>}
+          <div className="space-y-0.5 mb-3">
+            {card.linkedContact?.name && <p className="text-xs text-muted-foreground font-medium">{card.linkedContact.name}</p>}
             {card.linkedContact?.phone && (
-              <div className="flex items-center gap-1.5 text-[11px] text-white/20">
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60">
                 <Phone className="w-3 h-3" /><span>{card.linkedContact.phone}</span>
               </div>
             )}
           </div>
 
           {/* Badges */}
-          <div className="flex flex-col gap-2 mb-5">
+          <div className="flex flex-col gap-1.5 mb-4">
             <div className="flex items-center gap-2 w-fit px-2.5 py-1 rounded-full bg-[hsl(215_100%_50%/0.08)] border border-[hsl(215_100%_50%/0.15)]">
               <div className="w-4 h-4 rounded-full overflow-hidden bg-primary/20 flex items-center justify-center flex-shrink-0">
                 {card.responsible?.avatar_url ? (
@@ -242,7 +242,7 @@ function KanbanCardItem({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-4 border-t border-white/[0.04]">
+          <div className="flex items-center justify-between pt-3 border-t border-border/40">
             <div className="flex items-center gap-3">
               <span className="text-sm font-bold text-primary">{formatCurrency(card.value)}</span>
               {(card.pendingTasksCount ?? 0) > 0 && (
@@ -280,12 +280,12 @@ function KanbanColumnComponent({
   const totalValue = (column.cards || []).reduce((sum, c) => sum + (c.value || 0), 0)
 
   return (
-    <div className="flex-shrink-0 w-[300px] flex flex-col gap-5">
+    <div className="flex-shrink-0 w-[280px] flex flex-col gap-4">
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2.5">
           <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: column.color }} />
-          <span className="text-sm font-bold text-white">{column.name}</span>
-          <span className="text-[10px] font-bold text-white/30 bg-white/5 px-2 py-0.5 rounded-md">{(column.cards || []).length}</span>
+          <span className="text-sm font-bold text-foreground">{column.name}</span>
+          <span className="text-[10px] font-bold text-muted-foreground bg-card/40 px-2 py-0.5 rounded-md">{(column.cards || []).length}</span>
         </div>
         <div className="flex items-center gap-1 text-primary">
           <DollarSign className="w-3.5 h-3.5" />
@@ -293,7 +293,7 @@ function KanbanColumnComponent({
         </div>
       </div>
 
-      <div className="h-[3px] w-full bg-white/[0.04] rounded-full overflow-hidden">
+      <div className="h-[3px] w-full bg-card/40 rounded-full overflow-hidden">
         <div className="h-full rounded-full transition-all duration-700" style={{ width: '40%', backgroundColor: column.color }} />
       </div>
 
@@ -303,8 +303,8 @@ function KanbanColumnComponent({
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={cn(
-              "flex flex-col gap-3 flex-1 min-h-[400px] pb-10 transition-colors rounded-2xl",
-              snapshot.isDraggingOver && "bg-white/[0.02]"
+              "flex flex-col gap-2.5 flex-1 min-h-[400px] pb-10 transition-colors rounded-2xl",
+              snapshot.isDraggingOver && "bg-card/20"
             )}
           >
             <AnimatePresence>
@@ -323,7 +323,7 @@ function KanbanColumnComponent({
             </AnimatePresence>
             {provided.placeholder}
             {!isSelectMode && (
-              <button className="w-full py-3.5 border border-dashed border-white/[0.06] rounded-2xl text-[10px] font-bold uppercase tracking-widest text-white/10 hover:text-white/20 hover:border-white/10 transition-all">
+              <button className="w-full py-3.5 border border-dashed border-border/40 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 hover:text-muted-foreground/60 hover:border-border transition-all">
                 + Novo Card
               </button>
             )}
@@ -786,34 +786,43 @@ function CardDetailModal({
               <div>
                 <div className="flex items-center gap-2">
                   {isEditing ? (
-                    <input
-                      value={editedTitle}
-                      onChange={e => setEditedTitle(e.target.value)}
-                      onBlur={() => handleUpdateDeal({ titulo: editedTitle })}
-                      className="bg-white/5 border border-primary/30 rounded px-2 py-1 text-sm text-white outline-none"
-                      autoFocus
-                    />
+                    <div className="flex items-center gap-2">
+                      <input
+                        value={editedTitle}
+                        onChange={e => setEditedTitle(e.target.value)}
+                        className="bg-white/5 border border-primary/30 rounded px-2 py-1 text-sm text-white outline-none focus:border-primary transition-all"
+                        autoFocus
+                      />
+                      <button 
+                        onClick={() => handleUpdateDeal({ titulo: editedTitle })}
+                        className="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   ) : (
-                    <h2 className="text-xl font-bold text-white tracking-tight">{card.title}</h2>
+                    <>
+                      <h2 className="text-xl font-bold text-foreground tracking-tight">{card.title}</h2>
+                      <button 
+                        onClick={() => setIsEditing(!isEditing)} 
+                        className="text-muted-foreground/40 hover:text-foreground transition-colors p-1"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    </>
                   )}
-                  <button 
-                    onClick={() => setIsEditing(!isEditing)} 
-                    className="text-white/20 hover:text-white transition-colors"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
                 </div>
-                <p className="text-xs text-white/40">{card.linkedContact?.name || 'Sem contato vinculado'}</p>
+                <p className="text-xs text-muted-foreground">{card.linkedContact?.name || 'Sem contato vinculado'}</p>
               </div>
             </div>
-            <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/[0.02] border border-white/5 flex items-center justify-center text-white/40 hover:text-white transition-colors">
+            <button onClick={onClose} className="w-8 h-8 rounded-lg bg-card/40 border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
               <X className="w-4 h-4" />
             </button>
           </div>
 
           <div className="flex items-center gap-3 flex-wrap mb-8">
             <span className="text-2xl font-bold text-primary mr-2">{formatCurrency(card.value)}</span>
-            <span className="px-3 py-1 rounded-lg bg-white/[0.03] border border-white/5 text-[10px] font-bold text-white uppercase tracking-widest">Aberto</span>
+            <span className="px-3 py-1 rounded-lg bg-card/40 border border-border text-[10px] font-bold text-foreground uppercase tracking-widest">Aberto</span>
             <span className={cn('px-3 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5', isEmerald ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-400')}>
               <div className={cn('w-1.5 h-1.5 rounded-full', isEmerald ? 'bg-emerald-500' : 'bg-amber-500')} />
               {card.category}
@@ -850,8 +859,8 @@ function CardDetailModal({
                 <Activity className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-bold text-white">{cardActivities.length} atividade{cardActivities.length !== 1 ? 's' : ''}</p>
-                <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                <p className="text-sm font-bold text-foreground">{cardActivities.length} atividade{cardActivities.length !== 1 ? 's' : ''}</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                   {cardActivities.filter(a => a.status === 'pendente').length} pendentes
                 </p>
               </div>
@@ -957,15 +966,22 @@ function CardDetailModal({
                       </select>
                     </div>
                     <div>
-                      <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1.5">Valor</p>
+                      <p className={lbl + " mb-1"}>Valor</p>
                       {isEditing ? (
-                        <input
-                          type="number"
-                          value={editedValue}
-                          onChange={e => setEditedValue(e.target.value)}
-                          onBlur={() => handleUpdateDeal({ valor: parseFloat(editedValue) || 0 })}
-                          className="bg-white/5 border border-primary/30 rounded px-2 py-1 text-sm text-white outline-none w-24"
-                        />
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            value={editedValue}
+                            onChange={e => setEditedValue(e.target.value)}
+                            className="bg-white/5 border border-primary/30 rounded px-2 py-1 text-sm text-white outline-none w-24"
+                          />
+                          <button 
+                            onClick={() => handleUpdateDeal({ valor: parseFloat(editedValue) || 0 })}
+                            className="p-1 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all"
+                          >
+                            <Check className="w-3 h-3" />
+                          </button>
+                        </div>
                       ) : (
                         <p className="text-sm text-primary font-bold">{formatCurrency(card.value)}</p>
                       )}
@@ -1455,11 +1471,20 @@ function PipelineManagementModal({ boards, currentBoardId, onClose, onBoardChang
   }
 
   const handleDeleteStage = async (boardId: string, stageId: string) => {
-    const targetStageId = prompt('Para qual estágio deseja mover os deals deste estágio? (ID ou nome aproximado)')
-    if (!targetStageId) return
+    const moveTarget = prompt('Para qual estágio (ID ou Nome Exato) deseja migrar os deals existentes antes de excluir este estágio?')
+    if (!moveTarget) {
+      toast.error('Operação cancelada: estágio de destino é obrigatório.')
+      return
+    }
 
-    const res = await fetch(`/api/creator/pipeline-config/stages?id=${stageId}&move_to=${targetStageId}`, { method: 'DELETE' })
-    if (res.ok) { setBoardDetails(prev => ({ ...prev, [boardId]: (prev[boardId] || []).filter((s: any) => s.id !== stageId) })); toast.success('Estágio removido') }
+    const res = await fetch(`/api/creator/pipeline-config/stages?id=${stageId}&move_to=${moveTarget}`, { method: 'DELETE' })
+    if (res.ok) {
+      setBoardDetails(prev => ({ ...prev, [boardId]: (prev[boardId] || []).filter((s: any) => s.id !== stageId) }))
+      toast.success('Estágio removido e deals migrados!')
+    } else {
+      const e = await res.json()
+      toast.error(e.error || 'Erro ao remover estágio. Verifique se o destino é válido.')
+    }
   }
 
   const handleAddStage = async (boardId: string) => {

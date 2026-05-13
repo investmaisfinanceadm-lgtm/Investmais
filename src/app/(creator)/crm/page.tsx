@@ -116,13 +116,13 @@ function MetricCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className="nl-glass p-10 rounded-[48px] group relative overflow-hidden border-white/5 hover:border-sidebar-primary/20 transition-all duration-700 shadow-[0_40px_80px_rgba(0,0,0,0.4)]"
+      className="nl-glass p-6 rounded-[32px] group relative overflow-hidden border-white/5 hover:border-sidebar-primary/20 transition-all duration-700 shadow-[0_20px_40px_rgba(0,0,0,0.3)]"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-sidebar-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
       
-      <div className="flex items-center justify-between mb-8 relative z-10">
-        <div className={cn('w-14 h-14 rounded-2xl flex items-center justify-center border border-white/5 bg-black group-hover:scale-110 transition-all duration-700 shadow-2xl', iconColor)}>
-          <Icon className="w-7 h-7" />
+      <div className="flex items-center justify-between mb-4 relative z-10">
+        <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center border border-white/5 bg-black group-hover:scale-110 transition-all duration-700 shadow-2xl', iconColor)}>
+          <Icon className="w-5 h-5" />
         </div>
         {sub && (
           <div className="px-4 py-1 rounded-full bg-white/[0.03] border border-white/5 text-[9px] font-black uppercase tracking-[0.3em] text-white/20 italic">
@@ -131,9 +131,9 @@ function MetricCard({
         )}
       </div>
       
-      <div className="relative z-10 space-y-1">
-        <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider ml-1">{label}</p>
-        <p className="text-3xl font-bold text-white tracking-tight">{value}</p>
+      <div className="relative z-10 space-y-0.5">
+        <p className="text-[9px] font-bold text-white/40 uppercase tracking-wider ml-1">{label}</p>
+        <p className="text-2xl font-bold text-white tracking-tight">{value}</p>
       </div>
     </motion.div>
   )
@@ -373,27 +373,27 @@ export default function CRMPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F5F7] dark:bg-black text-slate-900 dark:text-white flex flex-col relative overflow-hidden transition-colors duration-300">
+    <div className="min-h-screen bg-background text-foreground flex flex-col relative overflow-hidden transition-colors duration-300">
       <div className="ambient-bg" />
       
       <div className="relative z-10 flex-1 flex flex-col p-8 lg:p-12 max-w-[1600px] mx-auto w-full space-y-16 pb-32">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-12 border-b border-white/5 pb-16">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-border pb-8">
           <div className="space-y-6">
             <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-sidebar-primary/5 border border-sidebar-primary/20 backdrop-blur-3xl">
                 <div className="w-2 h-2 rounded-full bg-sidebar-primary netlife-glow shadow-none animate-pulse" />
                 <span className="text-[10px] font-black text-sidebar-primary uppercase tracking-[0.5em] italic">Lead Intelligence Active</span>
             </div>
-            <div className="space-y-2">
-                <h1 className="text-3xl font-bold text-white tracking-tight">Gestão de Contatos</h1>
+            <div className="space-y-1">
+                <h1 className="text-2xl font-bold tracking-tight">Gestão de Contatos</h1>
                 <p className="text-white/40 text-sm flex items-center gap-2">
                     <Shield className="w-4 h-4" /> CRM Seguro e Sincronizado
                 </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-6 flex-wrap">
-            <button onClick={() => router.push('/cnpj')} className="px-8 py-4 rounded-2xl bg-white/[0.03] border border-white/5 text-white/60 hover:text-white transition-all font-bold text-xs flex items-center gap-3">
+          <div className="flex items-center gap-4 flex-wrap">
+            <button onClick={() => router.push('/cnpj')} className="px-6 py-3 rounded-xl bg-card/40 border border-border text-muted-foreground hover:text-foreground transition-all font-bold text-xs flex items-center gap-3">
                 <Globe className="w-4 h-4" /> Busca de Leads
             </button>
             <button onClick={() => setIsAddOpen(true)} className="bg-primary hover:bg-primary/90 px-8 py-4 rounded-2xl text-white text-xs font-bold flex items-center gap-3 transition-all">
@@ -435,10 +435,10 @@ export default function CRMPage() {
                     <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-white/10 group-focus-within:text-sidebar-primary transition-all duration-700" />
                     <input 
                         type="text" 
-                        placeholder="SCAN DATABASE..."
+                        placeholder="BUSCAR NO BANCO..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        className="w-full bg-black/40 border border-white/5 rounded-[24px] py-5 pl-14 pr-6 text-[10px] font-black text-white uppercase tracking-widest placeholder-white/5 focus:border-sidebar-primary/40 focus:bg-black/60 transition-all outline-none italic duration-700"
+                        className="w-full bg-background/40 border border-border rounded-2xl py-3 pl-12 pr-6 text-[10px] font-black text-foreground uppercase tracking-widest placeholder-foreground/5 focus:border-sidebar-primary/40 focus:bg-background/60 transition-all outline-none italic duration-700"
                     />
                 </div>
                 <div className="flex items-center bg-white/[0.03] border border-white/5 rounded-2xl p-1.5">
@@ -513,12 +513,12 @@ export default function CRMPage() {
                 <div className="overflow-x-auto scrollbar-none">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-white/[0.02] border-b border-white/5">
-                                <th className="px-10 py-8 text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic">Identidade do Lead</th>
-                                <th className="px-10 py-8 text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic">Organização</th>
-                                <th className="px-10 py-8 text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic text-center">Status</th>
-                                <th className="px-10 py-8 text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic">Atividade</th>
-                                <th className="px-10 py-8 text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic text-center">Ações</th>
+                            <tr className="bg-card/10 border-b border-border">
+                                <th className="px-6 py-4 text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] italic">Identidade do Lead</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] italic">Organização</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] italic text-center">Status</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] italic">Atividade</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] italic text-center">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
@@ -531,33 +531,33 @@ export default function CRMPage() {
                                     onClick={() => openDetail(contact)}
                                     className="group hover:bg-white/[0.03] transition-all duration-700 cursor-pointer"
                                 >
-                                    <td className="px-10 py-8">
-                                        <div className="flex items-center gap-6">
-                                            <ContactAvatar name={contact.nome} />
-                                            <div className="space-y-1">
-                                                <p className="text-sm font-black text-white uppercase tracking-tighter italic group-hover:text-sidebar-primary transition-colors duration-700">{contact.nome}</p>
-                                                <p className="text-[9px] font-black text-white/10 uppercase tracking-widest">{contact.email}</p>
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-4">
+                                            <ContactAvatar name={contact.nome} size="sm" />
+                                            <div className="space-y-0.5">
+                                                <p className="text-xs font-black text-foreground uppercase tracking-tighter italic group-hover:text-sidebar-primary transition-colors duration-700">{contact.nome}</p>
+                                                <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">{contact.email}</p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-10 py-8">
-                                        <div className="space-y-1">
-                                            <p className="text-[11px] font-black text-white uppercase tracking-widest italic">{contact.empresa || 'Pessoa Física'}</p>
-                                            <p className="text-[9px] font-black text-white/10 uppercase tracking-widest">{contact.cargo || 'Operacional'}</p>
+                                    <td className="px-6 py-4">
+                                        <div className="space-y-0.5">
+                                            <p className="text-[10px] font-black text-foreground uppercase tracking-widest italic">{contact.empresa || 'Pessoa Física'}</p>
+                                            <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">{contact.cargo || 'Operacional'}</p>
                                         </div>
                                     </td>
-                                    <td className="px-10 py-8 text-center">
-                                        <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/5">
-                                            <div className={cn("w-1.5 h-1.5 rounded-full shadow-none", contact.status === 'cliente' ? 'bg-emerald-500 netlife-glow' : 'bg-sidebar-primary netlife-glow')} />
-                                            <span className="text-[9px] font-black text-white/40 uppercase tracking-widest italic">{contact.status}</span>
+                                    <td className="px-6 py-4 text-center">
+                                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-card/40 border border-border">
+                                            <div className={cn("w-1 h-1 rounded-full shadow-none", contact.status === 'cliente' ? 'bg-emerald-500 netlife-glow' : 'bg-sidebar-primary netlife-glow')} />
+                                            <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest italic">{contact.status}</span>
                                         </div>
                                     </td>
-                                    <td className="px-10 py-8 text-[10px] font-black text-white/10 uppercase tracking-widest italic">
+                                    <td className="px-6 py-4 text-[9px] font-black text-muted-foreground uppercase tracking-widest italic">
                                         {contact.lastActivity.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' })}
                                     </td>
-                                    <td className="px-10 py-8 text-center">
-                                        <button className="w-12 h-12 rounded-2xl bg-white/[0.02] border border-white/5 text-white/10 group-hover:text-sidebar-primary group-hover:border-sidebar-primary/40 group-hover:scale-110 transition-all duration-700 flex items-center justify-center mx-auto">
-                                            <ArrowUpRight className="w-6 h-6" />
+                                    <td className="px-6 py-4 text-center">
+                                        <button className="w-10 h-10 rounded-xl bg-background border border-border text-muted-foreground group-hover:text-sidebar-primary group-hover:border-sidebar-primary/40 group-hover:scale-110 transition-all duration-700 flex items-center justify-center mx-auto">
+                                            <ArrowUpRight className="w-5 h-5" />
                                         </button>
                                     </td>
                                 </motion.tr>

@@ -21,6 +21,11 @@ interface SystemUser {
 interface Team {
   id: string; nome: string; created_at: string
   membros: { id: string; nome: string; email: string; perfil: string }[]
+  permissoes?: {
+    ver_todos_deals: boolean
+    ver_todas_atividades: boolean
+    ver_todos_contatos: boolean
+  }
 }
 
 interface Integracao {
@@ -129,6 +134,11 @@ function UserModal({ user, onClose, onSaved }: { user: SystemUser | null; onClos
 function TeamModal({ team, allUsers, onClose, onSaved }: { team: Team | null; allUsers: SystemUser[]; onClose: () => void; onSaved: () => void }) {
   const isEdit = !!team
   const [nome, setNome] = useState(team?.nome || '')
+  const [permissoes, setPermissoes] = useState({
+    ver_todos_deals: team?.permissoes?.ver_todos_deals ?? true,
+    ver_todas_atividades: team?.permissoes?.ver_todas_atividades ?? true,
+    ver_todos_contatos: team?.permissoes?.ver_todos_contatos ?? true,
+  })
   const [isSaving, setIsSaving] = useState(false)
 
   const handleSave = async () => {
@@ -137,7 +147,11 @@ function TeamModal({ team, allUsers, onClose, onSaved }: { team: Team | null; al
     try {
       const url = isEdit ? `/api/creator/times/${team!.id}` : '/api/creator/times'
       const method = isEdit ? 'PATCH' : 'POST'
-      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nome }) })
+      const res = await fetch(url, { 
+        method, 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ nome, permissoes }) 
+      })
       if (res.ok) { toast.success(isEdit ? 'Time atualizado!' : 'Time criado!'); onSaved(); onClose() }
       else { const e = await res.json(); toast.error(e.error || 'Erro ao salvar') }
     } finally { setIsSaving(false) }
@@ -172,6 +186,31 @@ function TeamModal({ team, allUsers, onClose, onSaved }: { team: Team | null; al
               <label className={lbl}>Nome do Time</label>
               <input value={nome} onChange={e => setNome(e.target.value)} className={inp} placeholder="Ex: Equipe Comercial" />
             </div>
+            
+            <div className="space-y-3 bg-white/[0.02] border border-white/5 p-4 rounded-xl">
+              <p className={lbl}>Permissões de Visibilidade</p>
+              <div className="space-y-3">
+                {[
+                  { key: 'ver_todos_deals', label: 'Ver todos os deals (Pipeline)' },
+                  { key: 'ver_todas_atividades', label: 'Ver todas as atividades' },
+                  { key: 'ver_todos_contatos', label: 'Ver todos os contatos (CRM)' }
+                ].map(p => (
+                  <label key={p.key} className="flex items-center gap-3 cursor-pointer group">
+                    <div 
+                      onClick={() => setPermissoes(prev => ({ ...prev, [p.key]: !prev[p.key as keyof typeof permissoes] }))}
+                      className={cn(
+                        "w-5 h-5 rounded-md border transition-all flex items-center justify-center",
+                        permissoes[p.key as keyof typeof permissoes] ? "bg-primary border-primary" : "border-white/10 bg-white/5 hover:border-white/20"
+                      )}
+                    >
+                      {permissoes[p.key as keyof typeof permissoes] && <Check className="w-3.5 h-3.5 text-white" />}
+                    </div>
+                    <span className="text-xs text-white/60 group-hover:text-white transition-colors">{p.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
             {isEdit && (
               <>
                 <div>

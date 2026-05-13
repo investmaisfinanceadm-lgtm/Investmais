@@ -10,9 +10,9 @@ export async function GET(req: Request) {
     const userId = (session.user as any).id
 
     const { searchParams } = new URL(req.url)
-    const boardId = searchParams.get('board_id')
+    const pipelineId = searchParams.get('board_id') || searchParams.get('pipeline_id')
 
-    const allBoards = await prisma.pipelineBoard.findMany({
+    const allPipelines = await prisma.pipeline.findMany({
       where: { user_id: userId },
       select: { id: true, nome: true, is_default: true },
       orderBy: { created_at: 'asc' }
@@ -23,14 +23,14 @@ export async function GET(req: Request) {
       orderBy: { nome: 'asc' }
     })
 
-    // Busca o board padrão do usuário
-    let board = await prisma.pipelineBoard.findFirst({
-      where: boardId ? { id: boardId, user_id: userId } : { user_id: userId },
+    // Busca o pipeline padrão do usuário
+    let pipeline = await prisma.pipeline.findFirst({
+      where: pipelineId ? { id: pipelineId, user_id: userId } : { user_id: userId },
       include: {
-        colunas: {
+        stages: {
           orderBy: { ordem: 'asc' },
           include: {
-            cards: {
+            deals: {
               where: { status: 'open', deleted_at: null },
               orderBy: { ordem: 'asc' },
               include: {
@@ -44,13 +44,13 @@ export async function GET(req: Request) {
       }
     })
 
-    if (!board) {
-      // Cria o board padrão
-      const newBoard = await prisma.pipelineBoard.create({
+    if (!pipeline) {
+      // Cria o pipeline padrão
+      const newPipeline = await prisma.pipeline.create({
         data: {
           user_id: userId,
           nome: 'Pipeline Padrão',
-          colunas: {
+          stages: {
             create: [
               { nome: 'Novo Lead', cor: '#3B82F6', ordem: 0, probabilidade: 10 },
               { nome: 'Qualificação', cor: '#8B5CF6', ordem: 1, probabilidade: 25 },
@@ -61,15 +61,14 @@ export async function GET(req: Request) {
             ]
           }
         },
-        include: { colunas: { orderBy: { ordem: 'asc' } } }
+        include: { stages: { orderBy: { ordem: 'asc' } } }
       })
 
-      // Gerar 50 contatos e cards
-      const generatedCards = []
+      // Gerar 50 contatos e deals
       for (let i = 1; i <= 50; i++) {
-        // Distribui entre as colunas aleatoriamente
-        const randomColIndex = Math.floor(Math.random() * newBoard.colunas.length)
-        const column = newBoard.colunas[randomColIndex]
+        // Distribui entre as etapas aleatoriamente
+        const randomStageIndex = Math.floor(Math.random() * newPipeline.stages.length)
+        const stage = newPipeline.stages[randomStageIndex]
 
         const contato = await prisma.contato.create({
           data: {
@@ -83,9 +82,9 @@ export async function GET(req: Request) {
           }
         })
 
-        await prisma.pipelineCard.create({
+        await prisma.deal.create({
           data: {
-            coluna_id: column.id,
+            stage_id: stage.id,
             titulo: `Oportunidade - ${contato.empresa}`,
             contato_id: contato.id,
             valor: Math.floor(Math.random() * 10000) + 1000,
@@ -95,13 +94,13 @@ export async function GET(req: Request) {
       }
 
       // Buscar novamente após criar
-      const refreshedBoard = await prisma.pipelineBoard.findFirst({
+      const refreshedPipeline = await prisma.pipeline.findFirst({
         where: { user_id: userId },
         include: {
-          colunas: {
+          stages: {
             orderBy: { ordem: 'asc' },
             include: {
-              cards: {
+              deals: {
                 where: { status: 'open', deleted_at: null },
                 orderBy: { ordem: 'asc' },
                 include: {
@@ -115,48 +114,48 @@ export async function GET(req: Request) {
         }
       })
       
-      if (!refreshedBoard) return NextResponse.json({ columns: [], vendedores, boards: allBoards, currentBoardId: null })
-      board = refreshedBoard
+      if (!refreshedPipeline) return NextResponse.json({ columns: [], vendedores, boards: allPipelines, currentBoardId: null })
+      pipeline = refreshedPipeline
     }
 
     // Mapeia para o formato que o frontend espera (KanbanColumn)
-    const columns = board.colunas.map(col => ({
-      id: col.id,
-      name: col.nome,
-      color: col.cor,
-      probabilidade: col.probabilidade,
-      slaHoras: col.sla_horas,
-      cards: col.cards.map(card => ({
-        id: card.id,
-        title: card.titulo,
-        category: (card.contato as any)?.tags?.[0] || 'LEAD ZONA CINZA',
-        categoryColor: (card.contato as any)?.tags?.[0] === 'LEAD AP' ? 'emerald' : 'orange',
-        priority: card.prioridade || 'media',
+    const columns = pipeline.stages.map(stage => ({
+      id: stage.id,
+      name: stage.nome,
+      color: stage.cor,
+      probabilidade: stage.probabilidade,
+      slaHoras: stage.sla_horas,
+      cards: stage.deals.map(deal => ({
+        id: deal.id,
+        title: deal.titulo,
+        category: (deal.contato as any)?.tags?.[0] || 'LEAD ZONA CINZA',
+        categoryColor: (deal.contato as any)?.tags?.[0] === 'LEAD AP' ? 'emerald' : 'orange',
+        priority: deal.prioridade || 'media',
         responsible: {
-          name: card.vendedor?.nome || 'Sem vendedor',
-          initials: card.vendedor?.nome ? card.vendedor.nome.split(' ').map(n => n[0]).join('').slice(0, 2) : '??',
-          color: card.vendedor?.cor || '#3B82F6',
-          avatar_url: (card.vendedor as any)?.avatar_url
+          name: deal.vendedor?.nome || 'Sem vendedor',
+          initials: deal.vendedor?.nome ? deal.vendedor.nome.split(' ').map(n => n[0]).join('').slice(0, 2) : '??',
+          color: deal.vendedor?.cor || '#3B82F6',
+          avatar_url: (deal.vendedor as any)?.avatar_url
         },
-        dueDate: card.vencimento ? card.vencimento.toISOString() : new Date().toISOString(),
-        value: card.valor || 0,
-        description: card.descricao || '',
-        anotacoes: (card as any).anotacoes || '',
-        columnId: col.id,
-        status: card.status,
-        createdAt: card.created_at.toISOString(),
-        updatedAt: card.created_at.toISOString(),
-        pendingTasksCount: (card as any)._count?.atividades ?? 0,
-        linkedContact: card.contato ? {
-          id: card.contato.id,
-          name: card.contato.nome,
-          phone: card.contato.telefone,
-          email: card.contato.email
+        dueDate: deal.vencimento ? deal.vencimento.toISOString() : new Date().toISOString(),
+        value: deal.valor || 0,
+        description: deal.descricao || '',
+        anotacoes: (deal as any).anotacoes || '',
+        columnId: stage.id,
+        status: deal.status,
+        createdAt: deal.created_at.toISOString(),
+        updatedAt: deal.created_at.toISOString(),
+        pendingTasksCount: (deal as any)._count?.atividades ?? 0,
+        linkedContact: deal.contato ? {
+          id: deal.contato.id,
+          name: deal.contato.nome,
+          phone: deal.contato.telefone,
+          email: deal.contato.email
         } : null
       }))
     }))
 
-    return NextResponse.json({ columns, vendedores, boards: allBoards, currentBoardId: board.id })
+    return NextResponse.json({ columns, vendedores, boards: allPipelines, currentBoardId: pipeline.id })
   } catch (err) {
     console.error('PIPELINE BOARD GET error:', err)
     return NextResponse.json({ error: 'Erro ao buscar pipeline' }, { status: 500 })

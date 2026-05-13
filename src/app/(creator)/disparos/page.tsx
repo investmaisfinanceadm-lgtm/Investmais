@@ -415,12 +415,10 @@ function CriarListaModal({ onClose, onCreate }: { onClose: () => void; onCreate:
                 <span className="text-[10px] font-bold text-primary uppercase tracking-widest">{phones.length} números válidos</span>
             </div>
           </div>
-        </div>
-
-        <div className="p-8 flex gap-4 bg-black/40 border-t border-white/5">
-          <button onClick={onClose} className="px-6 text-xs font-bold text-white/20 hover:text-white transition-all">Cancelar</button>
+                <div className="p-6 flex gap-4 bg-background/50 border-t border-border">
+          <button onClick={onClose} className="px-6 text-xs font-bold text-muted-foreground hover:text-foreground transition-all">Cancelar</button>
           <button onClick={handleSubmit} disabled={!canSave || saving}
-            className="flex-1 bg-primary hover:bg-primary/90 py-4 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-3 disabled:opacity-40 transition-all shadow-lg">
+            className="flex-1 bg-primary hover:bg-primary/90 py-3 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-3 disabled:opacity-40 transition-all shadow-lg">
             {saving
               ? <><Activity className="w-4 h-4 animate-spin" />Salvando...</>
               : <><Layers className="w-4 h-4" /> Criar Lista com {phones.length} Contatos</>}
@@ -472,12 +470,12 @@ export default function ListasDisparoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-6 lg:p-10 space-y-10">
+    <div className="min-h-screen bg-background text-foreground p-6 lg:p-8 space-y-8">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-white/5 pb-10">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Disparos</h1>
-          <p className="text-white/40 text-sm">Gerencie suas campanhas de mensagens automáticas</p>
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-border pb-8">
+        <div className="space-y-0.5">
+          <h1 className="text-2xl font-bold tracking-tight">Disparos</h1>
+          <p className="text-muted-foreground text-xs">Gerencie suas campanhas de mensagens automáticas</p>
         </div>
         
         <button onClick={() => setCriarOpen(true)}
@@ -499,32 +497,32 @@ export default function ListasDisparoPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.1 }}
-            className="bg-white/[0.03] border border-white/5 p-8 rounded-3xl space-y-4 relative overflow-hidden group hover:bg-white/[0.05] transition-all"
+            className="bg-card/40 border border-border p-6 rounded-2xl space-y-3 relative overflow-hidden group hover:bg-card/60 transition-all shadow-sm"
           >
-            <div className="w-10 h-10 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-center text-white/20 group-hover:text-primary transition-colors">
-                <s.icon className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-background border border-border flex items-center justify-center text-foreground/20 group-hover:text-primary transition-colors">
+                <s.icon className="w-4 h-4" />
             </div>
-            <div className="space-y-1">
-                <p className={`text-3xl font-bold tracking-tight ${s.color}`}>{s.value}</p>
-                <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">{s.label}</p>
+            <div className="space-y-0.5">
+                <p className={`text-2xl font-bold tracking-tight ${s.color}`}>{s.value}</p>
+                <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">{s.label}</p>
             </div>
           </motion.div>
         ))}
       </div>
 
       {/* Table Area */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white/[0.03] border border-white/5 rounded-3xl overflow-hidden shadow-xl">
-        <div className="px-10 py-6 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                <Radio className="w-5 h-5" />
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card/40 border border-border rounded-2xl overflow-hidden shadow-sm">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-card/10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                <Radio className="w-4.5 h-4.5" />
             </div>
             <div>
-                <h3 className="text-base font-bold text-white tracking-tight">Histórico de Listas</h3>
-                <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Acompanhamento de progresso em tempo real</p>
+                <h3 className="text-sm font-bold tracking-tight">Histórico de Listas</h3>
+                <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Acompanhamento de progresso em tempo real</p>
             </div>
           </div>
-          <span className="px-4 py-1.5 rounded-xl bg-white/[0.03] border border-white/5 text-[10px] font-bold text-white/40 uppercase tracking-widest">{listas.length} listas</span>
+          <span className="px-3 py-1 rounded-lg bg-background border border-border text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{listas.length} listas</span>
         </div>
 
         {loading ? (

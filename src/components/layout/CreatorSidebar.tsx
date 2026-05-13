@@ -102,7 +102,7 @@ export function CreatorSidebar() {
         : 0
 
     const SidebarContent = () => (
-        <div className="flex flex-col h-full bg-black relative overflow-hidden">
+        <div className="flex flex-col h-full bg-sidebar-background relative overflow-hidden">
             {/* Ambient Orb inside sidebar */}
             <div className="absolute -top-24 -left-20 w-80 h-80 bg-sidebar-primary/5 rounded-full blur-[100px] pointer-events-none z-0" />
             
@@ -110,11 +110,11 @@ export function CreatorSidebar() {
             <div className="px-6 pt-8 pb-6 flex items-center gap-4 z-10">
                 <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 group">
                     <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center p-2 transition-all group-hover:scale-110 duration-500">
-                         <img src="/logo.png" alt="InvestMais" className="w-full h-full object-contain brightness-0 invert" />
+                         <img src="/logo.png" alt="InvestMais" className={cn("w-full h-full object-contain", theme === 'dark' ? "brightness-0 invert" : "")} />
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-white font-bold text-lg tracking-tight leading-none">INVEST<span className="text-sidebar-primary">MAIS</span></span>
-                        <span className="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em] mt-1">Gestão Inteligente</span>
+                        <span className="text-sidebar-foreground font-bold text-lg tracking-tight leading-none">INVEST<span className="text-sidebar-primary">MAIS</span></span>
+                        <span className="text-[8px] font-bold text-sidebar-foreground/20 uppercase tracking-[0.2em] mt-1">Gestão Inteligente</span>
                     </div>
                 </Link>
             </div>
@@ -183,7 +183,7 @@ export function CreatorSidebar() {
             </nav>
 
             {/* User Footer */}
-            <div className="p-6 border-t border-white/5 bg-black/40 relative z-10">
+            <div className="p-6 border-t border-sidebar-border bg-sidebar-background/40 relative z-10">
                 {user && (
                     <div className="mb-6 space-y-4">
                         <div className="flex items-center gap-3 px-1">
@@ -209,7 +209,7 @@ export function CreatorSidebar() {
                         {mounted && (
                             <button
                                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                                className="w-10 h-10 flex items-center justify-center text-white/20 hover:text-primary hover:bg-white/[0.03] transition-all rounded-xl border border-white/5"
+                                className="w-10 h-10 flex items-center justify-center text-sidebar-foreground/20 hover:text-sidebar-primary hover:bg-sidebar-foreground/[0.03] transition-all rounded-xl border border-sidebar-border"
                             >
                                 {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                             </button>
@@ -238,7 +238,7 @@ export function CreatorSidebar() {
             </aside>
 
             {/* ─────────── MOBILE TOP HEADER ─────────── */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-black/80 backdrop-blur-xl border-b border-white/5 safe-top">
+            <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-sidebar-background/80 backdrop-blur-xl border-b border-sidebar-border safe-top">
                 <Link href="/dashboard" className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-primary/10 p-1.5 flex items-center justify-center border border-primary/20">
                         <img src="/logo.png" alt="Logo" className="w-full h-full object-contain brightness-0 invert" />

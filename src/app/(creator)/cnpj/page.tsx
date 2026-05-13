@@ -106,7 +106,7 @@ export default function CNPJPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-6 lg:p-10 space-y-10">
+    <div className="min-h-screen bg-background text-white p-6 lg:p-10 space-y-10">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-white/5 pb-10">
         <div className="space-y-1">
@@ -143,44 +143,43 @@ export default function CNPJPage() {
                       const cidade = formData.get('cidade');
                       const estado = formData.get('estado');
 
-                      const webhookUrl = 'https://auto.devnetlife.com/webhook/financeiroinvestmais';
+                      const webhookUrl = 'https://auto.devnetlife.com/webhook/investmais';
 
                       fetch(webhookUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ nicho, cidade, estado, acao: 'busca_leads_google' })
+                        body: JSON.stringify({ estado, cidade, nicho, user_id: 'f8e344d0-b985-44f2-b7c6-818285dd2b2f', acao: 'busca_leads_google' })
                       }).then(() => toast.success('Webhook disparado! Iniciando extração no N8N...'))
                         .catch(() => toast.error('Erro ao conectar com N8N.'));
                     }}
-                    className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10"
+                    className="grid grid-cols-1 md:grid-cols-4 gap-4 relative z-10"
                   >
-                      <div className="relative group flex-1">
+                      <div className="relative group">
+                           <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-blue-500 transition-colors z-10" />
+                           <select name="estado" required defaultValue="" className="w-full h-16 bg-black/40 border border-white/5 rounded-2xl pl-12 pr-4 text-sm font-bold text-white outline-none focus:border-blue-500/50 transition-all shadow-xl appearance-none cursor-pointer">
+                             <option value="" disabled className="bg-[#0a0a0b]">Estado (UF)</option>
+                             {['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'].map(uf => (
+                               <option key={uf} value={uf} className="bg-[#0a0a0b]">{uf}</option>
+                             ))}
+                           </select>
+                      </div>
+                      <div className="relative group">
+                           <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-blue-500 transition-colors z-10" />
+                           <input type="text" name="cidade" required placeholder="Cidade (ex: São Paulo)" className="w-full h-16 bg-black/40 border border-white/5 rounded-2xl pl-12 pr-6 text-sm font-bold text-white placeholder-white/20 outline-none focus:border-blue-500/50 transition-all shadow-xl" />
+                      </div>
+                      <div className="relative group">
                            <Target className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-blue-500 transition-colors pointer-events-none z-10" />
                            <select name="nicho" required defaultValue="" className="w-full h-16 bg-black/40 border border-white/5 rounded-2xl pl-12 pr-4 text-sm font-bold text-white outline-none focus:border-blue-500/50 transition-all shadow-xl appearance-none cursor-pointer">
-                             <option value="" disabled className="bg-[#0a0a0b]">Selecione o nicho</option>
+                             <option value="" disabled className="bg-[#0a0a0b]">Nicho / Atividade</option>
                              {['Academia / Fitness','Advocacia','Agência de Marketing','Arquitetura','Clínica Médica','Clínica Odontológica','Consultoria','Contabilidade','Corretora de Imóveis','Educação / Cursos','Estética / Beleza','Farmácia','Hotel / Pousada','Imobiliária','Loja de Roupas','Mecânica / Oficina','Nutrição','Ótica','Petshop','Psicologia','Restaurante / Alimentação','Seguros','Tecnologia / TI','Veterinária'].map(n => (
                                <option key={n} value={n} className="bg-[#0a0a0b]">{n}</option>
                              ))}
                            </select>
                       </div>
-                      <div className="relative group flex-1">
-                           <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-blue-500 transition-colors" />
-                           <input type="text" name="cidade" required placeholder="Cidade (ex: São Paulo)" className="w-full h-16 bg-black/40 border border-white/5 rounded-2xl pl-12 pr-6 text-sm font-bold text-white placeholder-white/20 outline-none focus:border-blue-500/50 transition-all shadow-xl" />
-                      </div>
-                      <div className="relative group flex-1 flex gap-3">
-                           <div className="relative flex-1">
-                             <select name="estado" required defaultValue="" className="w-full h-16 bg-black/40 border border-white/5 rounded-2xl px-4 text-sm font-bold text-white outline-none focus:border-blue-500/50 transition-all shadow-xl appearance-none cursor-pointer text-center">
-                               <option value="" disabled className="bg-[#0a0a0b]">UF</option>
-                               {['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'].map(uf => (
-                                 <option key={uf} value={uf} className="bg-[#0a0a0b]">{uf}</option>
-                               ))}
-                             </select>
-                           </div>
-                           <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-500 h-16 rounded-2xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-3 text-sm font-bold text-white transition-all group">
-                              <Zap className="w-5 h-5 group-hover:scale-110 transition-all" />
-                              Disparar
-                           </button>
-                      </div>
+                      <button type="submit" className="bg-blue-600 hover:bg-blue-500 h-16 rounded-2xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-3 text-sm font-bold text-white transition-all group">
+                          <Zap className="w-5 h-5 group-hover:scale-110 transition-all" />
+                          Disparar Busca
+                      </button>
                   </form>
               </div>
           </motion.div>
