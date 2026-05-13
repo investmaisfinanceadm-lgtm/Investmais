@@ -11,21 +11,21 @@
   --primary-glow: 195 100% 60%;
   --primary-deep: 220 90% 28%;
 
-  /* === BACKGROUND: Azul Marinho Cinematográfico === */
-  --background: 220 45% 6%;
-  --foreground: 0 0% 100%;
+  /* === BACKGROUND: Azul Marinho Cinematográfico (NAVY) === */
+  --background: 222 47% 10%;
+  --foreground: 210 40% 98%;
 
   /* === SURFACES (estratificadas — quanto mais alto na hierarquia, mais luminoso) === */
-  --card: 220 40% 5%;
-  --card-foreground: 0 0% 100%;
-  --popover: 220 35% 6%;
-  --popover-foreground: 0 0% 100%;
-  --secondary: 220 30% 9%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 220 25% 8%;
-  --muted-foreground: 220 10% 65%;
-  --accent: 215 80% 14%;
-  --accent-foreground: 195 100% 75%;
+  --card: 222 47% 12%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222 47% 10%;
+  --popover-foreground: 210 40% 98%;
+  --secondary: 222 40% 15%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 222 30% 12%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 215 100% 50%;
+  --accent-foreground: 210 40% 98%;
 
   /* === STATUS === */
   --destructive: 0 84% 55%;
@@ -105,59 +105,59 @@
   --dur-700: 700ms;
 }
 
-/* Light mode — Gelo + Azul Marinho */
+/* Light mode — Gelo + Azul Marinho (High Contrast) */
 .light {
   /* Azul Royal primário */
-  --primary: 215 100% 50%;
-  --primary-glow: 215 100% 65%;
-  --primary-deep: 215 100% 35%;
+  --primary: 221 83% 53%;
+  --primary-glow: 221 83% 65%;
+  --primary-deep: 221 83% 35%;
 
   /* Fundo geral: Gelo (branco opaco premium) */
-  --background: 210 20% 96%;
-  --foreground: 220 50% 15%; 
+  --background: 210 40% 96%;
+  --foreground: 222 47% 11%; 
 
-  /* Cards: Off-white com borda azul marinho */
+  /* Cards: Brancos com sombra suave */
   --card: 0 0% 100%;
-  --card-foreground: 220 50% 15%; 
+  --card-foreground: 222 47% 11%; 
 
   /* Popover */
   --popover: 0 0% 100%;
-  --popover-foreground: 220 50% 15%;
+  --popover-foreground: 222 47% 11%;
 
   /* Secundário: cinza azulado suave */
-  --secondary: 220 20% 92%;
-  --secondary-foreground: 220 50% 15%;
+  --secondary: 214 32% 91%;
+  --secondary-foreground: 222 47% 11%;
 
   /* Muted */
-  --muted: 220 20% 94%;
-  --muted-foreground: 220 20% 45%; 
+  --muted: 210 40% 94%;
+  --muted-foreground: 215 16% 47%; 
 
   /* Accent */
-  --accent: 215 100% 50%;
-  --accent-foreground: 0 0% 100%;
+  --accent: 221 83% 53%;
+  --accent-foreground: 210 40% 98%;
 
   /* Status */
-  --destructive: 0 84% 51%;
-  --destructive-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
 
   /* Bordas: Azul marinho escuro conforme pedido */
-  --border: 220 50% 20%;
-  --input: 220 30% 90%;
-  --ring: 215 100% 50%;
+  --border: 214 32% 80%;
+  --input: 214 32% 91%;
+  --ring: 221 83% 53%;
 
   /* Transparência de superfícies */
-  --surface-alpha: 220 50% 20% / 0.05;
-  --surface-alpha-strong: 220 50% 20% / 0.1;
+  --surface-alpha: 222 47% 11% / 0.05;
+  --surface-alpha-strong: 222 47% 11% / 0.1;
 
   /* Sidebar no Light Mode: Azul Marinho */
-  --sidebar-background: 220 50% 15%;
-  --sidebar-foreground: 0 0% 100%;
-  --sidebar-primary: 215 100% 50%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 220 50% 20%;
-  --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-border: 0 0% 100% / 0.1;
-  --sidebar-ring: 215 100% 50%;
+  --sidebar-background: 222 47% 11%;
+  --sidebar-foreground: 210 40% 98%;
+  --sidebar-primary: 221 83% 53%;
+  --sidebar-primary-foreground: 210 40% 98%;
+  --sidebar-accent: 222 47% 15%;
+  --sidebar-accent-foreground: 210 40% 98%;
+  --sidebar-border: 210 40% 98% / 0.1;
+  --sidebar-ring: 221 83% 53%;
 }
 
 @layer base {
@@ -248,12 +248,12 @@
     transition: all 400ms var(--ease-cinematic);
   }
 
-  /* Light mode nl-card: azul royal com borda branca */
+  /* Light mode nl-card: Branco com sombra e borda sutil */
   .light .nl-card {
-    background: hsl(215 100% 42%);
-    border-color: hsl(0 0% 100% / 0.4);
-    color: white;
-    box-shadow: 0 4px 24px hsl(215 100% 20% / 0.2);
+    background: white;
+    border-color: hsl(var(--border));
+    color: hsl(var(--foreground));
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
   }
   .nl-card:hover {
     transform: translateY(-4px);
@@ -362,18 +362,18 @@
     color: white;
   }
 
-  /* input-field no light: fundo azul escuro, texto branco, placeholder branco suave */
+  /* input-field no light: fundo branco, texto azul marinho, placeholder suave */
   .light .input-field {
-    background: hsl(215 100% 35% / 0.5);
-    border-color: hsl(0 0% 100% / 0.3);
-    color: white;
+    background: white;
+    border-color: hsl(var(--border));
+    color: hsl(var(--foreground));
   }
   .light .input-field::placeholder {
-    color: hsl(0 0% 100% / 0.35);
+    color: hsl(var(--muted-foreground));
   }
   .light .input-field:focus {
-    background: hsl(215 100% 35% / 0.7);
-    border-color: hsl(0 0% 100% / 0.6);
+    background: white;
+    border-color: hsl(var(--primary));
   }
 }
 
