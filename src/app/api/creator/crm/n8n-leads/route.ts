@@ -57,9 +57,9 @@ export async function POST(req: NextRequest) {
     // notas livres — jamais dados estruturados
     const notas   = clean(data.notas) || clean(data.observacoes) || ''
 
-    // Verifica duplicata por telefone ou email
+    // Verifica duplicata por telefone ou email na tabela de LEADS
     if (email || tel) {
-      const existing = await prisma.contato.findFirst({
+      const existing = await prisma.lead.findFirst({
         where: {
           user_id,
           OR: [
@@ -74,9 +74,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    let contato
+    let lead
     try {
-      contato = await prisma.contato.create({
+      lead = await prisma.lead.create({
         data: {
           user_id,
           nome,
@@ -88,30 +88,27 @@ export async function POST(req: NextRequest) {
           nicho,
           cidade,
           estado,
-          canal_origem: 'Google',
-          status_funil: 'lead',
+          origem: 'Google Maps',
           notas: notas || '',
-          tags: [],
         },
       })
     } catch (err: any) {
-      // Fallback sem campos opcionais que possam não existir no schema antigo
-      contato = await prisma.contato.create({
+      console.error('Error creating lead:', err)
+      // Fallback simple create
+      lead = await prisma.lead.create({
         data: {
           user_id,
           nome,
           empresa,
           email,
           telefone: tel,
-          canal_origem: 'Google',
-          status_funil: 'lead',
+          origem: 'Google Maps',
           notas: notas || '',
-          tags: [],
         },
       })
     }
 
-    return NextResponse.json({ ok: true, id: contato.id })
+    return NextResponse.json({ ok: true, id: lead.id })
   } catch (err: any) {
     console.error('N8N leads endpoint error:', err)
     return NextResponse.json(

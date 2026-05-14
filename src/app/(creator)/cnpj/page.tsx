@@ -112,19 +112,28 @@ export default function CNPJPage() {
     setViewingSearch(search)
     setLoadingLeads(true)
     try {
-      const res = await fetch('/api/creator/crm')
-      const allLeads = await res.json()
-      // Filter by niche, city, state and ensure it's around the same time or Google Maps
-      const filtered = allLeads.filter((l: any) => 
-        l.nicho === search.nicho && 
-        l.cidade === search.cidade && 
-        l.estado === search.estado
-      )
-      setViewingLeads(filtered)
+      const res = await fetch(`/api/creator/leads?nicho=${search.nicho}&cidade=${search.cidade}&estado=${search.estado}`)
+      const leads = await res.json()
+      setViewingLeads(leads)
     } catch (err) {
       toast.error('Erro ao buscar leads do histórico')
     } finally {
       setLoadingLeads(false)
+    }
+  }
+
+  const handleImportLead = async (leadId: string) => {
+    try {
+      const res = await fetch('/api/creator/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leadId })
+      })
+      if (!res.ok) throw new Error()
+      toast.success('Lead importado para o CRM!')
+      // Optionally update state to show it's imported
+    } catch (err) {
+      toast.error('Erro ao importar lead')
     }
   }
 
@@ -499,8 +508,16 @@ export default function CNPJPage() {
                               </div>
                             )}
                           </div>
-                          <div className="mt-6 pt-4 border-t border-white/5 flex justify-end">
-                            <a href="/pipeline" className="text-[10px] font-bold text-primary uppercase tracking-widest flex items-center gap-2 hover:underline">Ver no CRM <ExternalLink className="w-3.5 h-3.5" /></a>
+                          <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between">
+                            <button 
+                              onClick={() => handleImportLead(lead.id)}
+                              className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-500/10 px-3 py-1.5 rounded-lg transition-all"
+                            >
+                              <UserPlus className="w-3.5 h-3.5" /> Importar para CRM
+                            </button>
+                            <a href="/pipeline" className="text-[10px] font-bold text-primary uppercase tracking-widest flex items-center gap-2 hover:underline">
+                              Ver Pipeline <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
                           </div>
                         </div>
                       ))}

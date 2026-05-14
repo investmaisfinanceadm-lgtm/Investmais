@@ -34,6 +34,7 @@ model Profile {
   time             Team?                @relation(fields: [time_id], references: [id])
   videos           Video[]
   lead_searches    LeadSearchHistory[]
+  leads            Lead[]
 
   @@map("profiles")
 }
@@ -312,6 +313,30 @@ model LeadSearchHistory {
   total_leads Int     @default(0)
   created_at DateTime @default(now())
   user       Profile  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  leads      Lead[]
 
   @@map("lead_search_history")
+}
+
+model Lead {
+  id                String             @id @default(uuid())
+  search_history_id String?
+  user_id           String
+  nome              String
+  empresa           String?
+  email             String?
+  telefone          String?
+  endereco          String?
+  site              String?
+  nicho             String?
+  cidade            String?
+  estado            String?
+  notas             String?
+  origem            String             @default("Google Maps")
+  created_at        DateTime           @default(now())
+  updated_at        DateTime           @updatedAt
+  search_history    LeadSearchHistory? @relation(fields: [search_history_id], references: [id], onDelete: SetNull)
+  user              Profile            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("leads")
 }
