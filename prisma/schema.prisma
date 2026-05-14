@@ -33,6 +33,7 @@ model Profile {
   deals_atribuidos Deal[]               @relation("VendedorDeals")
   time             Team?                @relation(fields: [time_id], references: [id])
   videos           Video[]
+  lead_searches    LeadSearchHistory[]
 
   @@map("profiles")
 }
@@ -300,4 +301,17 @@ enum DealStatus {
   open
   won
   lost
+}
+model LeadSearchHistory {
+  id         String   @id @default(uuid())
+  user_id    String
+  nicho      String
+  cidade     String
+  estado     String
+  status     String   @default("processando")
+  total_leads Int     @default(0)
+  created_at DateTime @default(now())
+  user       Profile  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("lead_search_history")
 }
