@@ -112,9 +112,9 @@
   --primary-glow: 221 83% 65%;
   --primary-deep: 221 83% 35%;
 
-  /* Fundo geral: Cinza Gelo Premium para melhor destaque */
-  --background: 210 20% 90%;
-  --foreground: 222 47% 10%; 
+  /* Fundo geral: Cinza Aço para contraste máximo */
+  --background: 210 15% 85%;
+  --foreground: 221 80% 35%; 
 
   /* Cards: Brancos puros para máximo contraste */
   --card: 0 0% 100%;
@@ -175,9 +175,9 @@
       radial-gradient(ellipse 60% 50% at 100% 100%, hsl(195 100% 60% / 0.04), transparent 70%);
     background-attachment: fixed;
   }
-  /* Light mode: fundo cinza sólido para contraste */
+  /* Light mode: fundo cinza ferro sólido para contraste */
   .light body {
-    background-color: hsl(210 10% 88%);
+    background-color: hsl(210 15% 85%);
     background-image: none;
     background-attachment: fixed;
   }

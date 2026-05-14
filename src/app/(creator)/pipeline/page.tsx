@@ -1748,7 +1748,7 @@ export default function PipelinePage() {
   const totalValue = useMemo(() => (columns || []).reduce((a, c) => a + (c.cards || []).reduce((s, card) => s + (card.value || 0), 0), 0), [columns])
 
   return (
-    <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#050505] text-slate-900 dark:text-white flex flex-col transition-colors duration-300">
+    <div className="min-h-screen bg-background text-foreground flex flex-col transition-colors duration-300">
       {/* Header */}
       <div className="p-8 lg:p-10 pb-0 space-y-6">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -1758,7 +1758,7 @@ export default function PipelinePage() {
               <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
                 <Kanban className="w-5 h-5 text-primary" />
               </div>
-              <h1 className="text-2xl font-bold text-white">Pipeline</h1>
+              <h1 className="text-2xl font-bold text-foreground">Pipeline</h1>
             </div>
 
             {/* Board dropdown */}
@@ -1768,8 +1768,8 @@ export default function PipelinePage() {
                 className="flex items-center gap-2 bg-white/[0.03] border border-white/5 px-4 py-2 rounded-xl hover:border-white/10 transition-all"
               >
                 <Star className="w-3.5 h-3.5 text-amber-400" />
-                <span className="text-sm font-bold text-white/80">{currentBoard?.nome || 'Pipeline Padrão'}</span>
-                <ChevronDown className="w-4 h-4 text-white/20" />
+                <span className="text-sm font-bold text-foreground/80">{currentBoard?.nome || 'Pipeline Padrão'}</span>
+                <ChevronDown className="w-4 h-4 text-muted-foreground/40" />
               </button>
 
               <AnimatePresence>
@@ -1803,18 +1803,18 @@ export default function PipelinePage() {
           <div className="flex items-center gap-4 flex-wrap">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
               <input
                 type="text"
                 placeholder="Buscar deals..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 bg-white/[0.03] border border-white/5 rounded-xl text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/40 transition-all w-64"
+                className="pl-10 pr-4 py-2 bg-card border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/40 transition-all w-64"
               />
               {searchTerm && (
                 <button 
                   onClick={() => setSearchTerm('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-white"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-foreground"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -1882,7 +1882,7 @@ export default function PipelinePage() {
         <div className="flex items-center gap-6 pb-6 border-b border-white/5">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span className="text-xs text-white/40">{totalCards} deals ativos</span>
+            <span className="text-xs text-muted-foreground">{totalCards} deals ativos</span>
           </div>
           <div className="flex items-center gap-1 text-primary">
             <DollarSign className="w-3.5 h-3.5" />
