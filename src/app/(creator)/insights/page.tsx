@@ -54,7 +54,7 @@ export default function IAInsightsPage() {
   const [periodo, setPeriodo] = useState('Host Menos Imposto')
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-6 lg:p-10 space-y-10">
+    <div className="min-h-screen bg-background text-foreground p-6 lg:p-10 space-y-10">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-white/5 pb-10">
         <div className="space-y-4">

@@ -105,39 +105,31 @@
   --dur-700: 700ms;
 }
 
-/* Light mode — Gelo + Azul Marinho (High Contrast) */
+/* Light mode — FORCED DARK (Navy) as requested */
 .light {
-  /* Azul Royal primário */
-  --primary: 221 83% 53%;
-  --primary-glow: 221 83% 65%;
-  --primary-deep: 221 83% 35%;
+  --primary: 215 100% 50%;
+  --primary-foreground: 0 0% 100%;
+  --primary-glow: 195 100% 60%;
+  --primary-deep: 220 90% 28%;
 
-  /* Fundo geral: Cinza Aço para contraste máximo */
-  --background: 210 15% 85%;
-  --foreground: 221 80% 35%; 
+  --background: 222 47% 10%;
+  --foreground: 210 40% 98%;
 
-  /* Cards: Brancos puros para máximo contraste */
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 10%; 
-
-  /* Popover */
-  --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 10%;
-
-  /* Secundário: cinza azulado suave */
-  --secondary: 214 32% 91%;
-  --secondary-foreground: 222 47% 11%;
-
-  /* Muted */
-  --muted: 210 40% 94%;
-  --muted-foreground: 215 16% 47%; 
-
-  /* Accent */
-  --accent: 221 83% 53%;
+  --card: 222 47% 12%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222 47% 10%;
+  --popover-foreground: 210 40% 98%;
+  --secondary: 222 40% 15%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 222 30% 12%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 215 100% 50%;
   --accent-foreground: 210 40% 98%;
 
-  /* Status */
-  --destructive: 0 84% 60%;
+  --border: 220 15% 25%;
+  --input: 220 30% 10%;
+  --ring: 215 100% 55%;
+}
   --destructive-foreground: 210 40% 98%;
 
   /* Bordas: Mais escuras para destaque conforme pedido */
@@ -175,10 +167,12 @@
       radial-gradient(ellipse 60% 50% at 100% 100%, hsl(195 100% 60% / 0.04), transparent 70%);
     background-attachment: fixed;
   }
-  /* Light mode: fundo cinza ferro sólido para contraste */
+  /* Force Navy background always */
   .light body {
-    background-color: hsl(210 15% 85%);
-    background-image: none;
+    background-color: hsl(222 47% 10%);
+    background-image:
+      radial-gradient(ellipse 80% 60% at 50% -20%, hsl(215 100% 50% / 0.08), transparent 70%),
+      radial-gradient(ellipse 60% 50% at 100% 100%, hsl(195 100% 60% / 0.04), transparent 70%);
     background-attachment: fixed;
   }
 
@@ -188,10 +182,10 @@
   h4 { @apply text-base font-medium; color: hsl(var(--foreground)); }
 
   /* No light mode: headings fora de cards ficam azul escuro */
-  .light h1 { color: hsl(215 80% 20%); }
-  .light h2 { color: hsl(215 80% 20%); }
-  .light h3 { color: hsl(215 80% 22%); }
-  .light h4 { color: hsl(215 80% 25%); }
+  .light h1 { color: hsl(210 40% 98%); }
+  .light h2 { color: hsl(210 40% 98%); }
+  .light h3 { color: hsl(210 40% 98%); }
+  .light h4 { color: hsl(210 40% 98%); }
 }
 
 @layer components {

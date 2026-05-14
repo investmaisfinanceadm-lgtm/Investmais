@@ -408,7 +408,7 @@ export default function ConfiguracoesPage() {
   }, [integracoes])
 
   return (
-    <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#050505] text-slate-900 dark:text-white p-6 lg:p-10 space-y-8 transition-colors duration-300">
+    <div className="min-h-screen bg-background text-foreground p-6 lg:p-10 space-y-8 transition-colors duration-300">
       <div className="space-y-1 border-b border-white/5 pb-8">
         <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
         <p className="text-white/40 text-sm">Gerencie preferências e informações da conta</p>

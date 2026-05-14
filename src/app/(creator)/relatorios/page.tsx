@@ -58,7 +58,7 @@ export default function RelatoriosPage() {
   const [periodo, setPeriodo] = useState('Últimos 7 dias')
 
   return (
-    <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#050505] text-slate-900 dark:text-white p-6 lg:p-10 space-y-10 transition-colors duration-300">
+    <div className="min-h-screen bg-background text-foreground p-6 lg:p-10 space-y-10 transition-colors duration-300">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
         <div className="space-y-1">

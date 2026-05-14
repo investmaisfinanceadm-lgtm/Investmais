@@ -615,7 +615,7 @@ export default function AtividadesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-6 lg:p-10 space-y-10">
+    <div className="min-h-screen bg-background text-foreground p-6 lg:p-10 space-y-10">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
         <div className="space-y-4">

@@ -247,7 +247,7 @@ export default function CriarPage() {
 
     if (generatedVideo) {
         return (
-            <div className="min-h-screen bg-[#050505] p-6 lg:p-10 space-y-10">
+            <div className="min-h-screen bg-background p-6 lg:p-10 space-y-10">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-8 border-b border-white/5 pb-10">
                     <div className="space-y-2">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest">
@@ -334,7 +334,7 @@ export default function CriarPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#050505] p-6 lg:p-10 space-y-12">
+        <div className="min-h-screen bg-background p-6 lg:p-10 space-y-12">
             {/* Steps Header */}
             <div className="flex items-center gap-4 justify-center">
                 {[0, 1, 2].map((s) => (

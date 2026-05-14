@@ -159,7 +159,7 @@ export default function BibliotecaPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#050505] p-6 lg:p-10 space-y-10">
+        <div className="min-h-screen bg-background p-6 lg:p-10 space-y-10">
             {/* Header Actions */}
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-white/5 pb-10">
                 <div className="space-y-1">
