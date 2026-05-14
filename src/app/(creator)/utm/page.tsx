@@ -45,6 +45,26 @@ function StatCard({ label, value, subtext, icon: Icon, color }: any) {
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function UTMAnalyticsPage() {
   const [periodo, setPeriodo] = useState('Todos os produtos')
+  const [data, setData] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/creator/utm')
+      .then(res => res.json())
+      .then(setData)
+      .catch(console.error)
+      .finally(() => setIsLoading(false))
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background text-foreground p-6 lg:p-10 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      </div>
+    )
+  }
+
+  const { stats, campaigns } = data || { stats: {}, campaigns: [] }
 
   return (
     <div className="min-h-screen bg-background text-foreground p-6 lg:p-10 space-y-10">
@@ -65,11 +85,11 @@ export default function UTMAnalyticsPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        <StatCard label="Leads" value="353" subtext="Contatos com UTM" icon={Users} color="bg-primary/10 border-primary/20 text-primary" />
-        <StatCard label="Deals Criados" value="288" subtext="Oportunidades abertas" icon={Target} color="bg-blue-500/10 border-blue-500/20 text-blue-400" />
-        <StatCard label="Em Pipeline" value="280" subtext="R$ 1.400.000 em valor" icon={Activity} color="bg-emerald-500/10 border-emerald-500/20 text-emerald-400" />
-        <StatCard label="Taxa de Conversão" value="0.3%" subtext="Lead → Deal ganho" icon={TrendingUp} color="bg-amber-500/10 border-amber-500/20 text-amber-500" />
-        <StatCard label="Receita" value="R$ 5.000" subtext="Deals ganhos" icon={DollarSign} color="bg-primary/10 border-primary/20 text-primary" />
+        <StatCard label="Leads" value={stats?.totalLeads || 0} subtext="Contatos com origem" icon={Users} color="bg-primary/10 border-primary/20 text-primary" />
+        <StatCard label="Deals Criados" value={stats?.dealsCriados || 0} subtext="Oportunidades abertas" icon={Target} color="bg-blue-500/10 border-blue-500/20 text-blue-400" />
+        <StatCard label="Em Pipeline" value={stats?.emPipeline || 0} subtext="Em negociação" icon={Activity} color="bg-emerald-500/10 border-emerald-500/20 text-emerald-400" />
+        <StatCard label="Taxa de Conversão" value={`${(stats?.taxaConversao || 0).toFixed(1)}%`} subtext="Lead → Deal ganho" icon={TrendingUp} color="bg-amber-500/10 border-amber-500/20 text-amber-500" />
+        <StatCard label="Receita" value={(stats?.totalFaturamento || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} subtext="Deals ganhos" icon={DollarSign} color="bg-primary/10 border-primary/20 text-primary" />
       </div>
 
       {/* Tabs */}
@@ -98,7 +118,7 @@ export default function UTMAnalyticsPage() {
             <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} className="h-20 bg-primary relative flex items-center justify-center overflow-hidden" style={{ clipPath: 'polygon(0% 0%, 100% 0%, 90% 100%, 10% 100%)' }}>
               <div className="text-center">
                 <p className="text-[8px] font-bold uppercase text-black/60">Fontes</p>
-                <p className="text-lg font-bold text-black">1</p>
+                <p className="text-lg font-bold text-black">{campaigns?.length || 0}</p>
               </div>
             </motion.div>
             
@@ -106,37 +126,34 @@ export default function UTMAnalyticsPage() {
             <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 0.1 }} className="h-20 bg-blue-500 relative flex items-center justify-center overflow-hidden" style={{ clipPath: 'polygon(10% 0%, 90% 0%, 75% 100%, 25% 100%)' }}>
               <div className="text-center">
                 <p className="text-[8px] font-bold uppercase text-black/60">Leads</p>
-                <p className="text-lg font-bold text-black">353</p>
+                <p className="text-lg font-bold text-black">{stats?.totalLeads || 0}</p>
               </div>
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white/40 px-4">35300%</div>
             </motion.div>
 
             {/* Deals */}
             <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 0.2 }} className="h-20 bg-emerald-500 relative flex items-center justify-center overflow-hidden" style={{ clipPath: 'polygon(25% 0%, 75% 0%, 65% 100%, 35% 100%)' }}>
               <div className="text-center">
                 <p className="text-[8px] font-bold uppercase text-black/60">Deals</p>
-                <p className="text-lg font-bold text-black">288</p>
+                <p className="text-lg font-bold text-black">{stats?.dealsCriados || 0}</p>
               </div>
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white/40 px-4">82%</div>
             </motion.div>
 
             {/* Ganhos */}
             <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 0.3 }} className="h-20 bg-primary relative flex items-center justify-center overflow-hidden" style={{ clipPath: 'polygon(35% 0%, 65% 0%, 60% 100%, 40% 100%)' }}>
               <div className="text-center">
                 <p className="text-[8px] font-bold uppercase text-black/60">Ganhos</p>
-                <p className="text-lg font-bold text-black">1</p>
+                <p className="text-lg font-bold text-black">{campaigns?.reduce((a: any, b: any) => a + b.won, 0) || 0}</p>
               </div>
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white/40 px-4">0%</div>
             </motion.div>
           </div>
 
           <div className="w-full flex justify-around items-center pt-8 border-t border-white/5">
             <div className="text-center space-y-1">
-              <p className="text-3xl font-bold text-primary">82%</p>
+              <p className="text-3xl font-bold text-primary">{stats?.totalLeads ? ((stats.dealsCriados / stats.totalLeads) * 100).toFixed(1) : 0}%</p>
               <p className="text-[9px] font-bold text-white/20 uppercase tracking-[0.2em]">Lead → Deal</p>
             </div>
             <div className="text-center space-y-1">
-              <p className="text-3xl font-bold text-primary">0%</p>
+              <p className="text-3xl font-bold text-primary">{stats?.dealsCriados ? (((campaigns?.reduce((a: any, b: any) => a + b.won, 0) || 0) / stats.dealsCriados) * 100).toFixed(1) : 0}%</p>
               <p className="text-[9px] font-bold text-white/20 uppercase tracking-[0.2em]">Deal → Ganho</p>
             </div>
           </div>
@@ -150,33 +167,31 @@ export default function UTMAnalyticsPage() {
           </div>
           
           <div className="flex-1 space-y-4 overflow-y-auto scrollbar-none pr-2">
-            {[
-              { id: 1, name: 'HMI - Meta Ads (WhatsApp)', leads: 288, deals: 288, value: 'R$ 5.000', conv: '0%', color: 'text-primary' },
-              { id: 2, name: 'Direto', leads: 75, deals: 22, value: 'R$ 110.000', conv: '0%', status: 'Em pipeline' },
-              { id: 3, name: 'CJ 03 [VID] SOFT', leads: 5, deals: 0, value: '0', conv: '0%' },
-              { id: 4, name: 'PA', leads: 5, deals: 0, value: '0', conv: '0%' },
-              { id: 5, name: 'CJ 02 [IMG] SOFT', leads: 2, deals: 0, value: '0', conv: '0%' },
-            ].map((camp, i) => (
+            {campaigns?.length > 0 ? campaigns.map((camp: any) => (
               <div key={camp.id} className="bg-white/[0.02] border border-white/5 p-6 rounded-2xl flex flex-col gap-4 group hover:border-primary/20 transition-all">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
                     <span className="text-[10px] font-bold text-white/20 tracking-widest">#{camp.id}</span>
                     <h4 className="text-xs font-bold text-white">{camp.name}</h4>
                   </div>
-                  <span className={cn("text-xs font-bold", camp.id === 1 ? 'text-primary' : camp.id === 2 ? 'text-amber-500' : 'text-white/40')}>{camp.value}</span>
+                  <span className={cn("text-xs font-bold", camp.id === 1 ? 'text-primary' : 'text-white/40')}>{camp.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <span className="bg-white/[0.03] border border-white/5 px-4 py-1 rounded-full text-[9px] font-bold text-white/40">{camp.leads} leads</span>
                     <span className="bg-white/[0.03] border border-white/5 px-4 py-1 rounded-full text-[9px] font-bold text-white/40">{camp.deals} deals</span>
-                    {camp.id === 1 && <span className="bg-primary/10 text-primary border border-primary/20 px-4 py-1 rounded-full text-[9px] font-bold">1 ganhos</span>}
+                    {camp.won > 0 && <span className="bg-primary/10 text-primary border border-primary/20 px-4 py-1 rounded-full text-[9px] font-bold">{camp.won} ganhos</span>}
                     {camp.status && <span className="bg-white/[0.03] border border-white/5 px-4 py-1 rounded-full text-[9px] font-bold text-white/20 italic">{camp.status}</span>}
                   </div>
                   <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest">{camp.conv} conv.</span>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="text-center text-white/20 py-10 text-xs font-bold uppercase tracking-widest">
+                Nenhuma campanha registrada
+              </div>
+            )}
           </div>
         </div>
 

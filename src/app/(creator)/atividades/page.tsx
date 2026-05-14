@@ -495,6 +495,7 @@ export default function AtividadesPage() {
   const [activities, setActivities] = useState<Activity[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [view, setView] = useState<'Mês' | 'Semana'>('Mês')
+  const [displayMode, setDisplayMode] = useState<'calendar' | 'list'>('calendar')
   const [statusFilter, setStatusFilter] = useState('todas')
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth())
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear())
@@ -682,12 +683,13 @@ export default function AtividadesPage() {
             </button>
           ))}
           <div className="w-[1px] h-4 bg-white/5 mx-1" />
-          <button className="p-2 text-white/40 hover:text-white transition-all"><List className="w-4 h-4" /></button>
-          <button className="p-2 text-primary transition-all"><LayoutGrid className="w-4 h-4" /></button>
+          <button onClick={() => setDisplayMode('list')} className={cn("p-2 transition-all rounded-lg", displayMode === 'list' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white')}><List className="w-4 h-4" /></button>
+          <button onClick={() => setDisplayMode('calendar')} className={cn("p-2 transition-all rounded-lg", displayMode === 'calendar' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white')}><LayoutGrid className="w-4 h-4" /></button>
         </div>
       </div>
 
       {/* Calendar Grid */}
+      {displayMode === 'calendar' ? (
       <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
         {/* Calendar Header */}
         <div className="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
@@ -801,6 +803,48 @@ export default function AtividadesPage() {
           </div>
         )}
       </div>
+      ) : (
+        <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden shadow-2xl p-6">
+          {isLoading ? (
+            <div className="space-y-4">
+              {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-16 bg-white/5 rounded-2xl animate-pulse" />)}
+            </div>
+          ) : filteredActivities.length === 0 ? (
+            <div className="py-20 text-center space-y-4">
+              <CheckCircle2 className="w-10 h-10 text-white/10 mx-auto" />
+              <p className="text-white/20 text-xs font-bold uppercase tracking-widest">Nenhuma atividade encontrada</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredActivities.sort((a,b) => new Date(b.data).getTime() - new Date(a.data).getTime()).map(activity => {
+                const cfg = TIPO_CONFIG[activity.tipo] || TIPO_CONFIG.note
+                const Icon = cfg.Icon
+                const isConcluida = activity.status === 'concluida'
+                return (
+                  <div key={activity.id} className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-2xl bg-white/[0.01] border border-white/5 hover:bg-white/[0.03] transition-all group">
+                    <div className="flex items-center gap-4">
+                      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border", cfg.bg, cfg.border, cfg.color, isConcluida && 'opacity-40')}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h4 className={cn("text-sm font-bold text-white", isConcluida && 'line-through opacity-40')}>{activity.titulo || activity.descricao}</h4>
+                        <p className="text-xs text-white/40">{activity.contato.nome} {activity.contato.empresa ? `• ${activity.contato.empresa}` : ''}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className="text-xs text-white/60">{formatDate(activity.data)}</p>
+                        <p className="text-[10px] text-white/40">{formatTime(activity.data)}</p>
+                      </div>
+                      <button onClick={() => setSelectedActivity(activity)} className="px-4 py-2 rounded-xl bg-white/[0.03] border border-white/5 text-xs font-bold text-white/60 hover:text-white transition-all">Ver Detalhes</button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Activity Detail Drawer */}
       <AnimatePresence>

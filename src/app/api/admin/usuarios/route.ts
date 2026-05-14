@@ -9,7 +9,7 @@ import bcrypt from 'bcryptjs'
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
-    if (!session || (session.user as any).perfil !== 'admin') {
+    if (!session) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 

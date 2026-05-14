@@ -31,11 +31,11 @@ function StatCard({ label, value, trend, trendValue, icon: Icon, color }: any) {
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white/[0.03] border border-white/5 p-8 rounded-3xl space-y-4 group hover:bg-white/[0.05] transition-all"
+      className="bg-white/[0.03] border border-white/5 p-5 rounded-2xl space-y-3 group hover:bg-white/[0.05] transition-all"
     >
       <div className="flex items-center justify-between">
-        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center border", color)}>
-          <Icon className="w-6 h-6" />
+        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border", color)}>
+          <Icon className="w-5 h-5" />
         </div>
         {trend && (
           <div className={cn("flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider", trend === 'up' ? 'text-emerald-500' : 'text-red-500')}>
@@ -45,8 +45,8 @@ function StatCard({ label, value, trend, trendValue, icon: Icon, color }: any) {
         )}
       </div>
       <div>
-        <p className="text-3xl font-bold text-white tracking-tight">{value}</p>
-        <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-1">{label}</p>
+        <p className="text-2xl font-bold text-white tracking-tight">{value}</p>
+        <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest mt-1">{label}</p>
       </div>
     </motion.div>
   )

@@ -583,20 +583,48 @@ export default function ConfiguracoesPage() {
           </motion.div>
         )}
 
-        {/* ── Disparo ── */}
+        {/* ── Disparo e Webhooks ── */}
         {activeTab === 'Disparo' && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="bg-white/[0.03] border border-white/5 rounded-[32px] p-10 space-y-8">
-            <div><h2 className="text-xl font-bold">Automação de Disparos</h2><p className="text-sm text-white/20 mt-1">Webhook configurado para disparo de mensagens</p></div>
-            <div>
-              <label className={lbl}>Webhook de Disparo (WhatsApp / N8N)</label>
-              <div className="flex gap-2">
-                <input value={disparoWebhook} onChange={e => setDisparoWebhook(e.target.value)} placeholder="https://..." className={inp} />
-                {disparoWebhook && <button onClick={() => copyToClipboard(disparoWebhook)} className="w-11 h-11 flex-shrink-0 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all"><Copy className="w-4 h-4" /></button>}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="bg-white/[0.03] border border-white/5 rounded-[32px] p-10 space-y-12">
+            
+            {/* Entrada (N8N) */}
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-emerald-500" /> Webhook de Entrada (N8N)
+                </h2>
+                <p className="text-sm text-white/20 mt-1">Use esta URL no N8N para enviar leads automaticamente para o CRM (tabela Lead).</p>
+              </div>
+              <div>
+                <div className="flex gap-2">
+                  <input readOnly value="https://app.investmais.com/api/creator/crm/n8n-leads" className={inp + ' text-emerald-500/80 font-mono'} />
+                  <button onClick={() => copyToClipboard("https://app.investmais.com/api/creator/crm/n8n-leads")} className="w-11 h-11 flex-shrink-0 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all"><Copy className="w-4 h-4" /></button>
+                </div>
               </div>
             </div>
-            <button onClick={() => saveIntegracao('whatsapp', { configuracoes: { webhook_url: disparoWebhook } })} className="bg-primary px-8 py-3 rounded-xl text-white text-[11px] font-bold uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
-              <Save className="w-4 h-4" /> Salvar Webhook
-            </button>
+
+            <div className="w-full h-px bg-white/5" />
+
+            {/* Saída (Disparo) */}
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <Send className="w-5 h-5 text-blue-500" /> Automação de Disparos (Saída)
+                </h2>
+                <p className="text-sm text-white/20 mt-1">URL do seu painel disparador (Evolution/N8N) para onde o CRM enviará as campanhas.</p>
+              </div>
+              <div>
+                <label className={lbl}>URL de Destino</label>
+                <div className="flex gap-2">
+                  <input value={disparoWebhook} onChange={e => setDisparoWebhook(e.target.value)} placeholder="https://seu-n8n.com/webhook/disparo" className={inp} />
+                  {disparoWebhook && <button onClick={() => copyToClipboard(disparoWebhook)} className="w-11 h-11 flex-shrink-0 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all"><Copy className="w-4 h-4" /></button>}
+                </div>
+              </div>
+              <button onClick={() => saveIntegracao('whatsapp', { configuracoes: { webhook_url: disparoWebhook } })} className="bg-primary px-8 py-3 rounded-xl text-white text-[11px] font-bold uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+                <Save className="w-4 h-4" /> Salvar URL de Saída
+              </button>
+            </div>
+
           </motion.div>
         )}
 

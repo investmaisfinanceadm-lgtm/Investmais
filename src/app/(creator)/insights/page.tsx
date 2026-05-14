@@ -51,7 +51,33 @@ function IAStatCard({ label, value, trend, trendValue, icon: Icon, color }: any)
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function IAInsightsPage() {
-  const [periodo, setPeriodo] = useState('Host Menos Imposto')
+  const [periodo, setPeriodo] = useState('Geral')
+  const [data, setData] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  const fetchData = () => {
+    setIsLoading(true)
+    fetch('/api/creator/insights')
+      .then(res => res.json())
+      .then(setData)
+      .catch(console.error)
+      .finally(() => setIsLoading(false))
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background text-foreground p-6 lg:p-10 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      </div>
+    )
+  }
+
+  const { stats, stagesData, temposMedios, roiData, motivosData, totalLost } = data || {}
+  const bgColors = ['bg-primary', 'bg-blue-500', 'bg-emerald-500', 'bg-amber-500', 'bg-red-500', 'bg-purple-500']
 
   return (
     <div className="min-h-screen bg-background text-foreground p-6 lg:p-10 space-y-10">
@@ -74,7 +100,7 @@ export default function IAInsightsPage() {
               <ChevronDown className="w-4 h-4 text-white/20 group-hover:text-primary transition-colors" />
             </button>
           </div>
-          <button className="bg-white/[0.03] border border-white/10 p-3 rounded-xl text-white/40 hover:text-white transition-all"><RefreshCw className="w-5 h-5" /></button>
+          <button onClick={fetchData} className="bg-white/[0.03] border border-white/10 p-3 rounded-xl text-white/40 hover:text-white transition-all"><RefreshCw className="w-5 h-5" /></button>
           <button className="bg-primary px-8 py-3 rounded-xl text-white text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-primary/20 hover:scale-105 transition-all">
             <Download className="w-4 h-4" /> Exportar
           </button>
@@ -83,10 +109,10 @@ export default function IAInsightsPage() {
 
       {/* IA Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <IAStatCard label="Total de Negócios" value="288" trend="up" trendValue="+12%" icon={Target} color="bg-primary/10 border-primary/20 text-primary" />
-        <IAStatCard label="Taxa de Conversão" value="12.5%" trend="down" trendValue="-3%" icon={TrendingUp} color="bg-blue-500/10 border-blue-500/20 text-blue-400" />
-        <IAStatCard label="Valor Total Ganho" value="R$ 5.000" trend="up" trendValue="+15%" icon={DollarSign} color="bg-emerald-500/10 border-emerald-500/20 text-emerald-400" />
-        <IAStatCard label="Negócios em Risco" value="0" trend="up" trendValue="Normal" icon={AlertCircle} color="bg-white/5 border-white/10 text-white/40" />
+        <IAStatCard label="Total de Negócios" value={stats?.totalNegocios || 0} trend="up" trendValue="+0%" icon={Target} color="bg-primary/10 border-primary/20 text-primary" />
+        <IAStatCard label="Taxa de Conversão" value={`${(stats?.taxaConversao || 0).toFixed(1)}%`} trend="up" trendValue="+0%" icon={TrendingUp} color="bg-blue-500/10 border-blue-500/20 text-blue-400" />
+        <IAStatCard label="Valor Total Ganho" value={(stats?.valorTotalGanho || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} trend="up" trendValue="+0%" icon={DollarSign} color="bg-emerald-500/10 border-emerald-500/20 text-emerald-400" />
+        <IAStatCard label="Negócios em Risco" value={stats?.negociosRisco || 0} trend={stats?.negociosRisco > 0 ? "down" : "up"} trendValue="Atenção" icon={AlertCircle} color="bg-white/5 border-white/10 text-white/40" />
       </div>
 
       {/* Tabs */}
@@ -109,17 +135,8 @@ export default function IAInsightsPage() {
             <h3 className="text-lg font-bold">Tendência Mensal</h3>
             <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest">Negócios criados vs fechados</p>
           </div>
-          <div className="h-64 relative mt-10">
-            {/* Axis Mock */}
-            <div className="absolute inset-0 border-l border-b border-white/10" />
-            {/* Lines Mock - May peak as in screenshot */}
-            <svg className="w-full h-full" viewBox="0 0 500 200">
-               <path d="M0,180 L100,185 L200,180 L300,170 L400,20 L500,80" fill="none" stroke="currentColor" strokeWidth="3" className="text-primary drop-shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]" />
-               <path d="M0,195 L100,198 L200,195 L300,190 L400,180 L500,185" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-500" />
-            </svg>
-            <div className="flex justify-between mt-4 text-[10px] font-bold text-white/20 uppercase tracking-widest">
-              <span>Dez.</span><span>Jan.</span><span>Fev.</span><span>Mar.</span><span>Abr.</span><span>Mai.</span>
-            </div>
+          <div className="h-64 relative mt-10 flex items-center justify-center">
+             <p className="text-white/20 text-xs font-bold uppercase tracking-widest">Gráfico em desenvolvimento</p>
           </div>
           <div className="flex items-center gap-6 justify-center">
             <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-primary" /><span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Criados</span></div>
@@ -132,25 +149,21 @@ export default function IAInsightsPage() {
         <div className="bg-white/[0.03] border border-white/5 rounded-[32px] p-10 space-y-8">
            <div className="flex flex-col gap-1">
             <h3 className="text-lg font-bold">Conversão por Estágio</h3>
-            <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest">Taxa de conversão em cada fase</p>
+            <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest">Distribuição de deals em aberto</p>
           </div>
-          <div className="h-64 flex items-end justify-around gap-4 pb-4">
-             <div className="flex-1 flex flex-col items-center gap-4">
-                <div className="w-full bg-primary/5 rounded-lg h-[5%]" />
-                <span className="text-[8px] font-bold text-white/20 uppercase text-center">Nova Lead</span>
-             </div>
-             <div className="flex-1 flex flex-col items-center gap-4">
-                <div className="w-full bg-primary/80 rounded-lg h-[65%] shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]" />
-                <span className="text-[8px] font-bold text-white/20 uppercase text-center">Reunião Marcada</span>
-             </div>
-             <div className="flex-1 flex flex-col items-center gap-4">
-                <div className="w-full bg-primary/20 rounded-lg h-[15%]" />
-                <span className="text-[8px] font-bold text-white/20 uppercase text-center">Negociação</span>
-             </div>
-             <div className="flex-1 flex flex-col items-center gap-4">
-                <div className="w-full bg-primary/5 rounded-lg h-[5%]" />
-                <span className="text-[8px] font-bold text-white/20 uppercase text-center">Base Lead</span>
-             </div>
+          <div className="h-64 flex items-end justify-around gap-4 pb-4 overflow-x-auto scrollbar-none">
+             {stagesData?.map((stage: any, i: number) => (
+                <div key={stage.id} className="flex-1 flex flex-col items-center gap-4 min-w-[50px]">
+                  <div 
+                    className={cn("w-full rounded-lg transition-all", bgColors[i % bgColors.length])} 
+                    style={{ height: `${Math.max(5, stage.percent)}%` }}
+                  />
+                  <span className="text-[8px] font-bold text-white/20 uppercase text-center line-clamp-2" title={`${stage.nome} (${stage.count})`}>
+                    {stage.nome}
+                    <br/><span className="text-white">{stage.count}</span>
+                  </span>
+                </div>
+             ))}
           </div>
         </div>
       </div>
@@ -164,14 +177,7 @@ export default function IAInsightsPage() {
               <h3 className="text-sm font-bold uppercase tracking-widest">Tempo Médio por Estágio</h3>
            </div>
            <div className="space-y-6">
-              {[
-                { label: 'Nova Lead', val: '11.8 dias', p: 100 },
-                { label: 'Qualificação', val: '4.2 dias', p: 40 },
-                { label: 'Reunião Marcada', val: '2.5 dias', p: 25 },
-                { label: 'Reunião Realizada', val: '1.4 dias', p: 15 },
-                { label: 'Negociação', val: '1.9 dias', p: 20 },
-                { label: 'Follow up', val: '6 dias', p: 60 },
-              ].map((stage, i) => (
+              {temposMedios?.map((stage: any, i: number) => (
                 <div key={i} className="space-y-2">
                   <div className="flex justify-between text-[9px] font-bold uppercase tracking-widest">
                     <span className="text-white/60">{stage.label}</span>
@@ -189,22 +195,23 @@ export default function IAInsightsPage() {
         <div className="bg-white/[0.03] border border-white/5 rounded-[32px] p-10 space-y-8">
            <div className="flex flex-col gap-1">
             <h3 className="text-sm font-bold uppercase tracking-widest">ROI por Origem</h3>
-            <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest">Melhores fontes de leads</p>
+            <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest">Melhores fontes de conversão</p>
           </div>
           <div className="space-y-6 pt-4">
-             {[
-               { label: 'Meta Ads', val: '1.244 ganhos', color: 'bg-emerald-500' },
-               { label: 'Desconhecido', val: '0 ganhos', color: 'bg-blue-500' },
-               { label: 'meta_ads', val: '0 ganhos', color: 'bg-amber-500' },
-             ].map((roi, i) => (
+             {roiData?.length > 0 ? roiData.map((roi: any, i: number) => (
                <div key={i} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={cn("w-2 h-2 rounded-full", roi.color)} />
+                    <div className={cn("w-2 h-2 rounded-full", bgColors[i % bgColors.length])} />
                     <span className="text-[10px] font-bold text-white/60 uppercase tracking-widest">{roi.label}</span>
                   </div>
-                  <span className="text-[10px] font-bold text-white">0%</span>
+                  <div className="flex flex-col items-end">
+                    <span className="text-[10px] font-bold text-white">{roi.percent}%</span>
+                    <span className="text-[8px] text-white/40">{roi.val}</span>
+                  </div>
                </div>
-             ))}
+             )) : (
+               <p className="text-xs text-white/40 text-center py-4">Sem dados suficientes</p>
+             )}
           </div>
         </div>
 
@@ -213,29 +220,36 @@ export default function IAInsightsPage() {
            <div className="flex flex-col gap-1">
             <h3 className="text-sm font-bold uppercase tracking-widest">Motivos de Perda</h3>
           </div>
-          <div className="aspect-square relative flex items-center justify-center">
-             <div className="w-full h-full rounded-full border-[15px] border-white/5" />
-             <div className="absolute inset-0 p-4">
-                <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="40" fill="transparent" stroke="currentColor" strokeWidth="15" strokeDasharray="144 251.2" className="text-emerald-500" />
-                  <circle cx="50" cy="50" r="40" fill="transparent" stroke="currentColor" strokeWidth="15" strokeDasharray="107 251.2" strokeDashoffset="-144" className="text-blue-500" />
-                </svg>
+          
+          {motivosData?.length > 0 ? (
+            <>
+              <div className="aspect-square relative flex items-center justify-center">
+                 <div className="w-full h-full rounded-full border-[15px] border-white/5" />
+                 <div className="absolute inset-0 p-4">
+                    <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="40" fill="transparent" stroke="currentColor" strokeWidth="15" strokeDasharray={`${(motivosData[0].percent / 100) * 251.2} 251.2`} className="text-emerald-500" />
+                    </svg>
+                 </div>
+                 <div className="absolute flex flex-col items-center">
+                    <p className="text-3xl font-bold">{motivosData[0].percent}%</p>
+                    <p className="text-[8px] font-bold text-white/20 uppercase tracking-widest text-center px-4">{motivosData[0].label}</p>
+                 </div>
+              </div>
+              <div className="space-y-4">
+                 {motivosData.map((motivo: any, i: number) => (
+                   <div key={i} className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest">
+                     <div className="flex items-center gap-2"><div className={cn("w-2 h-2 rounded-full", i===0 ? 'bg-emerald-500' : 'bg-blue-500')} /> <span className="text-white/40 truncate max-w-[150px]">{motivo.label}</span></div>
+                     <span className="text-white">{motivo.percent}%</span>
+                   </div>
+                 ))}
+              </div>
+            </>
+          ) : (
+             <div className="flex flex-col items-center justify-center h-full pb-10">
+                <CheckCircle2 className="w-10 h-10 text-emerald-500/50 mb-4" />
+                <p className="text-white/40 text-xs font-bold uppercase tracking-widest text-center">Nenhum deal perdido registrado!</p>
              </div>
-             <div className="absolute flex flex-col items-center">
-                <p className="text-3xl font-bold">57%</p>
-                <p className="text-[8px] font-bold text-white/20 uppercase tracking-widest">Principal Motivo</p>
-             </div>
-          </div>
-          <div className="space-y-4">
-             <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest">
-               <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500" /> <span className="text-white/40">Não é o público-alvo</span></div>
-               <span className="text-white">57%</span>
-             </div>
-             <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest">
-               <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500" /> <span className="text-white/40">Sem interesse</span></div>
-               <span className="text-white">43%</span>
-             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
