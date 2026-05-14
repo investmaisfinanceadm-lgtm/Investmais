@@ -157,6 +157,8 @@ const KanbanCardItem = memo(({
   onToggleSelect: (id: string) => void
   index: number
   isDragDisabled?: boolean
+  vendedores?: Vendor[]
+  onUpdateVendedor?: (cardId: string, vendedorId: string) => void
 }) => {
   const isEmerald = card.category === 'LEAD AP'
 
@@ -220,7 +222,7 @@ const KanbanCardItem = memo(({
 
           {/* Badges */}
           <div className="flex flex-col gap-1.5 mb-4">
-            <div className="flex items-center gap-2 w-fit px-2.5 py-1 rounded-full bg-primary/5 border border-primary/10">
+            <div className="flex items-center gap-2 w-fit px-2.5 py-1 rounded-full bg-primary/5 border border-primary/10 relative group">
               <div className="w-4 h-4 rounded-full overflow-hidden bg-primary/20 flex items-center justify-center flex-shrink-0">
                 {card.responsible?.avatar_url ? (
                   <img src={card.responsible.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -229,6 +231,23 @@ const KanbanCardItem = memo(({
                 )}
               </div>
               <span className="text-[9px] font-bold text-primary uppercase tracking-wide">{card.responsible?.name || 'N/A'}</span>
+              
+              {/* Quick Vendor Select on Card */}
+              {vendedores && onUpdateVendedor && (
+                <select 
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => {
+                    if (e.target.value) onUpdateVendedor(card.id, e.target.value)
+                  }}
+                  value={(vendedores || []).find(v => v.nome === card.responsible?.name)?.id || ''}
+                >
+                  <option value="">Sem responsável</option>
+                  {(vendedores || []).map(v => (
+                    <option key={v.id} value={v.id}>{v.nome}</option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div className={cn('flex items-center gap-2 w-fit px-2.5 py-1 rounded-full border', isEmerald ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-400')}>
@@ -272,6 +291,8 @@ function KanbanColumnComponent({
   selectedCards: Set<string>
   onToggleSelect: (id: string) => void
   isDragDisabled?: boolean
+  vendedores?: Vendor[]
+  onUpdateVendedor?: (cardId: string, vendedorId: string) => void
 }) {
   const totalValue = (column.cards || []).reduce((sum, c) => sum + (c.value || 0), 0)
 
@@ -314,6 +335,8 @@ function KanbanColumnComponent({
                   isSelected={selectedCards.has(card.id)}
                   onToggleSelect={onToggleSelect}
                   isDragDisabled={isDragDisabled}
+                  vendedores={vendedores}
+                  onUpdateVendedor={onUpdateVendedor}
                 />
               ))}
             </AnimatePresence>
@@ -635,9 +658,13 @@ function CardDetailModal({
   const [isUpdatingDeal, setIsUpdatingDeal] = useState(false)
 
   const isEmerald = card.category === 'LEAD AP'
-  const initials = card.linkedContact?.name
-    ? card.linkedContact.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
-    : '?'
+  const initials = (card.linkedContact?.name || '')
+    .split(' ')
+    .filter(Boolean)
+    .map(n => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() || '?'
 
   useEffect(() => {
     if (activeTab !== 'atividades') return
@@ -950,13 +977,12 @@ function CardDetailModal({
                     <div>
                       <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1.5">Responsável</p>
                       <select
-                        value={vendedores.find(v => v.nome === card.responsible?.name)?.id || ''}
+                        value={(vendedores || []).find(v => v.nome === card.responsible?.name)?.id || ''}
                         onChange={e => handleUpdateDeal({ vendedor_id: e.target.value })}
-                        disabled={userPerfil !== 'admin'}
-                        className="bg-transparent text-sm text-white/80 font-bold outline-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                        className="bg-transparent text-sm text-white/80 font-bold outline-none cursor-pointer hover:text-white"
                       >
                         <option value="" className="bg-[#0A0A0B]">Sem responsável</option>
-                        {vendedores.map(v => (
+                        {(vendedores || []).map(v => (
                           <option key={v.id} value={v.id} className="bg-[#0A0A0B]">{v.nome}</option>
                         ))}
                       </select>
@@ -1747,6 +1773,22 @@ export default function PipelinePage() {
   const totalCards = useMemo(() => (columns || []).reduce((a, c) => a + (c.cards?.length || 0), 0), [columns])
   const totalValue = useMemo(() => (columns || []).reduce((a, c) => a + (c.cards || []).reduce((s, card) => s + (card.value || 0), 0), 0), [columns])
 
+  const handleUpdateVendedorOnCard = async (cardId: string, vendedorId: string) => {
+    try {
+      const res = await fetch(`/api/creator/pipeline/cards/${cardId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vendedor_id: vendedorId }),
+      })
+      if (res.ok) {
+        toast.success('Vendedor atualizado!')
+        loadPipeline(currentBoardId || undefined)
+      }
+    } catch {
+      toast.error('Erro ao atualizar vendedor')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col transition-colors duration-300">
       {/* Header */}
@@ -1917,6 +1959,8 @@ export default function PipelinePage() {
                   selectedCards={selectedCards}
                   onToggleSelect={toggleSelect}
                   isDragDisabled={isSelectMode || !!searchTerm}
+                  vendedores={vendedores}
+                  onUpdateVendedor={handleUpdateVendedorOnCard}
                 />
               ))}
             </div>
