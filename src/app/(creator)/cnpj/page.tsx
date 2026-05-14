@@ -7,7 +7,7 @@ import {
   Briefcase, DollarSign, Users, Clock, ChevronDown, Filter, Eye,
   Shield, Activity, Globe, Database, Target, Zap, Layers, Cpu,
   ExternalLink, BarChart2, Smartphone, Monitor, ArrowUpRight, Fingerprint,
-  Save
+  Save, Loader2
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -91,6 +91,27 @@ export default function CNPJPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<CNPJResult | null>(null)
   const [errorState, setErrorState] = useState<'invalid' | 'notfound' | 'apierror' | 'ratelimit' | null>(null)
+  const [leadHistory, setLeadHistory] = useState<any[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
+
+  const loadLeadHistory = useCallback(async () => {
+    setLoadingHistory(true)
+    try {
+      const res = await fetch('/api/creator/crm')
+      const data = await res.json()
+      // Filter leads that come from Google Maps/Search if possible, or just show recent
+      const googleLeads = data.filter((c: any) => c.canal_origem === 'Google Maps' || c.nicho || c.cidade)
+      setLeadHistory(googleLeads.slice(0, 10))
+    } catch (err) {
+      console.error('Erro ao carregar histórico:', err)
+    } finally {
+      setLoadingHistory(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (activeTab === 'google') loadLeadHistory()
+  }, [activeTab, loadLeadHistory])
 
   const handleConsultar = async () => {
     if (!validarCNPJ(cnpjInput)) { setErrorState('invalid'); setResult(null); return }
@@ -232,6 +253,91 @@ export default function CNPJPage() {
                           Disparar Busca
                       </button>
                   </form>
+              </div>
+
+              {/* Histórico de Extração */}
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-white/40" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white uppercase tracking-widest">Leads Extraídos Recentemente</h3>
+                      <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">Últimas capturas do Google Maps</p>
+                    </div>
+                  </div>
+                  <button onClick={loadLeadHistory} className="p-2 rounded-lg bg-white/[0.03] border border-white/5 text-white/40 hover:text-white transition-all">
+                    <RefreshCw className={cn("w-4 h-4", loadingHistory && "animate-spin")} />
+                  </button>
+                </div>
+
+                <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden shadow-xl">
+                  {loadingHistory ? (
+                    <div className="p-20 flex flex-col items-center justify-center gap-4">
+                      <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                      <p className="text-xs font-bold text-white/20 uppercase tracking-widest">Sincronizando base de dados...</p>
+                    </div>
+                  ) : leadHistory.length === 0 ? (
+                    <div className="p-20 flex flex-col items-center justify-center gap-4 text-white/10">
+                      <Database className="w-12 h-12" />
+                      <p className="text-xs font-bold uppercase tracking-widest text-center">Nenhum lead extraído recentemente.<br/><span className="text-[10px] opacity-50">Inicie uma busca acima para começar.</span></p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="border-b border-white/5">
+                            <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">Empresa / Nome</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">Contato</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">Segmento</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">Localização</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">Data</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/[0.02]">
+                          {leadHistory.map((lead) => (
+                            <tr key={lead.id} className="group hover:bg-white/[0.01] transition-all">
+                              <td className="px-6 py-4">
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-bold text-white group-hover:text-primary transition-colors">{lead.empresa || lead.nome}</span>
+                                  {lead.empresa && <span className="text-[10px] text-white/20 uppercase font-bold">{lead.nome}</span>}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="flex flex-col gap-1">
+                                  {lead.telefone && (
+                                    <div className="flex items-center gap-2 text-xs text-white/40 font-medium">
+                                      <Phone className="w-3 h-3" /> {lead.telefone}
+                                    </div>
+                                  )}
+                                  {lead.email && (
+                                    <div className="flex items-center gap-2 text-xs text-white/40 font-medium">
+                                      <Mail className="w-3 h-3" /> {lead.email}
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className="px-2.5 py-1 rounded-lg bg-blue-500/5 border border-blue-500/10 text-[9px] font-bold text-blue-400 uppercase tracking-widest">
+                                  {lead.nicho || 'Geral'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-xs text-white/40 font-medium">
+                                {lead.cidade && lead.estado ? `${lead.cidade}, ${lead.estado}` : lead.cidade || lead.estado || '—'}
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">
+                                  {format(new Date(lead.created_at), 'dd/MM/yy HH:mm')}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
               </div>
           </motion.div>
         ) : (
