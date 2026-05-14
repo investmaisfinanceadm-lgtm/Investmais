@@ -45,6 +45,7 @@ import {
 import { cn } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd'
+import React, { memo } from 'react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -140,7 +141,7 @@ const TIPO_ACTIVITY: Record<string, { label: string; color: string; bg: string; 
 
 // ─── Card Component ───────────────────────────────────────────────────────────
 
-function KanbanCardItem({
+const KanbanCardItem = memo(({
   card,
   onClick,
   isSelectMode,
@@ -156,7 +157,7 @@ function KanbanCardItem({
   onToggleSelect: (id: string) => void
   index: number
   isDragDisabled?: boolean
-}) {
+}) => {
   const isEmerald = card.category === 'LEAD AP'
 
   const handleClick = () => {
@@ -167,20 +168,15 @@ function KanbanCardItem({
   return (
     <Draggable draggableId={card.id} index={index} isDragDisabled={isDragDisabled}>
       {(provided, snapshot) => (
-        <motion.div
+        <div
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          layout
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={{ scale: isSelectMode ? 1 : 1.015, y: isSelectMode ? 0 : -3 }}
           onClick={handleClick}
           className={cn(
-            'relative cursor-pointer rounded-xl border bg-card/60 p-4',
-            'transition-all duration-200 border-l-4',
+            'relative cursor-pointer rounded-xl border bg-card p-4 transition-all duration-200 border-l-4',
             isSelected
-              ? 'border-primary/60 bg-primary/5 shadow-lg shadow-primary/10'
+              ? 'border-primary/60 bg-primary/5 shadow-lg'
               : 'border-border hover:border-border/60 hover:shadow-xl',
             snapshot.isDragging && 'z-50 shadow-2xl border-primary/40'
           )}
@@ -193,7 +189,7 @@ function KanbanCardItem({
           {isSelectMode && (
             <div className={cn(
               'absolute top-3 right-3 w-5 h-5 rounded flex items-center justify-center border transition-all',
-              isSelected ? 'bg-primary border-primary' : 'bg-white/5 border-white/20 hover:border-primary/40'
+              isSelected ? 'bg-primary border-primary' : 'bg-muted border-border hover:border-primary/40'
             )}>
               {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
             </div>
@@ -206,7 +202,7 @@ function KanbanCardItem({
               <h3 className="text-sm font-bold text-foreground leading-tight truncate">{card.title}</h3>
             </div>
             {!isSelectMode && (
-              <button onClick={e => e.stopPropagation()} className="flex-shrink-0 text-white/20 hover:text-white/60 transition-colors">
+              <button onClick={e => e.stopPropagation()} className="flex-shrink-0 text-muted-foreground/20 hover:text-muted-foreground/60 transition-colors">
                 <MoreHorizontal className="w-4 h-4" />
               </button>
             )}
@@ -224,7 +220,7 @@ function KanbanCardItem({
 
           {/* Badges */}
           <div className="flex flex-col gap-1.5 mb-4">
-            <div className="flex items-center gap-2 w-fit px-2.5 py-1 rounded-full bg-[hsl(215_100%_50%/0.08)] border border-[hsl(215_100%_50%/0.15)]">
+            <div className="flex items-center gap-2 w-fit px-2.5 py-1 rounded-full bg-primary/5 border border-primary/10">
               <div className="w-4 h-4 rounded-full overflow-hidden bg-primary/20 flex items-center justify-center flex-shrink-0">
                 {card.responsible?.avatar_url ? (
                   <img src={card.responsible.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -254,11 +250,11 @@ function KanbanCardItem({
             </div>
             <MessageSquare className="w-4 h-4 text-emerald-500/30" />
           </div>
-        </motion.div>
+        </div>
       )}
     </Draggable>
   )
-}
+})
 
 // ─── Column Component ─────────────────────────────────────────────────────────
 
@@ -505,7 +501,7 @@ function BulkActionToolbar({
       exit={{ y: 80, opacity: 0 }}
       className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-3xl px-4"
     >
-      <div className="bg-[#0D0D0E] border border-white/10 rounded-2xl p-4 shadow-2xl backdrop-blur-xl">
+      <div className="bg-background/95 backdrop-blur-xl border border-border/50 shadow-2xl">
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
@@ -1186,7 +1182,7 @@ function CardDetailModal({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-white/[0.04] bg-[#0A0A0B] flex items-center justify-between">
+        <div className="p-6 border-t border-border/40 bg-background/80 backdrop-blur-md">
           <div className="flex items-center gap-2">
             {card.linkedContact?.phone && (
               <a
@@ -1260,7 +1256,7 @@ function CreateDealModal({ columns, onClose, onCreated }: { columns: KanbanColum
     <>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60]" />
       <motion.div initial={{ opacity: 0, scale: 0.96, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96 }} className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-[#0A0A0B] border border-white/[0.06] rounded-2xl shadow-2xl">
+        <div className="w-full max-w-md bg-card border border-border/50 shadow-2xl">
           <div className="flex items-center justify-between p-6 border-b border-white/[0.04]">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
@@ -1364,7 +1360,7 @@ function ImportModal({ onClose, onImported }: { onClose: () => void; onImported:
     <>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60]" />
       <motion.div initial={{ opacity: 0, scale: 0.96, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-[#0A0A0B] border border-white/[0.06] rounded-2xl shadow-2xl">
+        <div className="w-full max-w-md bg-card border border-border/50 shadow-2xl">
           <div className="flex items-center justify-between p-6 border-b border-white/[0.04]">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center"><Upload className="w-4 h-4 text-blue-400" /></div>

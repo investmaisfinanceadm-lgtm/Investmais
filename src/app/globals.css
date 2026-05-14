@@ -112,17 +112,17 @@
   --primary-glow: 221 83% 65%;
   --primary-deep: 221 83% 35%;
 
-  /* Fundo geral: Gelo (branco opaco premium) */
-  --background: 210 40% 96%;
-  --foreground: 222 47% 11%; 
+  /* Fundo geral: Cinza Gelo Premium para melhor destaque */
+  --background: 210 20% 90%;
+  --foreground: 222 47% 10%; 
 
-  /* Cards: Brancos com sombra suave */
+  /* Cards: Brancos puros para máximo contraste */
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%; 
+  --card-foreground: 222 47% 10%; 
 
   /* Popover */
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
+  --popover-foreground: 222 47% 10%;
 
   /* Secundário: cinza azulado suave */
   --secondary: 214 32% 91%;
@@ -140,9 +140,9 @@
   --destructive: 0 84% 60%;
   --destructive-foreground: 210 40% 98%;
 
-  /* Bordas: Azul marinho escuro conforme pedido */
-  --border: 214 32% 80%;
-  --input: 214 32% 91%;
+  /* Bordas: Mais escuras para destaque conforme pedido */
+  --border: 214 20% 75%;
+  --input: 214 32% 88%;
   --ring: 221 83% 53%;
 
   /* Transparência de superfícies */
@@ -175,12 +175,10 @@
       radial-gradient(ellipse 60% 50% at 100% 100%, hsl(195 100% 60% / 0.04), transparent 70%);
     background-attachment: fixed;
   }
-  /* Light mode: fundo cinza claro com gradiente azul sutil */
+  /* Light mode: fundo cinza sólido para contraste */
   .light body {
-    background-image:
-      radial-gradient(ellipse 70% 50% at 50% 0%, hsl(215 100% 42% / 0.06), transparent 60%),
-      radial-gradient(ellipse 50% 40% at 100% 100%, hsl(215 100% 42% / 0.04), transparent 60%);
-    background-color: hsl(220 18% 91%);
+    background-color: hsl(210 10% 88%);
+    background-image: none;
     background-attachment: fixed;
   }
 
