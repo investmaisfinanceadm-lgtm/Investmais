@@ -47,3 +47,25 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Erro ao registrar busca' }, { status: 500 })
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+    const userId = (session.user as any).id
+
+    const { searchParams } = new URL(req.url)
+    const id = searchParams.get('id')
+
+    if (!id) return NextResponse.json({ error: 'ID não fornecido' }, { status: 400 })
+
+    await prisma.leadSearchHistory.delete({
+      where: { id, user_id: userId }
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    console.error('LeadSearchHistory DELETE error:', err)
+    return NextResponse.json({ error: 'Erro ao excluir histórico' }, { status: 500 })
+  }
+}

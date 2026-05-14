@@ -7,7 +7,7 @@ import {
   Briefcase, DollarSign, Users, Clock, ChevronDown, Filter, Eye,
   Shield, Activity, Globe, Database, Target, Zap, Layers, Cpu,
   ExternalLink, BarChart2, Smartphone, Monitor, ArrowUpRight, Fingerprint,
-  Save, Loader2
+  Save, Loader2, X
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -125,6 +125,18 @@ export default function CNPJPage() {
       toast.error('Erro ao buscar leads do histórico')
     } finally {
       setLoadingLeads(false)
+    }
+  }
+
+  const handleDeleteSearch = async (id: string) => {
+    if (!confirm('Deseja excluir este registro do histórico?')) return
+    try {
+      const res = await fetch(`/api/creator/leads/history?id=${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error()
+      toast.success('Histórico removido')
+      loadSearchHistory()
+    } catch (err) {
+      toast.error('Erro ao remover histórico')
     }
   }
 
@@ -339,9 +351,14 @@ export default function CNPJPage() {
                                 </span>
                               </td>
                               <td className="px-6 py-4">
-                                <button onClick={() => handleViewLeads(search)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white transition-all">
-                                  <Eye className="w-3.5 h-3.5" /> Ver Leads
-                                </button>
+                                <div className="flex items-center gap-2">
+                                  <button onClick={() => handleViewLeads(search)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white transition-all">
+                                    <Eye className="w-3.5 h-3.5" /> Ver Leads
+                                  </button>
+                                  <button onClick={() => handleDeleteSearch(search.id)} className="p-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all">
+                                    <XCircle className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))}
@@ -483,7 +500,7 @@ export default function CNPJPage() {
                             )}
                           </div>
                           <div className="mt-6 pt-4 border-t border-white/5 flex justify-end">
-                            <button className="text-[10px] font-bold text-primary uppercase tracking-widest flex items-center gap-2 hover:underline">Ver no CRM <ExternalLink className="w-3 h-3" /></button>
+                            <a href="/pipeline" className="text-[10px] font-bold text-primary uppercase tracking-widest flex items-center gap-2 hover:underline">Ver no CRM <ExternalLink className="w-3.5 h-3.5" /></a>
                           </div>
                         </div>
                       ))}
