@@ -293,6 +293,7 @@ function KanbanColumnComponent({
   isDragDisabled?: boolean
   vendedores?: Vendor[]
   onUpdateVendedor?: (cardId: string, vendedorId: string) => void
+  onNewCardClick?: (columnId: string) => void
 }) {
   const totalValue = (column.cards || []).reduce((sum, c) => sum + (c.value || 0), 0)
 
@@ -342,7 +343,11 @@ function KanbanColumnComponent({
             </AnimatePresence>
             {provided.placeholder}
             {!isSelectMode && (
-              <button className="w-full py-3.5 border border-dashed border-border/40 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 hover:text-muted-foreground/60 hover:border-border transition-all">
+              <button 
+                onClick={() => {
+                  if (onNewCardClick) onNewCardClick(column.id)
+                }}
+                className="w-full py-3.5 border border-dashed border-border/40 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 hover:text-muted-foreground/60 hover:border-border transition-all">
                 + Novo Card
               </button>
             )}
@@ -1245,10 +1250,10 @@ function CardDetailModal({
 
 // ─── Create Deal Modal ────────────────────────────────────────────────────────
 
-function CreateDealModal({ columns, onClose, onCreated }: { columns: KanbanColumn[]; onClose: () => void; onCreated: () => void }) {
+function CreateDealModal({ columns, defaultColumnId, onClose, onCreated }: { columns: KanbanColumn[]; defaultColumnId?: string; onClose: () => void; onCreated: () => void }) {
   const [titulo, setTitulo] = useState('')
   const [valor, setValor] = useState('')
-  const [colunaId, setColunaId] = useState(columns[0]?.id || '')
+  const [colunaId, setColunaId] = useState(defaultColumnId || (columns && columns.length > 0 ? columns[0].id : ''))
   const [contatoSearch, setContatoSearch] = useState('')
   const [contatos, setContatos] = useState<any[]>([])
   const [selectedContato, setSelectedContato] = useState<any>(null)
@@ -1623,6 +1628,7 @@ export default function PipelinePage() {
 
   // New modals
   const [showCreateDeal, setShowCreateDeal] = useState(false)
+  const [createDealColumnId, setCreateDealColumnId] = useState<string | undefined>(undefined)
   const [showImport, setShowImport] = useState(false)
   const [showPipelineMgmt, setShowPipelineMgmt] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -1912,7 +1918,7 @@ export default function PipelinePage() {
             </button>
 
             <button
-              onClick={() => setShowCreateDeal(true)}
+              onClick={() => { setCreateDealColumnId(undefined); setShowCreateDeal(true) }}
               className="flex items-center gap-2 px-5 py-2 rounded-xl bg-primary text-white text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary/90 transition-colors"
             >
               <Plus className="w-3.5 h-3.5" strokeWidth={3} /> Deal
@@ -1961,6 +1967,7 @@ export default function PipelinePage() {
                   isDragDisabled={isSelectMode || !!searchTerm}
                   vendedores={vendedores}
                   onUpdateVendedor={handleUpdateVendedorOnCard}
+                  onNewCardClick={(colId) => { setCreateDealColumnId(colId); setShowCreateDeal(true) }}
                 />
               ))}
             </div>
@@ -2010,7 +2017,8 @@ export default function PipelinePage() {
       <AnimatePresence>
         {showCreateDeal && (
           <CreateDealModal
-            columns={columns}
+            columns={columns || []}
+            defaultColumnId={createDealColumnId}
             onClose={() => setShowCreateDeal(false)}
             onCreated={() => loadPipeline(currentBoardId || undefined)}
           />
