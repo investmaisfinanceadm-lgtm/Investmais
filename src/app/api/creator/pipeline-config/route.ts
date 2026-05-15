@@ -5,56 +5,42 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-// GET — returns all boards for the user
 export async function GET() {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   const userId = (session.user as any).id
 
-  const boards = await prisma.pipelineBoard.findMany({
+  const pipelines = await prisma.pipeline.findMany({
     where: { user_id: userId },
-    include: { 
-      colunas: { 
-        orderBy: { ordem: 'asc' },
-        include: { 
-          cards: { 
-            orderBy: { ordem: 'asc' },
-            include: {
-              contato: { select: { id: true, nome: true, telefone: true, email: true } },
-              vendedor: { select: { id: true, nome: true, cor: true } }
-            }
-          } 
-        }
-      } 
-    },
+    include: { stages: { orderBy: { ordem: 'asc' } } },
+    orderBy: { created_at: 'asc' },
   })
 
-  // If no board, create the default one
-  if (boards.length === 0) {
-    const defaultBoard = await prisma.pipelineBoard.create({
+  if (pipelines.length === 0) {
+    const created = await prisma.pipeline.create({
       data: {
         user_id: userId,
         nome: 'Vendas',
-        colunas: {
+        stages: {
           createMany: {
             data: [
               { nome: 'Leads',        ordem: 0, cor: '#3B82F6' },
-              { nome: 'Qualificação',   ordem: 1, cor: '#F59E0B' },
-              { nome: 'Proposta',       ordem: 2, cor: '#2563EB' },
-              { nome: 'Fechado',        ordem: 3, cor: '#8B5CF6' },
+              { nome: 'Qualificação', ordem: 1, cor: '#F59E0B' },
+              { nome: 'Proposta',     ordem: 2, cor: '#2563EB' },
+              { nome: 'Fechado',      ordem: 3, cor: '#8B5CF6' },
             ],
           },
         },
       },
-      include: { colunas: { orderBy: { ordem: 'asc' }, include: { cards: true } } },
+      include: { stages: { orderBy: { ordem: 'asc' } } },
     })
-    return NextResponse.json([defaultBoard])
+    // map stages → colunas so the frontend keeps working
+    return NextResponse.json([{ ...created, colunas: created.stages }])
   }
 
-  return NextResponse.json(boards)
+  return NextResponse.json(pipelines.map(p => ({ ...p, colunas: p.stages })))
 }
 
-// POST — Create a new board or column
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
@@ -64,36 +50,33 @@ export async function POST(req: Request) {
   const { type, nome, color, boardId } = data
 
   if (type === 'board') {
-    const board = await prisma.pipelineBoard.create({
+    const pipeline = await prisma.pipeline.create({
       data: {
         user_id: userId,
         nome,
-        colunas: {
-            create: { nome: 'Início', ordem: 0, cor: '#3B82F6' }
-        }
+        stages: { create: { nome: 'Início', ordem: 0, cor: '#3B82F6' } },
       },
-      include: { colunas: true }
+      include: { stages: true },
     })
-    return NextResponse.json(board)
+    return NextResponse.json({ ...pipeline, colunas: pipeline.stages })
   }
 
   if (type === 'column') {
-    const lastCol = await prisma.pipelineColuna.findFirst({
-        where: { board_id: boardId },
-        orderBy: { ordem: 'desc' }
+    const last = await prisma.stage.findFirst({
+      where: { pipeline_id: boardId },
+      orderBy: { ordem: 'desc' },
     })
-    const column = await prisma.pipelineColuna.create({
+    const stage = await prisma.stage.create({
       data: {
-        board_id: boardId,
+        pipeline_id: boardId,
         nome,
         cor: color || '#3B82F6',
         probabilidade: data.probabilidade ?? 100,
         sla_horas: data.sla_horas,
-        ordem: lastCol ? lastCol.ordem + 1 : 0
+        ordem: last ? last.ordem + 1 : 0,
       },
-      include: { cards: true }
     })
-    return NextResponse.json(column)
+    return NextResponse.json(stage)
   }
 
   return NextResponse.json({ error: 'Tipo inválido' }, { status: 400 })

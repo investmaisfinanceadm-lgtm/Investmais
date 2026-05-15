@@ -15,7 +15,11 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) return null
 
         // Dev Mode Bypass: Permite testar localmente sem banco de dados ativo
-        if (credentials.email === 'admin@investmais.com' && credentials.password === 'admin123') {
+        if (
+          process.env.NODE_ENV === 'development' &&
+          credentials.email === 'admin@investmais.com' &&
+          credentials.password === 'admin123'
+        ) {
           return {
             id: 'dev-admin-id',
             name: 'Administrador (Dev)',

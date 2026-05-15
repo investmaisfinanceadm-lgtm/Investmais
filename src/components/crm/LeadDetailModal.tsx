@@ -1,12 +1,12 @@
 'use client'
 
 import React, { useState } from 'react'
-import { 
-  X, Mail, Phone, Building2, Briefcase, MessageSquare, 
+import {
+  X, Mail, Phone, Building2, Briefcase, MessageSquare,
   MapPin, Globe, Tag, ExternalLink, Copy, MessageCircle,
   ChevronRight, Trash2, Clock, CheckCircle2, Circle, FileText,
   Calendar, Users, Shield, Hash, Activity, Target, Zap, Cpu,
-  Fingerprint, Lock, Share2, Eye, Maximize, Database, Send, Plus, ArrowUpRight
+  Fingerprint, Lock, Share2, Eye, Maximize, Database, Send, Plus, ArrowUpRight, Layers
 } from 'lucide-react'
 import { format, formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'

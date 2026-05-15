@@ -23,6 +23,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+function isAuthorized(request: NextRequest): boolean {
+  const secret = process.env.CALLBACK_SECRET
+  if (!secret) return false
+  return request.headers.get('x-callback-secret') === secret
+}
+
 const clean = (v: unknown): string | null => {
   if (v === null || v === undefined) return null
   const s = String(v).trim()
@@ -31,6 +37,10 @@ const clean = (v: unknown): string | null => {
 }
 
 export async function POST(req: NextRequest) {
+  if (!isAuthorized(req)) {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  }
+
   try {
     const data = await req.json()
 

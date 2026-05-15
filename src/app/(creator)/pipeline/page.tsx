@@ -149,6 +149,8 @@ const KanbanCardItem = memo(({
   onToggleSelect,
   index,
   isDragDisabled,
+  vendedores,
+  onUpdateVendedor,
 }: {
   card: KanbanCard
   onClick: () => void
@@ -284,6 +286,9 @@ function KanbanColumnComponent({
   selectedCards,
   onToggleSelect,
   isDragDisabled,
+  vendedores,
+  onUpdateVendedor,
+  onNewCardClick,
 }: {
   column: KanbanColumn
   onCardClick: (card: KanbanCard) => void

@@ -18,7 +18,11 @@ export function triggerVideoN8N(params: {
   }
 
   if (params.imageBuffer) {
-    const blob = new Blob([params.imageBuffer], { type: params.imageType || 'image/png' })
+    const ab = params.imageBuffer.buffer.slice(
+      params.imageBuffer.byteOffset,
+      params.imageBuffer.byteOffset + params.imageBuffer.byteLength
+    ) as ArrayBuffer
+    const blob = new Blob([ab], { type: params.imageType || 'image/png' })
     formData.append('image', blob, params.imageName || 'logo.png')
   }
 

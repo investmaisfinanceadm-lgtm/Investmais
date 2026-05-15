@@ -3,7 +3,17 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+function isAuthorized(request: NextRequest): boolean {
+  const secret = process.env.CALLBACK_SECRET
+  if (!secret) return false
+  return request.headers.get('x-callback-secret') === secret
+}
+
 export async function POST(request: NextRequest) {
+  if (!isAuthorized(request)) {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  }
+
   try {
     const body = await request.json()
     const { video_id, video_url } = body

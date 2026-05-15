@@ -3,7 +3,16 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+function isAuthorized(req: NextRequest): boolean {
+  const secret = process.env.CALLBACK_SECRET
+  if (!secret) return false
+  return req.headers.get('x-callback-secret') === secret
+}
+
 async function handleCallback(req: NextRequest) {
+  if (!isAuthorized(req)) {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  }
   try {
     const body = await req.json()
     const { event, lista_id } = body

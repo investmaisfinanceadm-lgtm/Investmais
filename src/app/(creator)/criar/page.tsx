@@ -375,8 +375,8 @@ export default function CriarPage() {
                                 </Field>
 
                                 <div className="flex flex-col md:flex-row gap-8">
-                                    <FileUploadField label="Imagem do Produto" value={step1.imagem_produto_file} previewUrl={step1.imagem_produto_url} onChange={(f, p) => setStep1(x => ({ ...x, imagem_produto_file: f, imagem_produto_url: p }))} onClear={() => setStep1(x => ({ ...x, imagem_produto_file: null, imagem_produto_url: null }))} />
-                                    <FileUploadField label="Logo da Empresa" value={step1.logo_empresa_file} previewUrl={step1.logo_empresa_url} required error={step1Errors.logo_empresa_file} onChange={(f, p) => setStep1(x => ({ ...x, logo_empresa_file: f, logo_empresa_url: p }))} onClear={() => setStep1(x => ({ ...x, logo_empresa_file: null, logo_empresa_url: null }))} />
+                                    <FileUploadField label="Imagem do Produto" value={step1.imagem_produto_file} previewUrl={step1.imagem_produto_url} onChange={(f: File | null, p: string | null) => setStep1(x => ({ ...x, imagem_produto_file: f, imagem_produto_url: p }))} onClear={() => setStep1(x => ({ ...x, imagem_produto_file: null, imagem_produto_url: null }))} />
+                                    <FileUploadField label="Logo da Empresa" value={step1.logo_empresa_file} previewUrl={step1.logo_empresa_url} required error={step1Errors.logo_empresa_file} onChange={(f: File | null, p: string | null) => setStep1(x => ({ ...x, logo_empresa_file: f, logo_empresa_url: p }))} onClear={() => setStep1(x => ({ ...x, logo_empresa_file: null, logo_empresa_url: null }))} />
                                 </div>
                             </div>
 
