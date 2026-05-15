@@ -335,7 +335,7 @@ export async function POST(req: Request) {
               data: {
                 nome: row.nome,
                 empresa: row.empresa,
-                telefone: row.telefone || null,
+                telefone: row.telefone || '',
                 endereco: row.endereco || null,
                 status_funil: row.status_funil,
                 canal_origem: row.canal_origem,
@@ -357,7 +357,7 @@ export async function POST(req: Request) {
             nome: row.nome,
             empresa: row.empresa || null,
             email: row.email || null,
-            telefone: row.telefone || null,
+            telefone: row.telefone || '',
             endereco: row.endereco || null,
             canal_origem: row.canal_origem,
             status_funil: row.status_funil,
