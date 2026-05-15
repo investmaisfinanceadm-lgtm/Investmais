@@ -993,7 +993,7 @@ function CardDetailModal({
                       </select>
                     </div>
                     <div>
-                      <p className={lbl + " mb-1"}>Valor</p>
+                      <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1.5">Valor</p>
                       {isEditing ? (
                         <div className="flex items-center gap-2">
                           <input
