@@ -77,7 +77,7 @@ export async function POST(req: Request) {
           user_id: userId,
           nome, 
           email: email || null, 
-          telefone: telefone || null, 
+          telefone: telefone || '',
           empresa: empresa || null, 
           cargo: cargo || null,
           canal_origem: canal_origem || 'Site',

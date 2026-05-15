@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
         nome: lead.nome,
         empresa: lead.empresa,
         email: lead.email,
-        telefone: lead.telefone,
+        telefone: lead.telefone || '',
         endereco: lead.endereco,
         site: lead.site,
         nicho: lead.nicho,
