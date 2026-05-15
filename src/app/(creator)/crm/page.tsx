@@ -330,8 +330,8 @@ export default function CRMPage() {
           endereco: c.endereco || '',
           site: c.site || '',
           nicho: c.nicho || '',
-          createdAt: new Date(c.created_at),
-          lastActivity: new Date(c.updated_at || c.created_at),
+          createdAt: c.created_at ? new Date(c.created_at) : new Date(),
+          lastActivity: (c.updated_at || c.created_at) ? new Date(c.updated_at || c.created_at) : new Date(),
           activities: (c.atividades || []).map((a: any) => ({
             id: a.id,
             type: (a.tipo || 'note') as ActivityType,
@@ -553,7 +553,7 @@ export default function CRMPage() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-[9px] font-black text-muted-foreground uppercase tracking-widest italic">
-                                        {contact.lastActivity.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' })}
+                                        {!isNaN(contact.lastActivity.getTime()) ? contact.lastActivity.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'}
                                     </td>
                                     <td className="px-6 py-4 text-center">
                                         <button className="w-10 h-10 rounded-xl bg-background border border-border text-muted-foreground group-hover:text-sidebar-primary group-hover:border-sidebar-primary/40 group-hover:scale-110 transition-all duration-700 flex items-center justify-center mx-auto">

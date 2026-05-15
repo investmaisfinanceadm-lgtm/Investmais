@@ -64,7 +64,8 @@ export default function UTMAnalyticsPage() {
     )
   }
 
-  const { stats, campaigns } = data || { stats: {}, campaigns: [] }
+  const stats = data?.stats || {}
+  const campaigns = data?.campaigns || []
 
   return (
     <div className="min-h-screen bg-background text-foreground p-6 lg:p-10 space-y-10">

@@ -64,35 +64,6 @@ export async function GET(req: Request) {
         include: { stages: { orderBy: { ordem: 'asc' } } }
       })
 
-      // Gerar 50 contatos e deals
-      for (let i = 1; i <= 50; i++) {
-        // Distribui entre as etapas aleatoriamente
-        const randomStageIndex = Math.floor(Math.random() * newPipeline.stages.length)
-        const stage = newPipeline.stages[randomStageIndex]
-
-        const contato = await prisma.contato.create({
-          data: {
-            user_id: userId,
-            nome: `Lead Fantasia ${i}`,
-            email: `lead${i}@empresa.com`,
-            telefone: `1199999${i.toString().padStart(4, '0')}`,
-            empresa: `Empresa ${i} SA`,
-            status_funil: 'lead',
-            tags: i % 2 === 0 ? ['LEAD AP'] : ['LEAD FANTASIA']
-          }
-        })
-
-        await prisma.deal.create({
-          data: {
-            stage_id: stage.id,
-            titulo: `Oportunidade - ${contato.empresa}`,
-            contato_id: contato.id,
-            valor: Math.floor(Math.random() * 10000) + 1000,
-            ordem: i,
-          }
-        })
-      }
-
       // Buscar novamente após criar
       const refreshedPipeline = await prisma.pipeline.findFirst({
         where: { user_id: userId },
