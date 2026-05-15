@@ -81,11 +81,12 @@ export async function GET() {
 
     return NextResponse.json({
       stats: { totalNegocios, taxaConversao, valorTotalGanho, negociosRisco },
+      totalWon: wonDeals.length,
+      totalLost,
       stagesData,
       temposMedios,
       roiData,
       motivosData,
-      totalLost
     })
 
   } catch (error) {

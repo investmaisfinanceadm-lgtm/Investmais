@@ -11,25 +11,21 @@ export async function GET() {
 
     const history = await prisma.leadSearchHistory.findMany({
       where: { user_id: userId },
+      include: { _count: { select: { leads: true } } },
       orderBy: { created_at: 'desc' },
-      take: 20
+      take: 50,
     })
 
-    // Filtrar apenas aqueles que já tem leads suficientes (10+)
-    const filteredHistory = await Promise.all(history.map(async (item) => {
-      const count = await prisma.contato.count({
-        where: {
-          user_id: userId,
-          cidade: item.cidade,
-          estado: item.estado,
-          nicho: item.nicho
-        }
-      })
-      if (count >= 10) return { ...item, count }
-      return null
-    }))
+    const result = history.map((item) => {
+      const leadCount = item._count.leads
+      return {
+        ...item,
+        total_leads: leadCount,
+        status: leadCount > 0 ? 'concluido' : item.status,
+      }
+    })
 
-    return NextResponse.json(filteredHistory.filter(Boolean))
+    return NextResponse.json(result)
   } catch (err) {
     console.error('LeadSearchHistory GET error:', err)
     return NextResponse.json({ error: 'Erro ao buscar histórico' }, { status: 500 })

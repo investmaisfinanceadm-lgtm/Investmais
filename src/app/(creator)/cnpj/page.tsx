@@ -96,6 +96,8 @@ export default function CNPJPage() {
   const [loadingLeads, setLoadingLeads] = useState(false)
   const [result, setResult] = useState<CNPJResult | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [cnpjHistory, setCnpjHistory] = useState<any[]>([])
+  const [loadingCnpjHistory, setLoadingCnpjHistory] = useState(false)
 
   const loadSearchHistory = useCallback(async () => {
     setLoadingHistory(true)
@@ -151,9 +153,23 @@ export default function CNPJPage() {
     }
   }
 
+  const loadCnpjHistory = useCallback(async () => {
+    setLoadingCnpjHistory(true)
+    try {
+      const res = await fetch('/api/leads-cnpj')
+      const data = await res.json()
+      setCnpjHistory(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Erro ao carregar histórico CNPJ:', err)
+    } finally {
+      setLoadingCnpjHistory(false)
+    }
+  }, [])
+
   useEffect(() => {
     if (activeTab === 'google') loadSearchHistory()
-  }, [activeTab, loadSearchHistory])
+    if (activeTab === 'cnpj') loadCnpjHistory()
+  }, [activeTab, loadSearchHistory, loadCnpjHistory])
 
   const handleConsultar = async () => {
     if (!validarCNPJ(cnpjInput)) { setErrorState('invalid'); setResult(null); return }
@@ -234,25 +250,30 @@ export default function CNPJPage() {
 
                        const webhookUrl = 'https://auto.devnetlife.com/webhook/investmais';
 
-                       // 1. Gravar no histórico local
+                       // 1. Gravar no histórico local e obter o ID
                        fetch('/api/creator/leads/history', {
                          method: 'POST',
                          headers: { 'Content-Type': 'application/json' },
                          body: JSON.stringify({ nicho, cidade, estado })
-                       }).then(() => loadSearchHistory());
-
-                       // 2. Disparar Webhook
-                       fetch(webhookUrl, {
-                         method: 'POST',
-                         headers: { 'Content-Type': 'application/json' },
-                         body: JSON.stringify({ 
-                           estado, 
-                           cidade, 
-                           nicho, 
-                           user_id: session?.user ? (session.user as any).id : 'f8e344d0-b985-44f2-b7c6-818285dd2b2f', 
-                           acao: 'busca_leads_google' 
+                       })
+                         .then(r => r.json())
+                         .then(histEntry => {
+                           loadSearchHistory()
+                           // 2. Disparar Webhook com o search_history_id
+                           return fetch(webhookUrl, {
+                             method: 'POST',
+                             headers: { 'Content-Type': 'application/json' },
+                             body: JSON.stringify({
+                               estado,
+                               cidade,
+                               nicho,
+                               user_id: session?.user ? (session.user as any).id : '',
+                               search_history_id: histEntry?.id || null,
+                               acao: 'busca_leads_google',
+                             }),
+                           })
                          })
-                       }).then(() => toast.success('Busca iniciada! Acompanhe no histórico abaixo.'))
+                         .then(() => toast.success('Busca iniciada! Acompanhe no histórico abaixo.'))
                          .catch(() => toast.error('Erro ao conectar com N8N.'));
                      }}
                     className="grid grid-cols-1 md:grid-cols-4 gap-4 relative z-10"
@@ -341,6 +362,7 @@ export default function CNPJPage() {
                             <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">Estado</th>
                             <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">Cidade</th>
                             <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">Nicho</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">Leads</th>
                             <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">Status</th>
                             <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">Ações</th>
                           </tr>
@@ -356,8 +378,19 @@ export default function CNPJPage() {
                                 </span>
                               </td>
                               <td className="px-6 py-4">
-                                <span className="flex items-center gap-2 text-[10px] font-bold text-white/30 uppercase tracking-widest">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                <span className="text-sm font-bold text-white">
+                                  {search.total_leads ?? 0}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className={cn(
+                                  'flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest',
+                                  search.status === 'concluido' ? 'text-emerald-500' : 'text-white/30'
+                                )}>
+                                  <div className={cn(
+                                    'w-1.5 h-1.5 rounded-full',
+                                    search.status === 'concluido' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'
+                                  )} />
                                   {search.status}
                                 </span>
                               </td>
@@ -444,6 +477,75 @@ export default function CNPJPage() {
                       </div>
                   </motion.div>
               )}
+
+              {/* Histórico de Consultas CNPJ */}
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center">
+                      <Database className="w-5 h-5 text-white/40" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white uppercase tracking-widest">Histórico de Consultas</h3>
+                      <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">Empresas pesquisadas anteriormente</p>
+                    </div>
+                  </div>
+                  <button onClick={loadCnpjHistory} className="p-2 rounded-lg bg-white/[0.03] border border-white/5 text-white/40 hover:text-white transition-all">
+                    <RefreshCw className={cn('w-4 h-4', loadingCnpjHistory && 'animate-spin')} />
+                  </button>
+                </div>
+
+                <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden shadow-xl">
+                  {loadingCnpjHistory ? (
+                    <div className="p-16 flex flex-col items-center justify-center gap-4">
+                      <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                      <p className="text-xs font-bold text-white/20 uppercase tracking-widest">Carregando histórico...</p>
+                    </div>
+                  ) : cnpjHistory.length === 0 ? (
+                    <div className="p-16 flex flex-col items-center justify-center gap-4 text-white/10">
+                      <Database className="w-10 h-10" />
+                      <p className="text-xs font-bold uppercase tracking-widest text-center">Nenhuma consulta realizada ainda.</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="border-b border-white/5">
+                            <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">Empresa</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">CNPJ</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">Situação</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">Cidade / UF</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">Telefone</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-white/40 uppercase tracking-widest">CNAE</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/[0.02]">
+                          {cnpjHistory.map((lead: any) => (
+                            <tr key={lead.id} className="group hover:bg-white/[0.01] transition-all">
+                              <td className="px-6 py-4">
+                                <p className="text-sm font-bold text-white truncate max-w-[200px]">{lead.nome}</p>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className="text-xs font-mono text-white/40">{lead.cnpj}</span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <SituacaoBadge situacao={lead.situacao} />
+                              </td>
+                              <td className="px-6 py-4 text-xs font-bold text-white/40">
+                                {[lead.cidade, lead.estado].filter(Boolean).join(' / ') || '—'}
+                              </td>
+                              <td className="px-6 py-4 text-xs text-white/40">{lead.telefone || '—'}</td>
+                              <td className="px-6 py-4">
+                                <span className="text-[10px] text-white/30 truncate max-w-[160px] block">{lead.cnae_descricao || '—'}</span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
           </motion.div>
         )}
       </AnimatePresence>

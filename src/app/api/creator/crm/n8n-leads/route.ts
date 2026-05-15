@@ -64,8 +64,23 @@ export async function POST(req: NextRequest) {
     const nicho   = clean(data.nicho) || clean(data.segmento) || clean(data.categoria)
     const cidade  = clean(data.cidade) || clean(data.city)
     const estado  = clean(data.estado) || clean(data.uf) || clean(data.state)
-    // notas livres — jamais dados estruturados
     const notas   = clean(data.notas) || clean(data.observacoes) || ''
+
+    // Resolve search_history_id: use explicit value or match most recent search
+    let searchHistoryId = clean(data.search_history_id)
+    if (!searchHistoryId && nicho && cidade && estado) {
+      const recent = await prisma.leadSearchHistory.findFirst({
+        where: {
+          user_id,
+          nicho,
+          cidade,
+          estado,
+          created_at: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+        },
+        orderBy: { created_at: 'desc' },
+      })
+      if (recent) searchHistoryId = recent.id
+    }
 
     // Verifica duplicata por telefone ou email na tabela de LEADS
     if (email || tel) {
@@ -89,6 +104,7 @@ export async function POST(req: NextRequest) {
       lead = await prisma.lead.create({
         data: {
           user_id,
+          search_history_id: searchHistoryId || null,
           nome,
           empresa,
           email,
@@ -104,10 +120,10 @@ export async function POST(req: NextRequest) {
       })
     } catch (err: any) {
       console.error('Error creating lead:', err)
-      // Fallback simple create
       lead = await prisma.lead.create({
         data: {
           user_id,
+          search_history_id: searchHistoryId || null,
           nome,
           empresa,
           email,
@@ -115,6 +131,15 @@ export async function POST(req: NextRequest) {
           origem: 'Google Maps',
           notas: notas || '',
         },
+      })
+    }
+
+    // Keep total_leads in sync
+    if (searchHistoryId) {
+      const count = await prisma.lead.count({ where: { search_history_id: searchHistoryId } })
+      await prisma.leadSearchHistory.update({
+        where: { id: searchHistoryId },
+        data: { total_leads: count, status: 'concluido' },
       })
     }
 
