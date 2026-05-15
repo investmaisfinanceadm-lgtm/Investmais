@@ -3,7 +3,13 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-// Receives incoming webhook data from external systems (Facebook Ads, etc.)
+const clean = (v: unknown): string | null => {
+  if (v === null || v === undefined) return null
+  const s = String(v).trim()
+  if (s === '' || s === 'undefined' || s === 'null') return null
+  return s
+}
+
 export async function POST(
   req: NextRequest,
   { params }: { params: { path: string } }
@@ -11,7 +17,6 @@ export async function POST(
   try {
     const incomingPath = params.path
 
-    // Find the integration that has this endpoint path
     const allIntegrations = await prisma.integracao.findMany({
       where: { ativo: true },
     })
@@ -30,7 +35,6 @@ export async function POST(
       return NextResponse.json({ error: 'Webhook path não encontrado' }, { status: 404 })
     }
 
-    // Validate secret token if configured
     if (matchedEndpoint.secret) {
       const headerSecret =
         req.headers.get('x-webhook-secret') ||
@@ -42,16 +46,73 @@ export async function POST(
 
     const body = await req.json().catch(() => ({}))
 
-    // Log the received payload as a notification
+    const stageId: string | null = matchedEndpoint.stage_id || null
+    const userId: string = matchedInteg.user_id
+
+    const nome     = clean(body.nome) || clean(body.name) || clean(body.empresa) || clean(body.company) || 'Lead'
+    const telefone = clean(body.telefone) || clean(body.phone) || clean(body.whatsapp) || ''
+    const email    = clean(body.email)
+    const empresa  = clean(body.empresa) || clean(body.company)
+    const cidade   = clean(body.cidade) || clean(body.city)
+    const estado   = clean(body.estado) || clean(body.state) || clean(body.uf)
+    const origem   = matchedEndpoint.source || matchedEndpoint.tag || 'webhook'
+
+    // Deduplica por telefone dentro do usuário
+    let contato: { id: string } | null = null
+    if (telefone) {
+      contato = await prisma.contato.findFirst({
+        where: { user_id: userId, telefone },
+        select: { id: true },
+      })
+    }
+
+    if (!contato) {
+      contato = await prisma.contato.create({
+        data: {
+          user_id: userId,
+          nome,
+          telefone,
+          email,
+          empresa,
+          cidade,
+          estado,
+          canal_origem: origem,
+          status_funil: 'lead',
+        },
+      })
+    }
+
+    let dealId: string | null = null
+
+    if (stageId) {
+      const stage = await prisma.stage.findUnique({ where: { id: stageId } })
+      if (stage) {
+        const deal = await prisma.deal.create({
+          data: {
+            stage_id: stageId,
+            titulo: empresa ? `${nome} — ${empresa}` : nome,
+            contato_id: contato.id,
+            origem,
+          },
+        })
+        dealId = deal.id
+      }
+    }
+
     await prisma.notificacao.create({
       data: {
-        user_id: matchedInteg.user_id,
+        user_id: userId,
         tipo: 'webhook',
-        mensagem: `Webhook recebido em /${incomingPath} (${matchedEndpoint.tag}): ${JSON.stringify(body).slice(0, 200)}`,
+        mensagem: `Lead recebido via /${incomingPath} (${matchedEndpoint.tag}): ${nome}${dealId ? ' — deal criado no pipeline' : ''}`,
       },
     })
 
-    return NextResponse.json({ received: true, path: incomingPath })
+    return NextResponse.json({
+      received: true,
+      path: incomingPath,
+      contato_id: contato.id,
+      deal_id: dealId,
+    })
   } catch (error) {
     console.error('Webhook receiver error:', error)
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })

@@ -274,6 +274,9 @@ export default function ConfiguracoesPage() {
   // Integracoes
   const [integracoes, setIntegracoes] = useState<Integracao[]>([])
   const [loadingInteg, setLoadingInteg] = useState(false)
+  const [epPipelineMap, setEpPipelineMap] = useState<Record<string, string>>({})
+  const [epStageMap, setEpStageMap] = useState<Record<string, string>>({})
+  const [savingEp, setSavingEp] = useState<Record<string, boolean>>({})
 
   // Pipelines
   const [boards, setBoards] = useState<PipelineBoard[]>([])
@@ -330,9 +333,23 @@ export default function ConfiguracoesPage() {
   useEffect(() => {
     if (activeTab === 'Usuários') fetchUsers()
     if (activeTab === 'Times') fetchTeams()
-    if (activeTab === 'Integrações' || activeTab === 'Disparo' || activeTab === 'Agente IA') fetchIntegracoes()
+    if (activeTab === 'Integrações' || activeTab === 'Disparo' || activeTab === 'Agente IA') { fetchIntegracoes(); fetchBoards() }
     if (activeTab === 'Pipelines') fetchBoards()
   }, [activeTab, fetchUsers, fetchTeams, fetchIntegracoes, fetchBoards])
+
+  // Sync endpoint pipeline/stage maps when integracoes load
+  useEffect(() => {
+    const pMap: Record<string, string> = {}
+    const sMap: Record<string, string> = {}
+    integracoes.forEach(integ => {
+      ;(integ.configuracoes?.endpoints || []).forEach((ep: any) => {
+        if (ep.pipeline_id) pMap[ep.id] = ep.pipeline_id
+        if (ep.stage_id) sMap[ep.id] = ep.stage_id
+      })
+    })
+    setEpPipelineMap(pMap)
+    setEpStageMap(sMap)
+  }, [integracoes])
 
   const handleDeleteUser = async (id: string) => {
     if (!confirm('Remover este usuário?')) return
@@ -389,6 +406,26 @@ export default function ConfiguracoesPage() {
   }
 
   const copyToClipboard = (text: string) => { navigator.clipboard.writeText(text); toast.success('Copiado!') }
+
+  const saveEndpointPipeline = async (tipo: string, endpointId: string) => {
+    setSavingEp(prev => ({ ...prev, [endpointId]: true }))
+    try {
+      const res = await fetch('/api/creator/integracoes/endpoints', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipo,
+          endpoint_id: endpointId,
+          pipeline_id: epPipelineMap[endpointId] || null,
+          stage_id: epStageMap[endpointId] || null,
+        }),
+      })
+      if (res.ok) { fetchIntegracoes(); toast.success('Pipeline configurado!') }
+      else toast.error('Erro ao salvar')
+    } finally {
+      setSavingEp(prev => ({ ...prev, [endpointId]: false }))
+    }
+  }
 
   const getInteg = (tipo: string) => integracoes.find(i => i.tipo === tipo)
 
@@ -543,15 +580,61 @@ export default function ConfiguracoesPage() {
                         </div>
                       </div>
                     )}
-                    {integ.configuracoes?.endpoints?.map((ep: any) => (
-                      <div key={ep.id}>
-                        <label className={lbl}>Endpoint: {ep.tag}</label>
-                        <div className="flex items-center gap-2">
-                          <input readOnly value={ep.full_url} className={inp + ' font-mono text-xs'} />
-                          <button onClick={() => copyToClipboard(ep.full_url)} className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all"><Copy className="w-4 h-4" /></button>
+                    {integ.configuracoes?.endpoints?.map((ep: any) => {
+                      const selectedPipelineId = epPipelineMap[ep.id] ?? ep.pipeline_id ?? ''
+                      const selectedStageId = epStageMap[ep.id] ?? ep.stage_id ?? ''
+                      const pipelineStages = boards.find(b => b.id === selectedPipelineId)?.colunas ?? []
+                      return (
+                        <div key={ep.id} className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-3">
+                          <label className={lbl}>Endpoint: {ep.tag}</label>
+                          <div className="flex items-center gap-2">
+                            <input readOnly value={ep.full_url} className={inp + ' font-mono text-xs'} />
+                            <button onClick={() => copyToClipboard(ep.full_url)} className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all"><Copy className="w-4 h-4" /></button>
+                          </div>
+
+                          {/* Pipeline destination config */}
+                          <div className="pt-1 space-y-2">
+                            <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Destino no Pipeline</p>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className={lbl}>Pipeline</label>
+                                <select
+                                  value={selectedPipelineId}
+                                  onChange={e => {
+                                    setEpPipelineMap(prev => ({ ...prev, [ep.id]: e.target.value }))
+                                    setEpStageMap(prev => ({ ...prev, [ep.id]: '' }))
+                                  }}
+                                  className={inp + ' cursor-pointer'}
+                                >
+                                  <option value="">Nenhum (só registra contato)</option>
+                                  {boards.map(b => <option key={b.id} value={b.id}>{b.nome}</option>)}
+                                </select>
+                              </div>
+                              <div>
+                                <label className={lbl}>Estágio (coluna)</label>
+                                <select
+                                  value={selectedStageId}
+                                  onChange={e => setEpStageMap(prev => ({ ...prev, [ep.id]: e.target.value }))}
+                                  disabled={!selectedPipelineId}
+                                  className={inp + ' cursor-pointer disabled:opacity-40'}
+                                >
+                                  <option value="">Selecione um estágio</option>
+                                  {pipelineStages.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                                </select>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => saveEndpointPipeline(integ.tipo, ep.id)}
+                              disabled={savingEp[ep.id]}
+                              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white transition-all disabled:opacity-50"
+                            >
+                              {savingEp[ep.id] ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                              Salvar destino
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 ))}
               </div>

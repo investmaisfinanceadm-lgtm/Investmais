@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   const userId = (session.user as any).id
 
-  const { tipo, path, tag, source, secret } = await req.json()
+  const { tipo, path, tag, source, secret, pipeline_id, stage_id } = await req.json()
   if (!tipo || !path) return NextResponse.json({ error: 'tipo e path são obrigatórios' }, { status: 400 })
 
   const cleanPath = path.replace(/[^a-z0-9-_]/gi, '-').toLowerCase()
@@ -40,6 +40,8 @@ export async function POST(req: NextRequest) {
     source: source || '',
     secret: secret || '',
     full_url: fullUrl,
+    pipeline_id: pipeline_id || null,
+    stage_id: stage_id || null,
     created_at: new Date().toISOString(),
   }
 
@@ -57,6 +59,34 @@ export async function POST(req: NextRequest) {
   })
 
   return NextResponse.json({ endpoint: newEndpoint, integracao })
+}
+
+// PATCH — update pipeline/stage on an existing endpoint
+export async function PATCH(req: NextRequest) {
+  const session = await getServerSession(authOptions)
+  if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  const userId = (session.user as any).id
+
+  const { tipo, endpoint_id, pipeline_id, stage_id } = await req.json()
+  if (!tipo || !endpoint_id) return NextResponse.json({ error: 'tipo e endpoint_id obrigatórios' }, { status: 400 })
+
+  const integracao = await prisma.integracao.findUnique({
+    where: { user_id_tipo: { user_id: userId, tipo } },
+  })
+  if (!integracao) return NextResponse.json({ error: 'Integração não encontrada' }, { status: 404 })
+
+  const config: any = (integracao.configuracoes as any) || {}
+  const endpoints = (config.endpoints || []).map((e: any) => {
+    if (e.id !== endpoint_id) return e
+    return { ...e, pipeline_id: pipeline_id || null, stage_id: stage_id || null }
+  })
+
+  await prisma.integracao.update({
+    where: { user_id_tipo: { user_id: userId, tipo } },
+    data: { configuracoes: { ...config, endpoints } },
+  })
+
+  return NextResponse.json({ success: true })
 }
 
 // DELETE — remove endpoint from integration

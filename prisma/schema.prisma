@@ -193,10 +193,10 @@ model DealStageHistory {
 
 model Contato {
   id           String         @id @default(uuid())
-  user_id      String
+  user_id      String?
   nome         String
   email        String?
-  telefone     String?
+  telefone     String
   empresa      String?
   cargo        String?
   cnpj         String?
@@ -210,10 +210,11 @@ model Contato {
   cidade       String?
   endereco     String?
   estado       String?
-  nicho        String?
-  site         String?
+  nicho           String?
+  site            String?
+  stage_destino_id String?
   atividades   AtividadeCRM[]
-  user         Profile        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user         Profile?       @relation(fields: [user_id], references: [id], onDelete: SetNull)
   deals        Deal[]
 
   @@map("contatos")
