@@ -94,6 +94,8 @@ export default function CNPJPage() {
   const [viewingSearch, setViewingSearch] = useState<any>(null)
   const [viewingLeads, setViewingLeads] = useState<any[]>([])
   const [loadingLeads, setLoadingLeads] = useState(false)
+  const [result, setResult] = useState<CNPJResult | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   const loadSearchHistory = useCallback(async () => {
     setLoadingHistory(true)

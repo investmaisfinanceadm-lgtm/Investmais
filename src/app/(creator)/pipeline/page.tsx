@@ -1769,11 +1769,12 @@ export default function PipelinePage() {
   
   const filteredColumns = useMemo(() => (columns || []).map(col => ({
     ...col,
-    cards: (col.cards || []).filter(card => 
-      (card.title || '').toLowerCase().includes((searchTerm || '').toLowerCase()) ||
-      (card.linkedContact?.name || '').toLowerCase().includes((searchTerm || '').toLowerCase()) ||
-      (card.linkedContact?.phone || '').includes(searchTerm || '')
-    )
+    cards: (col.cards || []).filter(card => {
+      const titleMatch = (card.title || '').toLowerCase().includes((searchTerm || '').toLowerCase());
+      const contactMatch = card.linkedContact?.name ? card.linkedContact.name.toLowerCase().includes((searchTerm || '').toLowerCase()) : false;
+      const responsibleMatch = card.responsible?.name ? card.responsible.name.toLowerCase().includes((searchTerm || '').toLowerCase()) : false;
+      return titleMatch || contactMatch || responsibleMatch;
+    })
   })), [columns, searchTerm])
 
   const totalCards = useMemo(() => (columns || []).reduce((a, c) => a + (c.cards?.length || 0), 0), [columns])
