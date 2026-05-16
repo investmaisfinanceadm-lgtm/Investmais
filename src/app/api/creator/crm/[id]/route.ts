@@ -3,15 +3,31 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+async function canAccessContact(contactId: string, userId: string): Promise<boolean> {
+  const contact = await prisma.contato.findFirst({
+    where: {
+      id: contactId,
+      OR: [
+        { user_id: userId },
+        { deals: { some: { deleted_at: null, stage: { pipeline: { user_id: userId } } } } },
+      ],
+    },
+    select: { id: true },
+  })
+  return !!contact
+}
+
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     const userId = (session.user as any).id
 
-    await prisma.contato.delete({
-      where: { id: params.id, user_id: userId },
-    })
+    if (!(await canAccessContact(params.id, userId))) {
+      return NextResponse.json({ error: 'Contato não encontrado' }, { status: 404 })
+    }
+
+    await prisma.contato.delete({ where: { id: params.id } })
 
     return NextResponse.json({ success: true })
   } catch (err) {
@@ -45,10 +61,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       })
     }
 
+    if (!(await canAccessContact(params.id, userId))) {
+      return NextResponse.json({ error: 'Contato não encontrado' }, { status: 404 })
+    }
+
     let updated;
     try {
       updated = await prisma.contato.update({
-        where: { id: params.id, user_id: userId },
+        where: { id: params.id },
         data: {
           ...(nome !== undefined && { nome }),
           ...(email !== undefined && { email }),
@@ -72,7 +92,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     } catch (err: any) {
       console.error('Initial CRM UPDATE failed, retrying safe version:', err.message)
       updated = await prisma.contato.update({
-        where: { id: params.id, user_id: userId },
+        where: { id: params.id },
         data: {
           ...(nome !== undefined && { nome }),
           ...(email !== undefined && { email }),

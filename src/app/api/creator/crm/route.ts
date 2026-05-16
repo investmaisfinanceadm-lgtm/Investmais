@@ -10,7 +10,19 @@ export async function GET() {
     const userId = (session.user as any).id
 
     const contacts = await prisma.contato.findMany({
-      where: { user_id: userId },
+      where: {
+        OR: [
+          { user_id: userId },
+          {
+            deals: {
+              some: {
+                deleted_at: null,
+                stage: { pipeline: { user_id: userId } },
+              },
+            },
+          },
+        ],
+      },
       select: {
         id: true,
         user_id: true,
