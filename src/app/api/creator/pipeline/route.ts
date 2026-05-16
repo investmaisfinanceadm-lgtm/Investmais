@@ -113,6 +113,7 @@ export async function GET(req: Request) {
         description: deal.descricao || '',
         anotacoes: (deal as any).anotacoes || '',
         columnId: stage.id,
+        boardId: pipeline.id,
         status: deal.status,
         createdAt: deal.created_at.toISOString(),
         updatedAt: deal.created_at.toISOString(),

@@ -12,15 +12,16 @@ export async function GET() {
     const userId = (session.user as any).id
 
     const [allDeals, wonDeals, lostDeals, stages, contacts] = await Promise.all([
-      prisma.deal.findMany({ where: { stage: { pipeline: { user_id: userId } } }, include: { stage: true } }),
-      prisma.deal.findMany({ where: { stage: { pipeline: { user_id: userId } }, status: 'won' } }),
-      prisma.deal.findMany({ where: { stage: { pipeline: { user_id: userId } }, status: 'lost' } }),
+      prisma.deal.findMany({ where: { stage: { pipeline: { user_id: userId } }, deleted_at: null }, include: { stage: true } }),
+      prisma.deal.findMany({ where: { stage: { pipeline: { user_id: userId } }, status: 'won', deleted_at: null } }),
+      prisma.deal.findMany({ where: { stage: { pipeline: { user_id: userId } }, status: 'lost', deleted_at: null } }),
       prisma.stage.findMany({ where: { pipeline: { user_id: userId } }, orderBy: { ordem: 'asc' } }),
       prisma.contato.findMany({ where: { user_id: userId } })
     ])
 
     const totalNegocios = allDeals.length
-    const taxaConversao = totalNegocios > 0 ? (wonDeals.length / totalNegocios) * 100 : 0
+    const closedDeals = wonDeals.length + lostDeals.length
+    const taxaConversao = closedDeals > 0 ? (wonDeals.length / closedDeals) * 100 : 0
     const valorTotalGanho = wonDeals.reduce((sum, d) => sum + (d.valor || 0), 0)
     const negociosRisco = allDeals.filter(d => d.status === 'open' && new Date(d.vencimento || Date.now()) < new Date()).length
 

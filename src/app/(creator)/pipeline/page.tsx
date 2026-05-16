@@ -667,7 +667,17 @@ function CardDetailModal({
   const [isSavingNotes, setIsSavingNotes] = useState(false)
   const [isUpdatingDeal, setIsUpdatingDeal] = useState(false)
 
-  const isEmerald = card.category === 'LEAD AP'
+  const PRIORITY_CFG: Record<string, { label: string; color: string; bg: string; border: string; dot: string }> = {
+    alta:  { label: 'Alta',  color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', dot: 'bg-emerald-500' },
+    media: { label: 'Média', color: 'text-amber-400',   bg: 'bg-amber-500/10',   border: 'border-amber-500/20',   dot: 'bg-amber-500'   },
+    baixa: { label: 'Baixa', color: 'text-blue-400',    bg: 'bg-blue-500/10',    border: 'border-blue-500/20',    dot: 'bg-blue-500'    },
+  }
+  const prio = PRIORITY_CFG[card.priority] || PRIORITY_CFG.media
+  const statusCfg = card.status === 'won'
+    ? { label: 'Ganho',   cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' }
+    : card.status === 'lost'
+    ? { label: 'Perdido', cls: 'bg-red-500/10 border-red-500/20 text-red-400' }
+    : { label: 'Aberto',  cls: 'bg-white/5 border-white/10 text-white/60' }
   const initials = (card.linkedContact?.name || '')
     .split(' ')
     .filter(Boolean)
@@ -855,10 +865,10 @@ function CardDetailModal({
 
           <div className="flex items-center gap-3 flex-wrap mb-8">
             <span className="text-2xl font-bold text-primary mr-2">{formatCurrency(card.value)}</span>
-            <span className="px-3 py-1 rounded-lg bg-card/40 border border-border text-[10px] font-bold text-foreground uppercase tracking-widest">Aberto</span>
-            <span className={cn('px-3 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5', isEmerald ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-400')}>
-              <div className={cn('w-1.5 h-1.5 rounded-full', isEmerald ? 'bg-emerald-500' : 'bg-amber-500')} />
-              {card.category}
+            <span className={cn('px-3 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-widest', statusCfg.cls)}>{statusCfg.label}</span>
+            <span className={cn('px-3 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5', prio.bg, prio.border, prio.color)}>
+              <div className={cn('w-1.5 h-1.5 rounded-full', prio.dot)} />
+              {prio.label}
             </span>
             <select
               value={card.columnId}
@@ -974,15 +984,15 @@ function CardDetailModal({
                   </div>
                   <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 grid grid-cols-2 gap-y-6 gap-x-4">
                     <div>
-                      <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1.5">Produto</p>
-                      <p className="text-sm text-white/80 font-bold">Sistema/App</p>
+                      <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1.5">Prioridade</p>
+                      <span className={cn('px-3 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 w-fit', prio.bg, prio.border, prio.color)}>
+                        <div className={cn('w-1.5 h-1.5 rounded-full', prio.dot)} />
+                        {prio.label}
+                      </span>
                     </div>
                     <div>
-                      <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1.5">Prioridade</p>
-                      <span className={cn('px-3 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 w-fit', isEmerald ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-400')}>
-                        <div className={cn('w-1.5 h-1.5 rounded-full', isEmerald ? 'bg-emerald-500' : 'bg-amber-500')} />
-                        {card.category}
-                      </span>
+                      <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1.5">Status</p>
+                      <span className={cn('px-3 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-widest', statusCfg.cls)}>{statusCfg.label}</span>
                     </div>
                     <div>
                       <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1.5">Responsável</p>

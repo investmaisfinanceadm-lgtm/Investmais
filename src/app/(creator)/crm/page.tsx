@@ -509,15 +509,15 @@ export default function CRMPage() {
                 ))}
             </div>
         ) : (
-            <div className="nl-glass rounded-[64px] border-white/5 overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,0.6)]">
+            <div className="nl-glass rounded-2xl border-white/5 overflow-hidden shadow-[0_40px_80px_rgba(0,0,0,0.4)]">
                 <div className="overflow-x-auto scrollbar-none">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-card/10 border-b border-border">
-                                <th className="px-6 py-4 text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] italic">Identidade do Lead</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] italic">Lead</th>
                                 <th className="px-6 py-4 text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] italic">Organização</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] italic">Telefone</th>
                                 <th className="px-6 py-4 text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] italic text-center">Status</th>
-                                <th className="px-6 py-4 text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] italic">Atividade</th>
                                 <th className="px-6 py-4 text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] italic text-center">Ações</th>
                             </tr>
                         </thead>
@@ -552,8 +552,8 @@ export default function CRMPage() {
                                             <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest italic">{contact.status}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-[9px] font-black text-muted-foreground uppercase tracking-widest italic">
-                                        {!isNaN(contact.lastActivity.getTime()) ? contact.lastActivity.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'}
+                                    <td className="px-6 py-4 text-[10px] font-black text-muted-foreground tracking-widest">
+                                        {contact.telefone || '—'}
                                     </td>
                                     <td className="px-6 py-4 text-center">
                                         <button className="w-10 h-10 rounded-xl bg-background border border-border text-muted-foreground group-hover:text-sidebar-primary group-hover:border-sidebar-primary/40 group-hover:scale-110 transition-all duration-700 flex items-center justify-center mx-auto">
