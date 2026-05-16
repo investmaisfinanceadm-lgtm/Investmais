@@ -96,25 +96,38 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     const { searchParams } = new URL(req.url)
     const permanent = searchParams.get('permanent') === 'true'
 
-    // Verify ownership separately to avoid Prisma nested-filter issues in delete/update
-    const deal = await prisma.deal.findFirst({
-      where: { id: params.id, stage: { pipeline: { user_id: userId } } },
-      select: { id: true },
+    // Fetch deal and verify ownership explicitly through the relation chain
+    const deal = await prisma.deal.findUnique({
+      where: { id: params.id },
+      select: {
+        id: true,
+        stage: { select: { pipeline: { select: { user_id: true } } } },
+      },
     })
 
     if (!deal) {
+      console.warn(`DEAL DELETE: deal ${params.id} not found`)
       return NextResponse.json({ error: 'Deal não encontrado' }, { status: 404 })
     }
 
+    if (deal.stage.pipeline.user_id !== userId) {
+      console.warn(`DEAL DELETE: user ${userId} does not own deal ${params.id}`)
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
+    }
+
     if (permanent) {
-      // Explicitly null-out activities before deleting to ensure FK safety
-      await prisma.$transaction([
-        prisma.atividadeCRM.updateMany({
+      // Delete related records first to avoid FK constraint failures
+      // (in case DB cascades aren't set — safe to run even if already cascading)
+      await prisma.$transaction(async (tx) => {
+        await tx.atividadeCRM.updateMany({
           where: { deal_id: params.id },
           data: { deal_id: null },
-        }),
-        prisma.deal.delete({ where: { id: params.id } }),
-      ])
+        })
+        await tx.dealStageHistory.deleteMany({
+          where: { deal_id: params.id },
+        })
+        await tx.deal.delete({ where: { id: params.id } })
+      })
     } else {
       await prisma.deal.update({
         where: { id: params.id },
