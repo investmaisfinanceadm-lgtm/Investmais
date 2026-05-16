@@ -292,6 +292,159 @@ function AddContactModal({ onClose, onAdd }: { onClose: () => void; onAdd: (cont
 }
 
 
+// ─── Edit Contact Modal ───────────────────────────────────────────────────────
+
+function EditContactModal({ contact, onClose, onUpdate }: { contact: Contact; onClose: () => void; onUpdate: (updated: Contact) => void }) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<AddContactFormData>({
+    resolver: zodResolver(addContactSchema),
+    defaultValues: {
+      nome: contact.nome,
+      email: contact.email,
+      telefone: contact.telefone,
+      empresa: contact.empresa,
+      cargo: contact.cargo,
+      canal: contact.canal as any,
+      tags: contact.tags.join(', '),
+      notas: contact.notas,
+    },
+  })
+
+  async function onSubmit(data: AddContactFormData) {
+    try {
+      const res = await fetch(`/api/creator/crm/${contact.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome: data.nome,
+          email: data.email,
+          telefone: data.telefone,
+          empresa: data.empresa,
+          cargo: data.cargo,
+          canal_origem: data.canal,
+          tags: data.tags ? data.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
+          notas: data.notas ?? '',
+        }),
+      })
+      if (res.ok) {
+        const saved = await res.json()
+        const updated: Contact = {
+          ...contact,
+          nome: saved.nome || data.nome,
+          email: saved.email || data.email,
+          telefone: saved.telefone || data.telefone,
+          empresa: saved.empresa || data.empresa,
+          cargo: saved.cargo || data.cargo,
+          canal: (saved.canal_origem || data.canal) as Canal,
+          tags: saved.tags || [],
+          notas: saved.notas || '',
+        }
+        onUpdate(updated)
+        toast.success('Contato atualizado!')
+        onClose()
+      } else {
+        const err = await res.json().catch(() => ({}))
+        toast.error(err.error || 'Erro ao atualizar contato')
+      }
+    } catch {
+      toast.error('Erro de conexão')
+    }
+  }
+
+  const inputCls = "w-full bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 outline-none focus:border-primary/40 transition-all"
+  const labelCls = "block text-[10px] font-bold text-white/30 uppercase tracking-widest mb-2"
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="relative w-full max-w-xl bg-[#0A0A0B] border border-white/[0.06] rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] scrollbar-thin"
+      >
+        <div className="flex items-center justify-between p-6 border-b border-white/[0.04]">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+              <Pencil className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-white">Editar Contato</h2>
+              <p className="text-[11px] text-white/30">{contact.nome}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/[0.02] border border-white/5 text-white/40 hover:text-white transition-all">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Nome *</label>
+              <input {...register('nome')} className={inputCls} placeholder="Nome completo" />
+              {errors.nome && <p className="text-red-400 text-[10px] mt-1">{errors.nome.message}</p>}
+            </div>
+            <div>
+              <label className={labelCls}>Empresa *</label>
+              <input {...register('empresa')} className={inputCls} placeholder="Nome da empresa" />
+              {errors.empresa && <p className="text-red-400 text-[10px] mt-1">{errors.empresa.message}</p>}
+            </div>
+            <div>
+              <label className={labelCls}>E-mail *</label>
+              <input {...register('email')} type="email" className={inputCls} placeholder="email@empresa.com" />
+              {errors.email && <p className="text-red-400 text-[10px] mt-1">{errors.email.message}</p>}
+            </div>
+            <div>
+              <label className={labelCls}>Telefone *</label>
+              <input {...register('telefone')} className={inputCls} placeholder="(11) 99999-9999" />
+              {errors.telefone && <p className="text-red-400 text-[10px] mt-1">{errors.telefone.message}</p>}
+            </div>
+            <div>
+              <label className={labelCls}>Cargo *</label>
+              <input {...register('cargo')} className={inputCls} placeholder="Ex: Diretor, CEO" />
+              {errors.cargo && <p className="text-red-400 text-[10px] mt-1">{errors.cargo.message}</p>}
+            </div>
+            <div>
+              <label className={labelCls}>Canal de origem *</label>
+              <select {...register('canal')} className={inputCls + ' cursor-pointer'}>
+                <option value="" className="bg-[#0a0a0b]">Selecione</option>
+                <option value="Instagram" className="bg-[#0a0a0b]">Instagram</option>
+                <option value="Site" className="bg-[#0a0a0b]">Site</option>
+                <option value="Indicação" className="bg-[#0a0a0b]">Indicação</option>
+                <option value="LinkedIn" className="bg-[#0a0a0b]">LinkedIn</option>
+                <option value="WhatsApp" className="bg-[#0a0a0b]">WhatsApp</option>
+              </select>
+              {errors.canal && <p className="text-red-400 text-[10px] mt-1">{errors.canal.message}</p>}
+            </div>
+          </div>
+
+          <div>
+            <label className={labelCls}>Tags</label>
+            <input {...register('tags')} className={inputCls} placeholder="Ex: vip, quente, indicação (separadas por vírgula)" />
+          </div>
+
+          <div>
+            <label className={labelCls}>Anotações</label>
+            <textarea {...register('notas')} className={inputCls + ' resize-none'} rows={3} placeholder="Observações, contexto, próximos passos..." />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl border border-white/10 text-sm font-bold text-white/40 hover:text-white transition-all">
+              Cancelar
+            </button>
+            <button type="submit" disabled={isSubmitting} className="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+              {isSubmitting ? <Activity className="w-4 h-4 animate-spin" /> : <Pencil className="w-4 h-4" />}
+              Atualizar Contato
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  )
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function CRMPage() {
@@ -300,6 +453,8 @@ export default function CRMPage() {
   const router = useRouter()
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isAddOpen, setIsAddOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [contactToEdit, setContactToEdit] = useState<Contact | null>(null)
   const [search, setSearch] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [activeFilter, setActiveFilter] = useState<FilterTab>('todos')
@@ -370,6 +525,26 @@ export default function CRMPage() {
   function openDetail(contact: Contact) {
     setSelectedContact(contact)
     setIsDetailOpen(true)
+  }
+
+  function openEdit(contact: Contact) {
+    setContactToEdit(contact)
+    setIsEditOpen(true)
+  }
+
+  async function handleDeleteContact(id: string) {
+    if (!confirm('Excluir este contato permanentemente? Esta ação não pode ser desfeita.')) return
+    try {
+      const res = await fetch(`/api/creator/crm/${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setContacts(prev => prev.filter(c => c.id !== id))
+        toast.success('Contato excluído!')
+      } else {
+        toast.error('Erro ao excluir contato')
+      }
+    } catch {
+      toast.error('Erro de conexão')
+    }
   }
 
   return (
@@ -484,8 +659,24 @@ export default function CRMPage() {
                         <div className="absolute inset-0 bg-white/[0.01] opacity-0 group-hover:opacity-100 transition-opacity" />
                         <div className="flex items-center justify-between mb-10">
                             <ContactAvatar name={contact.nome} size="lg" />
-                            <div className="px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/5 text-[9px] font-black text-white/20 uppercase tracking-widest italic group-hover:text-sidebar-primary group-hover:border-sidebar-primary/20 transition-all duration-700">
-                                {contact.status}
+                            <div className="flex items-center gap-2">
+                                <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                                    <button
+                                        onClick={e => { e.stopPropagation(); openEdit(contact) }}
+                                        className="w-8 h-8 rounded-xl bg-white/[0.03] border border-white/5 text-white/30 hover:text-primary hover:border-primary/30 transition-all flex items-center justify-center"
+                                    >
+                                        <Pencil className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                        onClick={e => { e.stopPropagation(); handleDeleteContact(contact.id) }}
+                                        className="w-8 h-8 rounded-xl bg-white/[0.03] border border-white/5 text-white/30 hover:text-red-400 hover:border-red-500/30 transition-all flex items-center justify-center"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                                <div className="px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/5 text-[9px] font-black text-white/20 uppercase tracking-widest italic group-hover:text-sidebar-primary group-hover:border-sidebar-primary/20 transition-all duration-700">
+                                    {contact.status}
+                                </div>
                             </div>
                         </div>
                         <div className="space-y-2 mb-8">
@@ -556,9 +747,23 @@ export default function CRMPage() {
                                         {contact.telefone || '—'}
                                     </td>
                                     <td className="px-6 py-4 text-center">
-                                        <button className="w-10 h-10 rounded-xl bg-background border border-border text-muted-foreground group-hover:text-sidebar-primary group-hover:border-sidebar-primary/40 group-hover:scale-110 transition-all duration-700 flex items-center justify-center mx-auto">
-                                            <ArrowUpRight className="w-5 h-5" />
-                                        </button>
+                                        <div className="flex items-center justify-center gap-2" onClick={e => e.stopPropagation()}>
+                                            <button
+                                                onClick={e => { e.stopPropagation(); openEdit(contact) }}
+                                                className="w-9 h-9 rounded-xl bg-background border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition-all duration-300 flex items-center justify-center"
+                                            >
+                                                <Pencil className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={e => { e.stopPropagation(); handleDeleteContact(contact.id) }}
+                                                className="w-9 h-9 rounded-xl bg-background border border-border text-muted-foreground hover:text-red-400 hover:border-red-500/40 transition-all duration-300 flex items-center justify-center"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                            <button className="w-9 h-9 rounded-xl bg-background border border-border text-muted-foreground group-hover:text-sidebar-primary group-hover:border-sidebar-primary/40 group-hover:scale-110 transition-all duration-700 flex items-center justify-center">
+                                                <ArrowUpRight className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </td>
                                 </motion.tr>
                             ))}
@@ -572,13 +777,20 @@ export default function CRMPage() {
       {/* Modals */}
       <AnimatePresence>
         {isAddOpen && <AddContactModal onClose={() => setIsAddOpen(false)} onAdd={(c) => { setContacts([c, ...contacts]); setIsAddOpen(false); toast.success('Contato sincronizado.'); }} />}
+        {isEditOpen && contactToEdit && (
+          <EditContactModal
+            contact={contactToEdit}
+            onClose={() => { setIsEditOpen(false); setContactToEdit(null) }}
+            onUpdate={(updated) => { setContacts(prev => prev.map(c => c.id === updated.id ? updated : c)); setIsEditOpen(false); setContactToEdit(null) }}
+          />
+        )}
         {/* isScrapeOpen && <ScrapeLeadsModal onClose={() => setIsScrapeOpen(false)} onProspected={() => fetchContacts()} /> */}
         {isDetailOpen && selectedContact && (
           <LeadDetailModal
             contact={selectedContact}
             onClose={() => setIsDetailOpen(false)}
             onUpdate={(u) => { setContacts(prev => prev.map(c => c.id === u.id ? u : c)); setSelectedContact(u); }}
-            onDelete={(id) => { setContacts(prev => prev.filter(c => c.id !== id)); setIsDetailOpen(false); }}
+            onDelete={(id) => { handleDeleteContact(id); setIsDetailOpen(false); }}
           />
         )}
       </AnimatePresence>

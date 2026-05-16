@@ -27,9 +27,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     const userId = (session.user as any).id
 
     const data = await req.json()
-    const { 
+    const {
       status_funil, notas, tags, activity,
-      cidade, estado, endereco, site, nicho, cnpj
+      cidade, estado, endereco, site, nicho, cnpj,
+      nome, email, telefone, empresa, cargo, canal_origem
     } = data
 
     // Se houver uma nova atividade para registrar
@@ -49,8 +50,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       updated = await prisma.contato.update({
         where: { id: params.id, user_id: userId },
         data: {
+          ...(nome !== undefined && { nome }),
+          ...(email !== undefined && { email }),
+          ...(telefone !== undefined && { telefone }),
+          ...(empresa !== undefined && { empresa }),
+          ...(cargo !== undefined && { cargo }),
+          ...(canal_origem !== undefined && { canal_origem }),
           status_funil: status_funil || undefined,
-          notas: notas || undefined,
+          notas: notas !== undefined ? notas : undefined,
           tags: tags || undefined,
           cidade: cidade !== undefined ? cidade : undefined,
           estado: estado !== undefined ? estado : undefined,
@@ -67,8 +74,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       updated = await prisma.contato.update({
         where: { id: params.id, user_id: userId },
         data: {
+          ...(nome !== undefined && { nome }),
+          ...(email !== undefined && { email }),
+          ...(telefone !== undefined && { telefone }),
+          ...(empresa !== undefined && { empresa }),
+          ...(cargo !== undefined && { cargo }),
+          ...(canal_origem !== undefined && { canal_origem }),
           status_funil: status_funil || undefined,
-          notas: notas || undefined,
+          notas: notas !== undefined ? notas : undefined,
           tags: tags || undefined,
           updated_at: new Date(),
         },

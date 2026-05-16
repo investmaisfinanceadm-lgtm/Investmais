@@ -151,6 +151,7 @@ const KanbanCardItem = memo(({
   isDragDisabled,
   vendedores,
   onUpdateVendedor,
+  onRefreshBoard,
 }: {
   card: KanbanCard
   onClick: () => void
@@ -161,8 +162,52 @@ const KanbanCardItem = memo(({
   isDragDisabled?: boolean
   vendedores?: Vendor[]
   onUpdateVendedor?: (cardId: string, vendedorId: string) => void
+  onRefreshBoard?: () => void
 }) => {
   const isEmerald = card.category === 'LEAD AP'
+  const [showMenu, setShowMenu] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!showMenu) return
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showMenu])
+
+  const handleMenuAction = async (action: 'won' | 'lost' | 'edit' | 'delete') => {
+    setShowMenu(false)
+    if (action === 'edit') { onClick(); return }
+    if (action === 'won') {
+      if (!confirm('Marcar este deal como GANHO?')) return
+      await fetch(`/api/creator/pipeline/cards/${card.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'won', fechado_em: new Date().toISOString() }),
+      })
+      toast.success('Deal ganho!')
+      onRefreshBoard?.()
+    } else if (action === 'lost') {
+      const reason = prompt('Motivo da perda?')
+      if (!reason) return
+      await fetch(`/api/creator/pipeline/cards/${card.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'lost', lost_reason: reason, fechado_em: new Date().toISOString() }),
+      })
+      toast.success('Deal perdido')
+      onRefreshBoard?.()
+    } else if (action === 'delete') {
+      if (!confirm('Arquivar este deal? Ele poderá ser restaurado depois.')) return
+      await fetch(`/api/creator/pipeline/cards/${card.id}`, { method: 'DELETE' })
+      toast.success('Deal arquivado!')
+      onRefreshBoard?.()
+    }
+  }
 
   const handleClick = () => {
     if (isSelectMode) { onToggleSelect(card.id); return }
@@ -206,9 +251,43 @@ const KanbanCardItem = memo(({
               <h3 className="text-sm font-bold text-foreground leading-tight truncate">{card.title}</h3>
             </div>
             {!isSelectMode && (
-              <button onClick={e => e.stopPropagation()} className="flex-shrink-0 text-muted-foreground/20 hover:text-muted-foreground/60 transition-colors">
-                <MoreHorizontal className="w-4 h-4" />
-              </button>
+              <div ref={menuRef} className="relative flex-shrink-0" onClick={e => e.stopPropagation()}>
+                <button
+                  onClick={e => { e.stopPropagation(); setShowMenu(v => !v) }}
+                  className="text-muted-foreground/20 hover:text-muted-foreground/60 transition-colors p-0.5"
+                >
+                  <MoreHorizontal className="w-4 h-4" />
+                </button>
+                {showMenu && (
+                  <div className="absolute right-0 top-6 w-44 bg-[#111113] border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
+                    <button
+                      onClick={() => handleMenuAction('won')}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-xs font-bold text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Ganho
+                    </button>
+                    <button
+                      onClick={() => handleMenuAction('lost')}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-xs font-bold text-red-400 hover:bg-red-500/10 transition-colors"
+                    >
+                      <XCircle className="w-3.5 h-3.5" /> Perdido
+                    </button>
+                    <div className="h-px bg-white/5 mx-2" />
+                    <button
+                      onClick={() => handleMenuAction('edit')}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-xs font-bold text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+                    >
+                      <Pencil className="w-3.5 h-3.5" /> Editar
+                    </button>
+                    <button
+                      onClick={() => handleMenuAction('delete')}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-xs font-bold text-red-400 hover:bg-red-500/10 transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Excluir
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -289,6 +368,7 @@ function KanbanColumnComponent({
   vendedores,
   onUpdateVendedor,
   onNewCardClick,
+  onRefreshBoard,
 }: {
   column: KanbanColumn
   onCardClick: (card: KanbanCard) => void
@@ -299,6 +379,7 @@ function KanbanColumnComponent({
   vendedores?: Vendor[]
   onUpdateVendedor?: (cardId: string, vendedorId: string) => void
   onNewCardClick?: (columnId: string) => void
+  onRefreshBoard?: () => void
 }) {
   const totalValue = (column.cards || []).reduce((sum, c) => sum + (c.value || 0), 0)
 
@@ -343,6 +424,7 @@ function KanbanColumnComponent({
                   isDragDisabled={isDragDisabled}
                   vendedores={vendedores}
                   onUpdateVendedor={onUpdateVendedor}
+                  onRefreshBoard={onRefreshBoard}
                 />
               ))}
             </AnimatePresence>
@@ -1984,6 +2066,7 @@ export default function PipelinePage() {
                   vendedores={vendedores}
                   onUpdateVendedor={handleUpdateVendedorOnCard}
                   onNewCardClick={(colId) => { setCreateDealColumnId(colId); setShowCreateDeal(true) }}
+                  onRefreshBoard={() => loadPipeline(currentBoardId || undefined)}
                 />
               ))}
             </div>
