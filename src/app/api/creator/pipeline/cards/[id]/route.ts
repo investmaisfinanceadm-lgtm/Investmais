@@ -96,13 +96,28 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     const { searchParams } = new URL(req.url)
     const permanent = searchParams.get('permanent') === 'true'
 
+    // Verify ownership separately to avoid Prisma nested-filter issues in delete/update
+    const deal = await prisma.deal.findFirst({
+      where: { id: params.id, stage: { pipeline: { user_id: userId } } },
+      select: { id: true },
+    })
+
+    if (!deal) {
+      return NextResponse.json({ error: 'Deal não encontrado' }, { status: 404 })
+    }
+
     if (permanent) {
-      await prisma.deal.delete({
-        where: { id: params.id, stage: { pipeline: { user_id: userId } } },
-      })
+      // Explicitly null-out activities before deleting to ensure FK safety
+      await prisma.$transaction([
+        prisma.atividadeCRM.updateMany({
+          where: { deal_id: params.id },
+          data: { deal_id: null },
+        }),
+        prisma.deal.delete({ where: { id: params.id } }),
+      ])
     } else {
       await prisma.deal.update({
-        where: { id: params.id, stage: { pipeline: { user_id: userId } } },
+        where: { id: params.id },
         data: { deleted_at: new Date() },
       })
     }
