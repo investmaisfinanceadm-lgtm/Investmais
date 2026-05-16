@@ -276,6 +276,7 @@ const KanbanCardItem = memo(({
   vendedores,
   onUpdateVendedor,
   onRefreshBoard,
+  onDeleteDeal,
 }: {
   card: KanbanCard
   onClick: () => void
@@ -287,10 +288,10 @@ const KanbanCardItem = memo(({
   vendedores?: Vendor[]
   onUpdateVendedor?: (cardId: string, vendedorId: string) => void
   onRefreshBoard?: () => void
+  onDeleteDeal?: (id: string, title: string) => void
 }) => {
   const isEmerald = card.category === 'LEAD AP'
   const [showMenu, setShowMenu] = useState(false)
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -327,7 +328,7 @@ const KanbanCardItem = memo(({
       toast.success('Deal perdido')
       onRefreshBoard?.()
     } else if (action === 'delete') {
-      setShowDeleteModal(true)
+      onDeleteDeal?.(card.id, card.title)
     }
   }
 
@@ -337,7 +338,6 @@ const KanbanCardItem = memo(({
   }
 
   return (
-    <>
     <Draggable draggableId={card.id} index={index} isDragDisabled={isDragDisabled}>
       {(provided, snapshot) => (
         <div
@@ -476,17 +476,6 @@ const KanbanCardItem = memo(({
         </div>
       )}
     </Draggable>
-    <AnimatePresence>
-      {showDeleteModal && (
-        <DeleteDealModal
-          dealId={card.id}
-          dealTitle={card.title}
-          onClose={() => setShowDeleteModal(false)}
-          onDeleted={() => { setShowDeleteModal(false); onRefreshBoard?.() }}
-        />
-      )}
-    </AnimatePresence>
-    </>
   )
 })
 
@@ -503,6 +492,7 @@ function KanbanColumnComponent({
   onUpdateVendedor,
   onNewCardClick,
   onRefreshBoard,
+  onDeleteDeal,
 }: {
   column: KanbanColumn
   onCardClick: (card: KanbanCard) => void
@@ -514,6 +504,7 @@ function KanbanColumnComponent({
   onUpdateVendedor?: (cardId: string, vendedorId: string) => void
   onNewCardClick?: (columnId: string) => void
   onRefreshBoard?: () => void
+  onDeleteDeal?: (id: string, title: string) => void
 }) {
   const totalValue = (column.cards || []).reduce((sum, c) => sum + (c.value || 0), 0)
 
@@ -559,6 +550,7 @@ function KanbanColumnComponent({
                   vendedores={vendedores}
                   onUpdateVendedor={onUpdateVendedor}
                   onRefreshBoard={onRefreshBoard}
+                  onDeleteDeal={onDeleteDeal}
                 />
               ))}
             </AnimatePresence>
@@ -1870,6 +1862,9 @@ export default function PipelinePage() {
   // Vendors
   const [vendedores, setVendedores] = useState<Vendor[]>([])
 
+  // Delete deal modal (lifted from KanbanCardItem to avoid empty dealId bug)
+  const [deletingDeal, setDeletingDeal] = useState<{ id: string; title: string } | null>(null)
+
   // New modals
   const [showCreateDeal, setShowCreateDeal] = useState(false)
   const [createDealColumnId, setCreateDealColumnId] = useState<string | undefined>(undefined)
@@ -2214,6 +2209,7 @@ export default function PipelinePage() {
                   onUpdateVendedor={handleUpdateVendedorOnCard}
                   onNewCardClick={(colId) => { setCreateDealColumnId(colId); setShowCreateDeal(true) }}
                   onRefreshBoard={() => loadPipeline(currentBoardId || undefined)}
+                  onDeleteDeal={(id, title) => setDeletingDeal({ id, title })}
                 />
               ))}
             </div>
@@ -2289,6 +2285,21 @@ export default function PipelinePage() {
             currentBoardId={currentBoardId}
             onClose={() => setShowPipelineMgmt(false)}
             onBoardChange={(id) => { loadPipeline(id); setShowPipelineMgmt(false) }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Delete Deal Modal — rendered at page level so dealId is always stable */}
+      <AnimatePresence>
+        {deletingDeal && (
+          <DeleteDealModal
+            dealId={deletingDeal.id}
+            dealTitle={deletingDeal.title}
+            onClose={() => setDeletingDeal(null)}
+            onDeleted={() => {
+              setDeletingDeal(null)
+              loadPipeline(currentBoardId || undefined)
+            }}
           />
         )}
       </AnimatePresence>
