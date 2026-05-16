@@ -139,6 +139,130 @@ const TIPO_ACTIVITY: Record<string, { label: string; color: string; bg: string; 
   task:    { label: 'Tarefa',   color: 'text-amber-400',   bg: 'bg-amber-500/10',   border: 'border-amber-500/20',   Icon: CheckCircle2 },
 }
 
+// ─── Delete Deal Modal ────────────────────────────────────────────────────────
+
+function DeleteDealModal({
+  dealId,
+  dealTitle,
+  onClose,
+  onDeleted,
+}: {
+  dealId: string
+  dealTitle: string
+  onClose: () => void
+  onDeleted: () => void
+}) {
+  const [isLoading, setIsLoading] = useState<'archive' | 'permanent' | null>(null)
+
+  const handleArchive = async () => {
+    setIsLoading('archive')
+    try {
+      const res = await fetch(`/api/creator/pipeline/cards/${dealId}`, { method: 'DELETE' })
+      if (res.ok) {
+        toast.success('Deal arquivado. Você pode restaurá-lo em Deals Arquivados.')
+        onDeleted()
+      } else {
+        toast.error('Erro ao arquivar deal')
+      }
+    } finally {
+      setIsLoading(null)
+    }
+  }
+
+  const handlePermanent = async () => {
+    setIsLoading('permanent')
+    try {
+      const res = await fetch(`/api/creator/pipeline/cards/${dealId}?permanent=true`, { method: 'DELETE' })
+      if (res.ok) {
+        toast.success('Deal excluído permanentemente')
+        onDeleted()
+      } else {
+        toast.error('Erro ao excluir deal')
+      }
+    } finally {
+      setIsLoading(null)
+    }
+  }
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[80]"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 z-[90] flex items-center justify-center p-4"
+      >
+        <div className="w-full max-w-sm bg-[#0A0A0B] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+          <div className="p-6 border-b border-white/[0.04]">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-5 h-5 text-red-400" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-sm font-bold text-white mb-1">Remover Deal</h2>
+                <p className="text-xs text-white/40 leading-relaxed truncate">
+                  <span className="text-white/60 font-medium">{dealTitle}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="p-4 space-y-2">
+            <button
+              onClick={handleArchive}
+              disabled={!!isLoading}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-white/10 transition-all disabled:opacity-50 group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
+                {isLoading === 'archive'
+                  ? <Loader2 className="w-4 h-4 text-amber-400 animate-spin" />
+                  : <Archive className="w-4 h-4 text-amber-400" />
+                }
+              </div>
+              <div className="text-left">
+                <p className="text-xs font-bold text-white/80 group-hover:text-white">Arquivar</p>
+                <p className="text-[10px] text-white/30">Pode ser restaurado depois em Deals Arquivados</p>
+              </div>
+            </button>
+            <button
+              onClick={handlePermanent}
+              disabled={!!isLoading}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-red-500/5 hover:border-red-500/20 transition-all disabled:opacity-50 group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center flex-shrink-0">
+                {isLoading === 'permanent'
+                  ? <Loader2 className="w-4 h-4 text-red-400 animate-spin" />
+                  : <Trash2 className="w-4 h-4 text-red-400" />
+                }
+              </div>
+              <div className="text-left">
+                <p className="text-xs font-bold text-red-400 group-hover:text-red-300">Excluir permanentemente</p>
+                <p className="text-[10px] text-white/30">Ação irreversível — não poderá ser desfeita</p>
+              </div>
+            </button>
+          </div>
+          <div className="px-4 pb-4">
+            <button
+              onClick={onClose}
+              disabled={!!isLoading}
+              className="w-full py-2.5 rounded-xl border border-white/5 text-white/30 text-xs font-bold hover:text-white/60 transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </>
+  )
+}
+
 // ─── Card Component ───────────────────────────────────────────────────────────
 
 const KanbanCardItem = memo(({
@@ -166,6 +290,7 @@ const KanbanCardItem = memo(({
 }) => {
   const isEmerald = card.category === 'LEAD AP'
   const [showMenu, setShowMenu] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -202,10 +327,7 @@ const KanbanCardItem = memo(({
       toast.success('Deal perdido')
       onRefreshBoard?.()
     } else if (action === 'delete') {
-      if (!confirm('Arquivar este deal? Ele poderá ser restaurado depois.')) return
-      await fetch(`/api/creator/pipeline/cards/${card.id}`, { method: 'DELETE' })
-      toast.success('Deal arquivado!')
-      onRefreshBoard?.()
+      setShowDeleteModal(true)
     }
   }
 
@@ -215,6 +337,7 @@ const KanbanCardItem = memo(({
   }
 
   return (
+    <>
     <Draggable draggableId={card.id} index={index} isDragDisabled={isDragDisabled}>
       {(provided, snapshot) => (
         <div
@@ -353,6 +476,17 @@ const KanbanCardItem = memo(({
         </div>
       )}
     </Draggable>
+    <AnimatePresence>
+      {showDeleteModal && (
+        <DeleteDealModal
+          dealId={card.id}
+          dealTitle={card.title}
+          onClose={() => setShowDeleteModal(false)}
+          onDeleted={() => { setShowDeleteModal(false); onRefreshBoard?.() }}
+        />
+      )}
+    </AnimatePresence>
+    </>
   )
 })
 
@@ -748,6 +882,7 @@ function CardDetailModal({
   const [editedAnotacoes, setEditedAnotacoes] = useState(card.anotacoes || '')
   const [isSavingNotes, setIsSavingNotes] = useState(false)
   const [isUpdatingDeal, setIsUpdatingDeal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const PRIORITY_CFG: Record<string, { label: string; color: string; bg: string; border: string; dot: string }> = {
     alta:  { label: 'Alta',  color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', dot: 'bg-emerald-500' },
@@ -873,14 +1008,10 @@ function CardDetailModal({
     onClose()
   }
 
-  const handleDeleteDeal = async () => {
-    if (!confirm('Deseja arquivar este deal? Ele poderá ser restaurado depois.')) return
-    const res = await fetch(`/api/creator/pipeline/cards/${card.id}`, { method: 'DELETE' })
-    if (res.ok) {
-      toast.success('Deal arquivado!')
-      onClose()
-      if (onUpdate) onUpdate()
-    }
+  const handleDealDeleted = () => {
+    setShowDeleteModal(false)
+    onClose()
+    if (onUpdate) onUpdate()
   }
 
   const currentColumn = columns.find(c => c.id === card.columnId)
@@ -1310,8 +1441,8 @@ function CardDetailModal({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-border/40 bg-background/80 backdrop-blur-md">
-          <div className="flex items-center gap-2">
+        <div className="p-6 border-t border-border/40 bg-background/80 backdrop-blur-md space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
             {card.linkedContact?.phone && (
               <a
                 href={`https://wa.me/55${card.linkedContact.phone.replace(/\D/g, '')}`}
@@ -1323,24 +1454,40 @@ function CardDetailModal({
               </a>
             )}
           </div>
-          <div className="flex items-center gap-3">
-            <button 
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
               onClick={() => handleSetStatus('won')}
               disabled={isUpdatingDeal}
               className="px-6 py-2.5 rounded-xl border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/10 text-xs font-bold flex items-center gap-2 transition-all disabled:opacity-50"
             >
               <CheckCircle2 className="w-4 h-4" /> Ganho
             </button>
-            <button 
+            <button
               onClick={() => handleSetStatus('lost')}
               disabled={isUpdatingDeal}
               className="px-6 py-2.5 rounded-xl border border-red-500/20 text-red-500 hover:bg-red-500/10 text-xs font-bold flex items-center gap-2 transition-all disabled:opacity-50"
             >
               <X className="w-4 h-4" /> Perdido
             </button>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="ml-auto px-4 py-2.5 rounded-xl border border-white/5 text-white/30 hover:text-red-400 hover:border-red-500/20 hover:bg-red-500/5 text-xs font-bold flex items-center gap-2 transition-all"
+            >
+              <Trash2 className="w-4 h-4" /> Excluir
+            </button>
           </div>
         </div>
       </motion.div>
+      <AnimatePresence>
+        {showDeleteModal && (
+          <DeleteDealModal
+            dealId={card.id}
+            dealTitle={card.title}
+            onClose={() => setShowDeleteModal(false)}
+            onDeleted={handleDealDeleted}
+          />
+        )}
+      </AnimatePresence>
     </>
   )
 }
