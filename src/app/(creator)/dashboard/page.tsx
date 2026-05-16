@@ -35,6 +35,8 @@ interface UserStats {
     leadsHoje: number
     totalFaturamento: number
     totalWon: number
+    openDealsCount: number
+    pipelineTotal: number
     ticketMedio: number
     taxaConversao: number
     contatosRecentes: DashboardContact[]
@@ -261,10 +263,10 @@ export default function DashboardPage() {
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: 'Total de Contatos', value: stats?.totalLeads || 0, icon: Users, change: '+12%', color: 'text-primary' },
-                    { label: 'Deals Abertos', value: stats?.totalWon || 0, icon: Target, change: 'R$ 1.405.000 em pipeline', color: 'text-primary' },
-                    { label: 'Taxa de Conversão', value: `${(stats?.taxaConversao || 0).toFixed(0)}%`, icon: TrendingUp, change: '1 ganhos / 5 perdidos', color: 'text-primary' },
-                    { label: 'Receita Fechada', value: formatBRL(stats?.totalFaturamento || 0), icon: DollarSign, change: '+8%', color: 'text-emerald-500' },
+                    { label: 'Total de Contatos', value: stats?.totalLeads || 0, icon: Users, change: `+${stats?.leadsHoje || 0} hoje`, color: 'text-primary' },
+                    { label: 'Deals Abertos', value: stats?.openDealsCount || 0, icon: Target, change: `${formatBRL(stats?.pipelineTotal || 0)} em pipeline`, color: 'text-primary' },
+                    { label: 'Taxa de Conversão', value: `${(stats?.taxaConversao || 0).toFixed(1)}%`, icon: TrendingUp, change: `${stats?.totalWon || 0} ganhos no total`, color: 'text-primary' },
+                    { label: 'Receita Fechada', value: formatBRL(stats?.totalFaturamento || 0), icon: DollarSign, change: `ticket médio ${formatBRL(stats?.ticketMedio || 0)}`, color: 'text-emerald-500' },
                 ].map((card, i) => (
                     <div key={i} className="bg-card/40 border border-border rounded-2xl p-5 space-y-3 hover:bg-card/60 transition-all group shadow-sm">
                         <div className="flex items-center justify-between">
@@ -276,8 +278,8 @@ export default function DashboardPage() {
                         <div className="space-y-0.5">
                             <h3 className="text-2xl font-bold tracking-tight">{isLoading ? '...' : card.value}</h3>
                             <div className="flex items-center gap-2">
-                                <span className={cn("text-[10px] font-bold", card.change.includes('+') ? card.color : 'text-muted-foreground')}>
-                                    {card.change.includes('+') && '↗ '} {card.change}
+                                <span className="text-[10px] font-medium text-muted-foreground">
+                                    {card.change}
                                 </span>
                             </div>
                         </div>
@@ -373,7 +375,7 @@ export default function DashboardPage() {
                         <div className="grid grid-cols-2 gap-4">
                             {[
                                 { label: 'Leads Rastreados', value: stats?.totalLeads || 0, icon: Users },
-                                { label: 'Deals Ganhos', value: stats?.totalWon || 0, icon: Target },
+                                { label: 'Deals Abertos', value: stats?.openDealsCount || 0, icon: Target },
                                 { label: 'Conversão', value: `${(stats?.taxaConversao || 0).toFixed(1)}%`, icon: TrendingUp },
                                 { label: 'Receita', value: formatBRL(stats?.totalFaturamento || 0), icon: DollarSign },
                             ].map((item, i) => (
